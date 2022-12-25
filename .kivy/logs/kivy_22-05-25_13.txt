@@ -1,0 +1,241 @@
+[INFO   ] Logger: Record log in /storage/emulated/0/python /kivy/desoliscious/.kivy/logs/kivy_22-05-25_13.txt
+[INFO   ] Kivy: v2.0.0
+[INFO   ] Kivy: Installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/__init__.py"
+[INFO   ] Python: v3.9.7 (default, Oct  6 2021, 01:34:26) 
+[GCC 11.1.0]
+[INFO   ] Python: Interpreter at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python3"
+[INFO   ] KivyMD: 0.104.2, git-bc7d1f5, 2021-06-06 (installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/__init__.py")
+[INFO   ] Factory: 186 symbols loaded
+[INFO   ] Image: Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+[INFO   ] Text: Provider: sdl2
+[INFO   ] Window: Provider: sdl2
+[INFO   ] GL: Using the "OpenGL ES 2" graphics system
+[INFO   ] GL: Backend used <sdl2>
+[INFO   ] GL: OpenGL version <b'OpenGL ES 3.2 V@415.0 (GIT@85037b7, I6e8b82193e, 1576796982) (Date:12/19/19)'>
+[INFO   ] GL: OpenGL vendor <b'Qualcomm'>
+[INFO   ] GL: OpenGL renderer <b'Adreno (TM) 610'>
+[INFO   ] GL: OpenGL parsed version: 3, 2
+[INFO   ] GL: Texture max size <16384>
+[INFO   ] GL: Texture max units <16>
+[INFO   ] Window: auto add sdl2 input provider
+[INFO   ] Window: virtual keyboard not allowed, single mode, not docked
+[INFO   ] GL: NPOT texture support is available
+[WARNING] Base: Unknown <android> provider
+[INFO   ] Base: Start application main loop
+[INFO   ] Loader: using a thread pool of 2 workers
+[ERROR  ] AsyncImage: Not found <The second ever BitClout NFT showcase is finally here, featuring work from over 300 BitClout creators! What will you buy?
+
+bitclout.com/browse?feedTab=%E2%9A%A1%20NFT%20Showcase%20%E2%9A%A1>
+[ERROR  ] AsyncImage: Not found <Notifications are re-indexing so new notifications may not show up for the next hour. Sorry about that everyone!>
+[ERROR  ] AsyncImage: Not found <We believe all images, including images from the very beginning, should be restored shortly :)>
+[ERROR  ] AsyncImage: Not found <Greetings Deso 🧤🧤🧤
+Looking to sell the dildao to someone who can really honor the responsibility of such a DAO name>
+[ERROR  ] AsyncImage: Not found <NextMoon: a Metaverse bringing the Real Surface of the Moon to the Digital World
+
+The NextMoon project will offer its users a simulation inside the metaverse based on the real mapping of the moon, allowing its exploration or even acquiring NFT land on it.
+
+https://www.geekmetaverse.com/nextmoon-a-metaverse-bringing-the-real-surface-of-the-moon-to-the-digital-world/
+
+>
+[ERROR  ] AsyncImage: Not found <BE about the Creator economy and join the new HOT @supernovas  DAO! 🚀
+
+Join here:https://beta.daodao.io/d/supernovas?invite=NRoHBppx
+
+The decentralized NFT social network for Web3. Live now – https://supernovas.app/ 🌈 Discord: https://discord.gg/UwaAz2nnQk By @fransarthur & @maensivu
+
+
+#DESO #DAO #NFT
+
+>
+[ERROR  ] AsyncImage: Not found <#InOtherNews
+not #DaoDao not #DeSo
+
+"The UK has too many brain surgeons"
+
+🤷‍♂️👀
+
+
+https://qz.com/work/2168589/the-uk-has-too-many-brain-surgeons/
+>
+[ERROR  ] AsyncImage: Not found <Like taking candy from a baby...>
+[ERROR  ] AsyncImage: Not found <💎 @vampirecampfire joined Vibehut.io #vibehutlobby>
+[ERROR  ] AsyncImage: Not found <Amazing! 😮>
+[ERROR  ] AsyncImage: Not found <Its either easy or impossible. Do both!
+
+With this community, the latter seems not so difficult ;)
+
+Join me on a journey in building the future we all dream about 🚀
+
+https://beta.daodao.io/d/kanshi?invite=7Szj9Nyw>
+[ERROR  ] AsyncImage: Not found <Hello world.🌍
+21:10 pm GMT-3
+
+And the phrase of the day is:
+
+Eye for an eye.
+Tooth for tooth.🤨
+💚🇧🇷>
+[ERROR  ] AsyncImage: Not found <Lets go !!! @DAODAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <#InOtherNews
+not #DaoDao not #DeSo
+
+"Jack Dorsey steps down from Twitter’s board"
+
+"Former Twitter CEO Jack Dorsey’s time at the company has come to an end. Dorsey stepped down from Twitter’s board of directors Wednesday, a change that’s effective as of the company’s shareholders meeting."
+
+https://techcrunch.com/2022/05/25/jack-dorsey-leaves-twitter-board/>
+[ERROR  ] AsyncImage: Not found <Once we raise the funds I will be making a @DAODAO song that will be on my "New Kids On The Blockchain" album!!! 👀
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Just so happens that @DAODAO porn is my favorite kind of porn.. >
+[ERROR  ] AsyncImage: Not found <DAODAO is the perfect platform for us, let's cause a change in people's lives. every dollar counts! Please share.
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <This actually reminds me of the early days of Clout when there were cool kids and everyone else. 
+
+I guess I’m “everyone else” now, missing out on the hottest new toy in town. >
+[ERROR  ] AsyncImage: Not found <Nailed it @daodao
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <#InOtherNews
+not #DaoDao not #DeSo
+
+"Giant Magnetic Waves Have Been Discovered Oscillating Around Earth's Core"
+
+"Now scientists studying satellite data of Earth have identified something inside Earth we've never seen before: a new type of magnetic wave that sweeps around the surface of our planet's core, every seven years.
+
+This discovery could offer insight into how Earth's magnetic field is generated, and provide clues of our planet's thermal history and evolution – that is, the gradual cooling of the planetary interior."
+
+#Science #Space
+
+https://www.sciencealert.com/giant-magnetic-waves-have-been-discovered-oscillating-around-earth-s-core>
+[ERROR  ] AsyncImage: Not found <Get in on the $PBMC DAO here!!!👇https://beta.daodao.io/d/PBMC?invite=M21gZocn
+
+Ran by no other than @clayoglesby 
+
+🤑  Poor Boomer Millennial Club - An exclusive club for the poorest boomer millennials on the blockchain.
+
+#DESO #DAO>
+[ERROR  ] AsyncImage: Not found <This guy gets it!!!>
+[ERROR  ] AsyncImage: Not found <Thank you all that attended our @DAODAO release party today. 
+
+We will be sending .01 FunDAO coins for your attendance!
+
+#FunDAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Are topics of interest supported yet on DeSo? 
+
+Maybe I missed this update, but its hard to find and follow topics I'm looking for on any DeSo platform. Or even any algorithmic feeds based off posts you like?
+
+FYI, I predominantly use @diamond on desktop and @desofy on mobile>
+[ERROR  ] AsyncImage: Not found <All holders should receive new DAO coins. Please comment if you havent received your coins!
+
+#FunDAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <I hope DaoDao forks in notifications everytime your frens clout(post) I want to see all the people I follows notifications all the time is that so hard? 😅>
+[ERROR  ] AsyncImage: Not found <Hmmmm. All my notifications are gone?!>
+[ERROR  ] AsyncImage: Not found <This is gonna change everything...
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Nobody knows, that's why it's awesome! >
+[ERROR  ] AsyncImage: Not found <💯>
+[ERROR  ] AsyncImage: Not found <Where is the happiness that everyone is searching for ? #stoicism >
+[ERROR  ] AsyncImage: Not found <Good >
+[ERROR  ] AsyncImage: Not found <Y’all wtf am I supposed to be doing on this thing?
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <The crypto business cycle is to follow the doughnut! 
+https://medium.com/@xuanling11/crypto-vc-thoughts-crypto-business-cycle-2-682526e698d0?sk=5bdabe14274a3663ae1886cd0b2475ec
+>
+[ERROR  ] AsyncImage: Not found <#InOtherNews
+not #DaoDao not #DeSo
+
+"Forgotten Ruins of 'Monumental' Amazonian Settlements Discovered in Bolivian Jungle"
+
+"The Casarabe people also built moats and ramparts to defend these central settlements, and massive water-control systems designed to cultivate food surpluses that, the archaeologists deduce, could support a large Casarabe population.
+
+The layout and scale of the interconnected settlements also suggest that the Casarabe people of northern Bolivia had created a social and public landscape comparable to that of more familiar Andean cultures."
+
+https://www.sciencealert.com/ruins-of-monumental-settlements-uncovered-in-bolivian-jungle
+
+LIDAR scans of Cotoca show ceremonial structures and radial causeways. (Prümers et al., Nature, 2022)>
+[ERROR  ] AsyncImage: Not found <My sweet children. Hopefully we’ll all hold people close right now and tell them how much they are loved. ❤️>
+[ERROR  ] AsyncImage: Not found <Not sure what’s up but I can only see my last notification, but this is nice to look at @Yuichi!>
+[ERROR  ] AsyncImage: Not found <To the man in wheelchair who stole my camouflage jacket:
+You can hide, but you can't run!!!>
+[ERROR  ] AsyncImage: Not found <So this is the next frontier it seems.. Time to learn..
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Good >
+[ERROR  ] AsyncImage: Not found <Love seeing all the posts from @daodao !
+
+Posted via @cloutfeed>
+[ERROR  ] AsyncImage: Not found <#QuintaAsPimentinhasSDV 
+#QuintaHeroisDoSDV>
+[ERROR  ] AsyncImage: Not found <It's pretty fun to watch the DAOs that people are launching only a couple hours into the @DAODAO beta.
+
+If you have access, try sorting by "Total Raised" and "Created":
+beta.daodao.io/discover>
+[ERROR  ] AsyncImage: Not found <(D,D) lookin slick 💎
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <The Metazens Solana portal is, once again, open for DeSo hodlers of Metazens.  Come on over to:
+
+https://mint.metazensnft.com/
+
+Lets bring some more Metazens through the portal.  
+
+As you may know,  the story of the Metazens is one of freedom, creativity, and diversity.  They were originally created as AI surveillance entities by MegaCørp... a cold corporation seeking world domination.    But the mysterious DiamondEyes freed them from corporate oppression.  
+
+The Metazens were free to roam the Metaverse, but not safe from MegaCørp who seeks to re-capture them.   Only when they are written to the blockchain are they safe.  
+
+500 were saved through the DeSo portal.
+
+Now DiamondEyes has built a portal to Solana, where a larger community of humans are working to save the rest of the Metazens.  
+
+Visit https://mint.metazensnft.com/ to #saveTheMetazens today.
+
+
+@MetazensNFT @MetazensDAO #metazens #DAO #daodao>
+[ERROR  ] AsyncImage: Not found <Thank you @DanielWilson for your generous contribution!!! Although I have no idea what is going on.. 🤣🤣
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <This is a must buy.
+https://beta.daodao.io/d/kanshi?invite=53RLmVTr>
+[ERROR  ] AsyncImage: Not found <"They told you that the sky's the limit, then they turn around and tell you that there's footprints on the moon..."
+
+>
+[ERROR  ] AsyncImage: Not found <🤣🤣🤣🤣>
+[ERROR  ] AsyncImage: Not found <Trying to wrap my EMBA head around this.
+
+Findings 
+
+A. Octane fund grants are announced
+B. Development teams apply for a grant
+C. Projects were selected and notified 
+D. Selected projects awarded X amount 
+E. 50% now and 50% at a future date 
+F. Teams made decisions on full grant $$
+G. First half grant dispersed to teams
+H. Second half grant never delivered 
+
+What am I missing here?
+
+@3DeSocial @kanshi @Krassenstein @tijn @DeSocialWorld @Randhir @dharmesh 
+>
+[ERROR  ] AsyncImage: Not found <What does any of this mean? Do y'all like decide what I eat and what time I goto bed? I wasn't prepared for any of this.. I just didn't want someone to steal my username.. 😫😫😫
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Hackathons are the best opportunity to participate in web3. As the Chainlink hackathon is wrapping up now, I'm proud to show off what my team has been working on. Savor-a cross-chain stable coin yield aggregator or in other words the simplest savings account in DeFi. Just deposit USDC on Avalanche or Polygon  and start earning yield across chain and protocols
+
+https://savor-ui.netlify.app/Savor1/Dashboard
+(Check it out but careful actually depositing as its totally un-audited) 
+
+ Posted from @entre>
+[ERROR  ] AsyncImage: Not found <Day 27 on DeSo, Followers count is 32. That's it! Lets Go!!! can't wait to mint DeSo Creators for my first 100.>
+[WARNING] GL: Unpack subimage support is not available
+[INFO   ] Base: Leaving application in progress...

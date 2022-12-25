@@ -1,0 +1,259 @@
+[INFO   ] Logger: Record log in /storage/emulated/0/python /kivy/desoliscious/.kivy/logs/kivy_22-05-25_18.txt
+[INFO   ] Kivy: v2.0.0
+[INFO   ] Kivy: Installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/__init__.py"
+[INFO   ] Python: v3.9.7 (default, Oct  6 2021, 01:34:26) 
+[GCC 11.1.0]
+[INFO   ] Python: Interpreter at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python3"
+[INFO   ] KivyMD: 0.104.2, git-bc7d1f5, 2021-06-06 (installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/__init__.py")
+[INFO   ] Factory: 186 symbols loaded
+[INFO   ] Image: Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+[INFO   ] Text: Provider: sdl2
+[INFO   ] Window: Provider: sdl2
+[INFO   ] GL: Using the "OpenGL ES 2" graphics system
+[INFO   ] GL: Backend used <sdl2>
+[INFO   ] GL: OpenGL version <b'OpenGL ES 3.2 V@415.0 (GIT@85037b7, I6e8b82193e, 1576796982) (Date:12/19/19)'>
+[INFO   ] GL: OpenGL vendor <b'Qualcomm'>
+[INFO   ] GL: OpenGL renderer <b'Adreno (TM) 610'>
+[INFO   ] GL: OpenGL parsed version: 3, 2
+[INFO   ] GL: Texture max size <16384>
+[INFO   ] GL: Texture max units <16>
+[INFO   ] Window: auto add sdl2 input provider
+[INFO   ] Window: virtual keyboard not allowed, single mode, not docked
+[INFO   ] GL: NPOT texture support is available
+[WARNING] Base: Unknown <android> provider
+[INFO   ] Base: Start application main loop
+[INFO   ] Loader: using a thread pool of 2 workers
+[ERROR  ] AsyncImage: Not found <The second ever BitClout NFT showcase is finally here, featuring work from over 300 BitClout creators! What will you buy?
+
+bitclout.com/browse?feedTab=%E2%9A%A1%20NFT%20Showcase%20%E2%9A%A1>
+[ERROR  ] AsyncImage: Not found <Notifications are re-indexing so new notifications may not show up for the next hour. Sorry about that everyone!>
+[ERROR  ] AsyncImage: Not found <We believe all images, including images from the very beginning, should be restored shortly :)>
+[ERROR  ] AsyncImage: Not found <JPMorgan backs bitcoin to rise 28% and says cryptocurrencies are now its preferred alternative asset
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/jpmorgan-backs-bitcoin-to-rise-28-and-says-cryptocurrencies-are-now-its-preferred-alternative-asset-2>
+[ERROR  ] AsyncImage: Not found <Hamilton Unveils The New Khaki Navy Frogman Automatic Watches
+
+From wristreview.com
+Link: https://bit.ly/3LKiOOB
+Published at 23:54:46 on 25/05/2022.
+
+Horology News Feed from https://www.safonagastrocrono.club/medios/
+
+#safonagastrocrono>
+[ERROR  ] AsyncImage: Not found <HANDS-ON: The Bulgari Aluminium Chronograph Ducati Special Edition
+
+From timeandtidewatches.com
+Link: https://bit.ly/3Gof4S2
+Published at 01:00:20 on 26/05/2022.
+
+Horology News Feed from https://www.safonagastrocrono.club/medios/
+
+#safonagastrocrono>
+[ERROR  ] AsyncImage: Not found <Excited to see what happens to #LUNA.
+Who else grabbed some #WLUNA post crash?>
+[ERROR  ] AsyncImage: Not found <BING BONG!>
+[ERROR  ] AsyncImage: Not found <What you wanna tell #DESO right now?
+Me: 
+>
+[ERROR  ] AsyncImage: Not found <Hey Dao Dao is live!  Pretty cool. Will have to explore it a bit more tonight and look forward to seeing it grow in the future!
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Crypto tax startup ZenLedger, used by the IRS, raises $15M
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/crypto-tax-startup-zenledger-used-by-the-irs-raises-15m>
+[ERROR  ] AsyncImage: Not found <When does DeSo get the simple things? 
+
+..Like clickable profile pics that aren’t diminished like the ones we have now, or cover photos instead of the gray area we have over our profile pics..
+
+@nader >
+[ERROR  ] AsyncImage: Not found <Testing posts for my web app.
+
+Test Test>
+[ERROR  ] AsyncImage: Not found <Andreessen Horowitz bets big on crypto with new $4.5bn fund
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/andreessen-horowitz-bets-big-on-crypto-with-new-4-5bn-fund>
+[ERROR  ] AsyncImage: Not found <Onelemonhalflemon 🍋
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <me: i hate liars
+me: *white lies all the time*>
+[ERROR  ] AsyncImage: Not found <Doesn't seem to work that way.
+
+#DAODAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Ok 😎📸>
+[ERROR  ] AsyncImage: Not found <Consider Digital Assets Instead of Still-Pricey Real Estate, say JPMorgan Strategists
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/consider-digital-assets-instead-of-still-pricey-real-estate-say-jpmorgan-strategists>
+[ERROR  ] AsyncImage: Not found <Nahhh y’all trippin’. Finna add that DaoDao signature right under this u heard fam? Don’t play with the boy 😂😂😂
+
+
+Posted on @DAODAO 
+
+Now I got the swagger too. U dig?>
+[ERROR  ] AsyncImage: Not found <#GraffitiConsortium #KryptoThreadz #GC
+
+Posted via @cloutfeed>
+[ERROR  ] AsyncImage: Not found <Test -> posting on @DeSocialWorld to @daodao community board. 
+
+#DaoDao>
+[ERROR  ] AsyncImage: Not found <😉
+
+#StandardDAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Now we can see 👀 >
+[ERROR  ] AsyncImage: Not found <So "#" assigns a post to a particular Dao's community feed. 
+
+I wonder if its possible to post from another platform (i.e., @desocialworld) to a dao's community feed by adding a "#"...
+
+#DAODAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Our 2nd #GraffitiConsortium drop of 40 #CNFTs sold out in 3 hours! 🔥🔥🔥
+
+Posted via @cloutfeed>
+[ERROR  ] AsyncImage: Not found <Great episode of Rock N' Talk, @ScottPage 's podcast/show with Johnny Lee Schell. Johnny Lee's studio is where we recorded the Crawling Spider album, he was the engineer and played guitar on it as well. 
+
+.https://mousai.stream/track/12126/the-rock-n-talk-show-s2ep17-johnny-lee-schell-and-music-guest-jakob-nowell-of-lawlbc>
+[ERROR  ] AsyncImage: Not found <Test @daodao community feed.
+
+#DAODAO
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <Crypto lender Babel Finance valued at $2 billion after latest fundraising
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/crypto-lender-babel-finance-valued-at-2-billion-after-latest-fundraising>
+[ERROR  ] AsyncImage: Not found <Your welcome mon!>
+[ERROR  ] AsyncImage: Not found <Bitcoin will always be a good buy, HODL in the meantime!
+
+BTW my FR is ONLY 5% LOWEST EVER to invest IN-GAME DEVELOPER @Shortcutgamez >
+[ERROR  ] AsyncImage: Not found <NFT music platform FanTiger raises $5.5 million
+
+https://www.bitcoinlifestyle.com/news/2022/05/25/nft-music-platform-fantiger-raises-5-5-million>
+[ERROR  ] AsyncImage: Not found <DeSo blockchain stats for 25 May 2022 (UTC):
+#DeSoMirrorDaily
+
+👥 All Daily Active Users (DAUs): 1,626 (↗ +2.59%)
+🤸🏼‍♀️ Meaningfully Active Users (MAUs™ ✋): 439 (↗ +4.52%)
+✋ MAU is 10 or more actions in post/comment, social or NFT groups.
+
+👥 New named user accounts: 150 (↘ -17.13%)
+🔑 New public keys: 222 (↘ -5.93%)
+
+💵 End of day exchange rate USD/DeSo: 13.37 USD (↘ -3.88%)
+
+∑ Daily transactions: 65,876 (↘ -2.17%)
+Users who executed more than 1.00% (658) of daily transactions:
+➡ @DAODAO - 14.69% (9,675)
+➡ @StarGeezer - 7.16% (4,719)
+➡ @Thach_Nguyen - 5.31% (3,497)
+➡ @setu_deso - 3.60% (2,374)
+➡ @CockyClout - 3.43% (2,258)
+➡ @francety_official - 3.18% (2,093)
+➡ @Activ - 2.11% (1,390)
+➡ @QuandaleDingle - 1.64% (1,081)
+➡ @BirthBlockNFT - 1.41% (931)
+➡ @Overclout - 1.26% (833)
+➡ @sballentos - 1.24% (816)
+➡ @SeanSlater - 1.23% (807)
+➡ @VishalGulia - 1.03% (676)
+➡ @VindictiveTJ - 1.00% (662)
+
+Transaction numbers by group:
+📩 Posts/comments: 8,698 (↗ +14.15%)
+💕 Social: 41,159 (↘ -5.58%)
+🖼 NFT: 10,082 (↗ +86.74%)
+💰 Trade: 5,595 (↘ -46.46%)
+💲 DeSo BTC purchases: 0 (=)
+🚧 Administrative: 342 (↗ +23.02%)
+
+👥 Core Team members that (re)posted:
+➡ @nader @AlexValaitis @FastFreddie @Dylanjaggerlee @mossified 
+📝 For comments please go to @CoreTeamCommentsFeed
+
+💲 Summary of fees collected by nodes:
+➡ @DeSocialWorld (desocialworld.com): 0.0180 DeSo (↗ +130.58%)
+➡ @love4src (love4src.com): 0.0025 DeSo (↗ +6.41%)
+➡ @NFTz (nftz.zone): 0.0023 DeSo (↗ +63.04%)
+
+
+👇🏼 PLEASE NOTE 👇🏼 detailed information is posted as a comment under this post! 👇🏼
+>
+[ERROR  ] AsyncImage: Not found <Currently running polls:
+🗳 Poll by @przemyslawdygdon active until Thu, 26 May 2022 14:26:53 GMT
+🌐 desocialworld.com/posts/c4532af535f783f4049124b1137b98cd580b944058efa57fec270e335d81c34a
+
+
+>
+[ERROR  ] AsyncImage: Not found <#CloutNight All 👋🥰🎵
+
+Find out about my big #DaoDao project
+here 👉👉 shorturl.at/cjuAH
+
+#Music
+>
+[ERROR  ] AsyncImage: Not found <Are you missing out on the fun we have testing the @daodao since its beta launch today? 🚀 
+
+Quote this post with a funny reason why its worthwhile to ape-in, and I'll send out a sapphire NFT to the one that made me chuckle the most.
+
+💎💎💎s to all funny comments with tags 💨
+
+And ... if you already have access to https://beta.daodao.io ... make sure to check out these outstanding tokens 🏸
+
+🚀 https://beta.daodao.io/d/kanshi?invite=7Szj9Nyw
+
+🎨 https://beta.daodao.io/d/supernovas?invite=Ma24MGDR
+
+🤑 https://beta.daodao.io/d/PBMC?invite=6oaZ5YN2>
+[ERROR  ] AsyncImage: Not found <For anyone with notification issues… @cloutfeed app is working great. Looking back at 8 hours of notifications
+
+Posted via @cloutfeed>
+[ERROR  ] AsyncImage: Not found <Understood!>
+[ERROR  ] AsyncImage: Not found <Love from  Mom>
+[ERROR  ] AsyncImage: Not found <Invest in @Supernovas. 
+
+👇
+
+https://beta.daodao.io/d/supernovas?invite=4HfiaK8A
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <I don’t know where you’re from, but if your eligible, I’d try to get into Dao Makers pre-sale of $XETA Xana right now
+
+Dao Makers recent launch of $FITFI did 142x
+
+I’m expecting this one to be big as well>
+[ERROR  ] AsyncImage: Not found <For the memory bank
+(There really needs to be a memory bank feature) something you can put whatever you want without it appearing on the feed for anyone to see. But if it’s just for you then it’s easy to dump things. Like a ton of pics or write ideas, recipes or whatever. Basically a space to do anything and for it to not show up on the global feed or be shown to those who follow you on the normal feed. And if someone really wanted to see it then they could just go to that person’s profile and click, “memory bank” and watch what’s been posted there. But they have to go there to see it. >
+[ERROR  ] AsyncImage: Not found <Brain candy>
+[ERROR  ] AsyncImage: Not found <@setu_deso u better tell me what we gotta do cos I need to know😂😂😂>
+[ERROR  ] AsyncImage: Not found <@kitty4D has my complete attention tonight. >
+[ERROR  ] AsyncImage: Not found <That’s a fine double rainbow 🌈 
+
+Posted via @cloutfeed>
+[ERROR  ] AsyncImage: Not found <PBMC4ME😜
+
+#PBMC
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <BIG NEWS #DaoDao #DeSo
+
+launching @rickrollDAO in 7 days
+
+👉👉👉Want early exclusive access?
+
+👀 - Watch how here 👉 shorturl.at/cjuAH
+
+>
+[ERROR  ] AsyncImage: Not found <Notifications broken for anyone else?>
+[ERROR  ] AsyncImage: Not found <Amen!>
+[ERROR  ] AsyncImage: Not found <(D,D) lfg!
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <🔥  🔥
+
+Posted on @DAODAO>
+[ERROR  ] AsyncImage: Not found <@setu_deso be watching ma ass closely 👀. We do I gotta do?>
+[WARNING] GL: Unpack subimage support is not available
+[INFO   ] Base: Leaving application in progress...

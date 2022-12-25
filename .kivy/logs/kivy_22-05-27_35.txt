@@ -1,0 +1,44 @@
+[INFO   ] Logger: Record log in /storage/emulated/0/python /kivy/desoliscious/.kivy/logs/kivy_22-05-27_35.txt
+[INFO   ] Kivy: v2.0.0
+[INFO   ] Kivy: Installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/__init__.py"
+[INFO   ] Python: v3.9.7 (default, Oct  6 2021, 01:34:26) 
+[GCC 11.1.0]
+[INFO   ] Python: Interpreter at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python3"
+[INFO   ] KivyMD: 0.104.2, git-bc7d1f5, 2021-06-06 (installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/__init__.py")
+[INFO   ] Factory: 186 symbols loaded
+[INFO   ] Image: Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+[INFO   ] Text: Provider: sdl2
+[INFO   ] Window: Provider: sdl2
+[INFO   ] GL: Using the "OpenGL ES 2" graphics system
+[INFO   ] GL: Backend used <sdl2>
+[INFO   ] GL: OpenGL version <b'OpenGL ES 3.2 V@415.0 (GIT@85037b7, I6e8b82193e, 1576796982) (Date:12/19/19)'>
+[INFO   ] GL: OpenGL vendor <b'Qualcomm'>
+[INFO   ] GL: OpenGL renderer <b'Adreno (TM) 610'>
+[INFO   ] GL: OpenGL parsed version: 3, 2
+[INFO   ] GL: Texture max size <16384>
+[INFO   ] GL: Texture max units <16>
+[INFO   ] Window: auto add sdl2 input provider
+[INFO   ] Window: virtual keyboard not allowed, single mode, not docked
+[INFO   ] GL: NPOT texture support is available
+[WARNING] Base: Unknown <android> provider
+[INFO   ] Base: Start application main loop
+[INFO   ] Loader: using a thread pool of 2 workers
+[WARNING] GL: Unpack subimage support is not available
+[ERROR  ] Loader: Failed to load image <https://images.deso.org/b91a254604427353039a57287d9a7483765b6bfe6c067413d0c277e7a611b2fa.gif>
+Traceback (most recent call last):
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/loader.py", line 376, in _load_urllib
+    data = self._load_local(_out_filename, kwargs)
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/loader.py", line 304, in _load_local
+    return ImageLoader.load(filename, keep_data=True, **kwargs)
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/core/image/__init__.py", line 460, in load
+    im = loader(filename, **kwargs)
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/core/image/__init__.py", line 223, in __init__
+    self._data = self.load(filename)
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/core/image/img_pil.py", line 110, in load
+    return list(self._img_read(im))
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/core/image/img_pil.py", line 91, in _img_read
+    img_ol.paste(img_tmp, (0, 0), img_tmp)
+  File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/PIL/Image.py", line 1557, in paste
+    self.im.paste(im, box, mask.im)
+ValueError: bad transparency mask
+[INFO   ] Base: Leaving application in progress...

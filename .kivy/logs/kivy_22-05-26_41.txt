@@ -1,0 +1,121 @@
+[INFO   ] Logger: Record log in /storage/emulated/0/python /kivy/desoliscious/.kivy/logs/kivy_22-05-26_41.txt
+[INFO   ] Kivy: v2.0.0
+[INFO   ] Kivy: Installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/__init__.py"
+[INFO   ] Python: v3.9.7 (default, Oct  6 2021, 01:34:26) 
+[GCC 11.1.0]
+[INFO   ] Python: Interpreter at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python3"
+[INFO   ] KivyMD: 0.104.2, git-bc7d1f5, 2021-06-06 (installed at "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/__init__.py")
+[INFO   ] Factory: 186 symbols loaded
+[INFO   ] Image: Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+[INFO   ] Text: Provider: sdl2
+[INFO   ] Window: Provider: sdl2
+[INFO   ] GL: Using the "OpenGL ES 2" graphics system
+[INFO   ] GL: Backend used <sdl2>
+[INFO   ] GL: OpenGL version <b'OpenGL ES 3.2 V@415.0 (GIT@85037b7, I6e8b82193e, 1576796982) (Date:12/19/19)'>
+[INFO   ] GL: OpenGL vendor <b'Qualcomm'>
+[INFO   ] GL: OpenGL renderer <b'Adreno (TM) 610'>
+[INFO   ] GL: OpenGL parsed version: 3, 2
+[INFO   ] GL: Texture max size <16384>
+[INFO   ] GL: Texture max units <16>
+[INFO   ] Window: auto add sdl2 input provider
+[INFO   ] Window: virtual keyboard not allowed, single mode, not docked
+[INFO   ] GL: NPOT texture support is available
+[WARNING] stderr: Traceback (most recent call last):
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 242, in create_handler
+[WARNING] stderr:     return eval(value, idmap), bound_list
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193, in <module>
+[WARNING] stderr:     font_name: seguiemj
+[WARNING] stderr: NameError: name 'seguiemj' is not defined
+[WARNING] stderr: 
+[WARNING] stderr: During handling of the above exception, another exception occurred:
+[WARNING] stderr: 
+[WARNING] stderr: Traceback (most recent call last):
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 695, in _apply_rule
+[WARNING] stderr:     value, bound = create_handler(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 245, in create_handler
+[WARNING] stderr:     raise BuilderException(rule.ctx, rule.line,
+[WARNING] stderr: kivy.lang.builder.BuilderException: Parser: File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193:
+[WARNING] stderr: ...
+[WARNING] stderr:     191:    MDLabel:
+[WARNING] stderr:     192:    	adaptive_height: True
+[WARNING] stderr: >>  193:    	font_name: seguiemj
+[WARNING] stderr:     194:    	text: root.body[:144]
+[WARNING] stderr:     195:
+[WARNING] stderr: ...
+[WARNING] stderr: NameError: name 'seguiemj' is not defined
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 242, in create_handler
+[WARNING] stderr:     return eval(value, idmap), bound_list
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193, in <module>
+[WARNING] stderr:     font_name: seguiemj
+[WARNING] stderr: 
+[WARNING] stderr: 
+[WARNING] stderr: During handling of the above exception, another exception occurred:
+[WARNING] stderr: 
+[WARNING] stderr: Traceback (most recent call last):
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/main.py", line 100, in <module>
+[WARNING] stderr:     MainApp().run()
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/app.py", line 949, in run
+[WARNING] stderr:     self._run_prepare()
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/app.py", line 944, in _run_prepare
+[WARNING] stderr:     self.dispatch('on_start')
+[WARNING] stderr:   File "kivy/_event.pyx", line 709, in kivy._event.EventDispatcher.dispatch
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/main.py", line 96, in on_start
+[WARNING] stderr:     self.root.dispatch('on_enter')
+[WARNING] stderr:   File "kivy/_event.pyx", line 709, in kivy._event.EventDispatcher.dispatch
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/main.py", line 40, in on_enter
+[WARNING] stderr:     self.list_posts()
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/main.py", line 59, in list_posts
+[WARNING] stderr:     self.ids.timeline.add_widget(PostCard(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/uix/card.py", line 659, in __init__
+[WARNING] stderr:     super().__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/theming.py", line 1140, in __init__
+[WARNING] stderr:     super().__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/uix/behaviors/elevation.py", line 1350, in __init__
+[WARNING] stderr:     super().__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/uix/behaviors/backgroundcolor_behavior.py", line 178, in __init__
+[WARNING] stderr:     super().__init__(**kwarg)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/uix/behaviors/elevation.py", line 847, in __init__
+[WARNING] stderr:     super().__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivymd/uix/behaviors/hover_behavior.py", line 140, in __init__
+[WARNING] stderr:     super(HoverBehavior, self).__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/uix/behaviors/button.py", line 121, in __init__
+[WARNING] stderr:     super(ButtonBehavior, self).__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/uix/boxlayout.py", line 145, in __init__
+[WARNING] stderr:     super(BoxLayout, self).__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/uix/layout.py", line 76, in __init__
+[WARNING] stderr:     super(Layout, self).__init__(**kwargs)
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/uix/widget.py", line 359, in __init__
+[WARNING] stderr:     self.apply_class_lang_rules(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/uix/widget.py", line 463, in apply_class_lang_rules
+[WARNING] stderr:     Builder.apply(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 541, in apply
+[WARNING] stderr:     self._apply_rule(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 710, in _apply_rule
+[WARNING] stderr:     raise BuilderException(rule.ctx, rule.line,
+[WARNING] stderr: kivy.lang.builder.BuilderException: Parser: File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193:
+[WARNING] stderr: ...
+[WARNING] stderr:     191:    MDLabel:
+[WARNING] stderr:     192:    	adaptive_height: True
+[WARNING] stderr: >>  193:    	font_name: seguiemj
+[WARNING] stderr:     194:    	text: root.body[:144]
+[WARNING] stderr:     195:
+[WARNING] stderr: ...
+[WARNING] stderr: BuilderException: Parser: File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193:
+[WARNING] stderr: ...
+[WARNING] stderr:     191:    MDLabel:
+[WARNING] stderr:     192:    	adaptive_height: True
+[WARNING] stderr: >>  193:    	font_name: seguiemj
+[WARNING] stderr:     194:    	text: root.body[:144]
+[WARNING] stderr:     195:
+[WARNING] stderr: ...
+[WARNING] stderr: NameError: name 'seguiemj' is not defined
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 242, in create_handler
+[WARNING] stderr:     return eval(value, idmap), bound_list
+[WARNING] stderr:   File "/storage/emulated/0/python /kivy/desoliscious/home_page.kv", line 193, in <module>
+[WARNING] stderr:     font_name: seguiemj
+[WARNING] stderr: 
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 695, in _apply_rule
+[WARNING] stderr:     value, bound = create_handler(
+[WARNING] stderr:   File "/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/lib/python3.9/site-packages/kivy/lang/builder.py", line 245, in create_handler
+[WARNING] stderr:     raise BuilderException(rule.ctx, rule.line,
+[WARNING] stderr: 
