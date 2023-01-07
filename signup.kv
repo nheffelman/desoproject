@@ -1,0 +1,178 @@
+#:import kivymd kivymd
+
+ScreenManager:
+    id: screen
+    LoginScreen:
+    SignupScreen:
+    UserNameLoginScreen:
+    HomePageReadOnlyScreen:
+    	
+<SignupScreen>:
+    name: 'signup'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            text: 'Sign up to check out the newest iteration of Deso.'
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        MDTextField:
+            hint_text: 'Email'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDTextField:
+            hint_text: 'Full Name'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDTextField:
+            hint_text: 'Username'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDTextField:
+            hint_text: 'Password'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            password: True
+        Button:
+            text: 'Sign up'
+            size_hint: (0.8, None)
+            height: '40dp'
+            pos_hint: {'center_x': 0.5}
+        Label:
+            text: 'By signing up, you agree to our Terms & Privacy Policy.'
+            font_size: '10sp'
+            text_size: self.size
+            halign: 'center'
+        MDRoundFlatButton:
+        	on_press: root.manager.current = 'login'
+        	pos_hint: {'center_x': 0.5}
+            text: 'Have an account? Log in'
+        	font_size: '15sp'
+       	 text_size: self.size
+    	    halign: 'center'
+            color: (0, 0, 1, 1)
+        	underline: True
+            
+<LoginScreen>:
+    name: 'login'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            text: 'Login to Desoliscious'
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        Label:
+            text: 'Read-only Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            on_press: root.manager.current = 'username'
+            text: 'Login with Username'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        Label:
+            text: 'Full Access Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            text: 'Login with Seed Phrase'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        Label:
+            text: 'Full Access Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            text: 'Login with Desoliscious Identity'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        
+        Label:
+            text: "Don't have a Deso Account, Sign Up"
+            font_size: '15sp'
+            text_size: self.size
+            halign: 'center'
+            color: (0, 0, 1, 1)
+            underline: True
+        MDRoundFlatButton:
+            text: 'Sign Up'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_press: root.manager.current = 'signup'
+
+<UserNameLoginScreen>:
+    name: 'username'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            text: 'Login with Username'
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        MDTextField:
+            id: username
+            hint_text: 'Username'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_text_validate: root.textInput(self)
+        MDRoundFlatButton:
+            text: 'Login'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_press: root.onClick()
+
+<HomePageReadOnlyScreen>:
+    name: 'homepage_read_only'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            id: username
+            text: root.username
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        MDRoundFlatButton:
+            text: 'Logout'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_press: root.manager.current = 'login'
+        
+
+    
+
+        
