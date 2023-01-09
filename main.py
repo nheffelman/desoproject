@@ -103,6 +103,7 @@ class HomePageReadOnlyScreen(Screen):
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
         self.list_stories()
+        self.list_posts()
 
     def list_stories(self):
         profile = unpickle_profile()
@@ -111,28 +112,64 @@ class HomePageReadOnlyScreen(Screen):
         price = desoMetadata.getExchangeRate().json()
         # toast(str(price))
         dollars = price['USDCentsPerDeSoExchangeRate']/100
-        #print(dollars)
+        # print(dollars)
         self.desoprice = str(dollars)
-        #load 10 posts for the user or 10 posts for the stateless user
+        # load 10 posts for the user or 10 posts for the stateless user
         if profile:
             print(profile['Profile']['PublicKeyBase58Check'])
             posts = deso.Posts()
-            posts.readerPublicKey=profile['Profile']['PublicKeyBase58Check']   
-                
-            userposts = posts.getPostsStateless(numToFetch=10, getPostsForGlobalWhitelist=True)
+            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+
+            userposts = posts.getPostsStateless(
+                numToFetch=10, getPostsForGlobalWhitelist=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
         sm.current = 'username_login'
         print('anything?', userposts.json())
         for post in userposts.json()['PostsFound']:
             self.ids.stories.add_widget(CircularAvatarImage(
-            avatar = deso.User().getProfilePicURL(post['PosterPublicKeyBase58Check']),
-            name = post['ProfileEntryResponse']['Username'],
-                #avatar=data[name]['avatar'],
-                #name=name,
-                on_press=lambda x: self.toaster(post['ProfileEntryResponse']['PublicKeyBase58Check'])
-                
-                ))
+                avatar=deso.User().getProfilePicURL(
+                    post['PosterPublicKeyBase58Check']),
+                name=post['ProfileEntryResponse']['Username'],
+                # avatar=data[name]['avatar'],
+                # name=name,
+                on_press=lambda x: self.toaster(
+                    post['ProfileEntryResponse']['PublicKeyBase58Check'])
+
+            ))
+
+    def list_posts(self):
+        profile = unpickle_profile()
+        if profile:
+            print(profile['Profile']['PublicKeyBase58Check'])
+            posts = deso.Posts()
+            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+        else:
+            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+
+        print(userposts)
+        for post in userposts.json()['PostsFound']:
+            readmore = ''
+            if len(post['Body']) > 144:
+                readmore = '  -- read more --'
+            postImage = ''
+            if post['ImageURLs']:
+                postImage = post['ImageURLs'][0]
+            self.ids.timeline.add_widget(PostCard(
+                username=post["ProfileEntryResponse"]['Username'],
+
+                avatar=deso.User().getProfilePicURL(
+                    post['ProfileEntryResponse']['PublicKeyBase58Check']),
+                likes=str(post['LikeCount']),
+                comments=str(post['CommentCount']),
+                body=str(post['Body']),
+                readmore=readmore,
+                post=postImage,
+                diamonds=str(post['DiamondCount']),
+                repost=str(post['RepostCount'])
+            ))
+
 
 # Create the screen manager
 sm = ScreenManager()
