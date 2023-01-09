@@ -94,6 +94,7 @@ class UserNameLoginScreen(Screen):
 
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(Screen):
+    profile_picture = 'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
 
@@ -102,25 +103,36 @@ class HomePageReadOnlyScreen(Screen):
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
         self.list_stories()
-        
 
     def list_stories(self):
         profile = unpickle_profile()
         desoMetadata = deso.Metadata()
         # getDiamondLevelMap takes optional inDesoNanos argument which is by default True.
         price = desoMetadata.getExchangeRate().json()
-        #toast(str(price))
+        # toast(str(price))
         dollars = price['USDCentsPerDeSoExchangeRate']/100
-        print(dollars)
+        #print(dollars)
         self.desoprice = str(dollars)
+        #load 10 posts for the user or 10 posts for the stateless user
         if profile:
             print(profile['Profile']['PublicKeyBase58Check'])
-          
-            userposts = deso.Posts().getPostsForPublicKey(publicKey=profile['Profile']['PublicKeyBase58Check'])
+            posts = deso.Posts()
+            posts.readerPublicKey=profile['Profile']['PublicKeyBase58Check']   
+                
+            userposts = posts.getPostsStateless(numToFetch=10, getPostsForGlobalWhitelist=True)
         else:
-            sm.current = 'username_login'
-        print(userposts)
-
+            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+        sm.current = 'username_login'
+        print('anything?', userposts.json())
+        for post in userposts.json()['PostsFound']:
+            self.ids.stories.add_widget(CircularAvatarImage(
+            avatar = deso.User().getProfilePicURL(post['PosterPublicKeyBase58Check']),
+            name = post['ProfileEntryResponse']['Username'],
+                #avatar=data[name]['avatar'],
+                #name=name,
+                on_press=lambda x: self.toaster(post['ProfileEntryResponse']['PublicKeyBase58Check'])
+                
+                ))
 
 # Create the screen manager
 sm = ScreenManager()
