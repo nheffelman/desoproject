@@ -7,11 +7,12 @@
 
 
 ScreenManager:
-    id: screen
+    id: sm
     LoginScreen:
     SignupScreen:
     UserNameLoginScreen:
     HomePageReadOnlyScreen:
+    SinglePostReadOnlyScreen:
     	
 <SignupScreen>:
     name: 'signup'
@@ -156,6 +157,40 @@ ScreenManager:
             height: '40dp'
             on_press: root.onClick()
 
+#singe post read only screen with mdpostcard
+<SinglePostReadOnlyScreen>:
+    name: 'single_post_read_only'
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        # App Bar
+        MDBoxLayout:
+            adaptive_height: True
+            MDIconButton:
+                icon: 'arrow-left'
+                on_press: root.manager.current = 'homepage_read_only'
+            MDLabel:
+                id: username
+                text: 'Desoliscious'
+                halign: 'center'
+                valign: 'top'
+                font_size: 50
+                font_name: 'assets/Instafont.otf'
+            
+        MDBoxLayout:
+            ScrollView:
+                bar_width: 0
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        id: singlePost 
+
+
+
 <HomePageReadOnlyScreen>:
     name: 'homepage_read_only'
     orientation: 'vertical'
@@ -185,7 +220,7 @@ ScreenManager:
 
                 MDBoxLayout:
                     adaptive_height: True
-
+                    
                     MDBoxLayout:
                         orientation: 'vertical'
                         adaptive_height: True
@@ -330,6 +365,8 @@ ScreenManager:
     height: "420dp"
     spacing: 2
     elevation: 0
+    on_press: root.on_post_click(root.postHashHex)
+    
 
     MDBoxLayout:
         padding: 2
@@ -348,6 +385,7 @@ ScreenManager:
     MDLabel:
     	adaptive_height: True
     	text: root.body[:144] + root.readmore
+        
 
     # Post
     FitImage:

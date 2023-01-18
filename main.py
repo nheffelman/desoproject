@@ -9,12 +9,25 @@ import deso
 from kivy.properties import StringProperty
 import pickle
 
+global currentPost 
+
+#unpickles the current post
+def unpickle_post():
+    with open('post.pickle', 'rb') as handle:
+        post = pickle.load(handle)
+        #print("post unpickled")
+    return post
+#pickles the current post
+def pickle_post(post):
+    with open('post.pickle', 'wb') as handle:
+        pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        #print("post pickled")
 
 # unpickles the user's profile
 def unpickle_profile():
     with open('profile.pickle', 'rb') as handle:
         profile = pickle.load(handle)
-        print("profile unpickled")
+        #print("profile unpickled")
     return profile
 
 # pickles the user's profile
@@ -23,11 +36,9 @@ def unpickle_profile():
 def pickle_profile(profile):
     with open('profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("profile pickled")
+        #print("profile pickled")
 
 
-# Create the screen manager
-sm = ScreenManager()
 
 # class for the avatar circle
 
@@ -46,6 +57,10 @@ class StoryCreator(MDCard):
 
 
 class PostCard(MDCard):
+    def on_post_click(self, postHashHex):
+        pickle_post(postHashHex)
+        sm.current = 'single_post_read_only'
+
     profile_pic = StringProperty()
     avatar = StringProperty()
     username = StringProperty()
@@ -58,6 +73,7 @@ class PostCard(MDCard):
     readmore = StringProperty()
     diamonds = StringProperty()
     repost = StringProperty()
+    postHashHex = StringProperty()
 
 # Create the signup screen
 
@@ -91,19 +107,62 @@ class UserNameLoginScreen(Screen):
 
         sm.current = 'homepage_read_only'
 
+#create the single post read only screen
+class SinglePostReadOnlyScreen(Screen):
+    def on_enter(self):
+        self.list_post()
+
+    def list_post(self):
+        currentPost = unpickle_post()
+        post = deso.Posts()
+        post = post.getSinglePost(postHashHex=currentPost).json()
+        print('current screen', sm.current_screen)
+        print(post)
+        self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
+        #self.ids.singlePost.add_widget(PostCard())     
+        #self.ids.post_card.profile_pic = post['PostFound']['ProfilePic']
+        #self.ids.post_card.avatar = post['ProfileEntryResponse']['ProfilePic']
+        """
+        username = post['PostFound']['ProfileEntryResponse']['Username'],
+        post = post['PostFound']['PostEntryResponse']['PostHashHex'],
+        caption = post['PostFound']['PostEntryResponse']['Body'],
+        likes = post['PostFound']['PostEntryResponse']['LikeCount'],
+        comments = post['PostFound']['PostEntryResponse']['CommentCount'],
+        posted_ago = post['PostFound']['PostEntryResponse']['PostEntryReaderState']['TimeAgo'],
+        body = post['PostFound']['PostEntryResponse']['Body'],
+        readmore = post['PostFound']['PostEntryResponse']['Body'],
+        diamonds = post['PostFound']['PostEntryResponse']['DiamondCount'],
+        repost = post['PostFound']['PostEntryResponse']['RecloutCount'],
+        postHashHex = post['PostFound']['PostEntryResponse']['PostHashHex']
+        ))"""
+        
+          
 
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(Screen):
     profile_picture = 'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
-
+    
     def on_enter(self):
         profile = unpickle_profile()
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
         self.list_stories()
         self.list_posts()
+
+    def storie_switcher(self, publicKey):
+        desoUser = deso.User()
+        profile = desoUser.getSingleProfile(publicKey=publicKey).json()
+        if 'error' in profile:
+            toast(profile['error'])
+        else:
+            pickle_profile(profile)
+        self.ids.stories.clear_widgets()
+        self.ids.timeline.clear_widgets()
+        self.list_stories()
+        self.list_posts()
+        
 
     def list_stories(self):
         profile = unpickle_profile()
@@ -120,12 +179,12 @@ class HomePageReadOnlyScreen(Screen):
             posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
 
-            userposts = posts.getPostsStateless(
-                numToFetch=10, getPostsForGlobalWhitelist=True)
+            userposts = posts.getPostsStateless(readerPublicKey=profile['Profile']['PublicKeyBase58Check'],
+                numToFetch=10, getPostsForFollowFeed=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
         sm.current = 'username_login'
-        print('anything?', userposts.json())
+        #print('anything?', userposts.json())
         for post in userposts.json()['PostsFound']:
             self.ids.stories.add_widget(CircularAvatarImage(
                 avatar=deso.User().getProfilePicURL(
@@ -133,7 +192,7 @@ class HomePageReadOnlyScreen(Screen):
                 name=post['ProfileEntryResponse']['Username'],
                 # avatar=data[name]['avatar'],
                 # name=name,
-                on_press=lambda x: self.toaster(
+                on_press=lambda x: self.storie_switcher(
                     post['ProfileEntryResponse']['PublicKeyBase58Check'])
 
             ))
@@ -144,7 +203,8 @@ class HomePageReadOnlyScreen(Screen):
             print(profile['Profile']['PublicKeyBase58Check'])
             posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+            userposts = posts.getPostsStateless(readerPublicKey=profile['Profile']['PublicKeyBase58Check'],
+                numToFetch=10, getPostsForFollowFeed=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
 
@@ -161,6 +221,7 @@ class HomePageReadOnlyScreen(Screen):
 
                 avatar=deso.User().getProfilePicURL(
                     post['ProfileEntryResponse']['PublicKeyBase58Check']),
+                postHashHex=str(post['PostHashHex']),
                 likes=str(post['LikeCount']),
                 comments=str(post['CommentCount']),
                 body=str(post['Body']),
@@ -178,13 +239,14 @@ sm.add_widget(SignupScreen(name='signup'))
 sm.add_widget(LoginScreen(name='login'))
 sm.add_widget(UserNameLoginScreen(name='username_login'))
 sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
+sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
 
 
 # Create the main app
 class MainApp(MDApp):
 
     def build(self):
-        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.theme_style = "Light"
         screen = Builder.load_file('signup.kv')
         return screen
 
