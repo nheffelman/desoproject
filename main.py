@@ -5,6 +5,7 @@ from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
 from kivymd.uix.card import MDCard
+from kivymd.uix.screen import MDScreen
 import deso
 from kivy.properties import StringProperty
 import pickle
@@ -57,9 +58,9 @@ class StoryCreator(MDCard):
 
 
 class PostCard(MDCard):
-    def on_post_click(self, postHashHex):
+    def on_post_click(self, postHashHex, sm):
         pickle_post(postHashHex)
-        sm.current = 'single_post_read_only'
+        self.sm.current = 'single_post_read_only'
 
     profile_pic = StringProperty()
     avatar = StringProperty()
@@ -78,18 +79,18 @@ class PostCard(MDCard):
 # Create the signup screen
 
 
-class SignupScreen(Screen):
+class SignupScreen(MDScreen):
     pass
 
 # Create the login screen
 
 
-class LoginScreen(Screen):
+class LoginScreen(MDScreen):
     pass
 # Create the username login screen
 
 
-class UserNameLoginScreen(Screen):
+class UserNameLoginScreen(MDScreen):
     userName = StringProperty("")
 
     def textInput(self, widget):
@@ -105,10 +106,10 @@ class UserNameLoginScreen(Screen):
             pickle_profile(profile)
             self.manager.current = 'homepage_read_only'
 
-        sm.current = 'homepage_read_only'
+        self.current = 'homepage_read_only'
 
 #create the single post read only screen
-class SinglePostReadOnlyScreen(Screen):
+class SinglePostReadOnlyScreen(MDScreen):
     def on_enter(self):
         self.list_post()
 
@@ -116,30 +117,26 @@ class SinglePostReadOnlyScreen(Screen):
         currentPost = unpickle_post()
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
-        print('current screen', sm.current_screen)
+        
         print(post)
         self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
-        #self.ids.singlePost.add_widget(PostCard())     
-        #self.ids.post_card.profile_pic = post['PostFound']['ProfilePic']
-        #self.ids.post_card.avatar = post['ProfileEntryResponse']['ProfilePic']
-        """
+        
+        self.ids.singlePost.add_widget(PostCard(     
         username = post['PostFound']['ProfileEntryResponse']['Username'],
-        post = post['PostFound']['PostEntryResponse']['PostHashHex'],
-        caption = post['PostFound']['PostEntryResponse']['Body'],
-        likes = post['PostFound']['PostEntryResponse']['LikeCount'],
-        comments = post['PostFound']['PostEntryResponse']['CommentCount'],
-        posted_ago = post['PostFound']['PostEntryResponse']['PostEntryReaderState']['TimeAgo'],
-        body = post['PostFound']['PostEntryResponse']['Body'],
-        readmore = post['PostFound']['PostEntryResponse']['Body'],
-        diamonds = post['PostFound']['PostEntryResponse']['DiamondCount'],
-        repost = post['PostFound']['PostEntryResponse']['RecloutCount'],
-        postHashHex = post['PostFound']['PostEntryResponse']['PostHashHex']
-        ))"""
+        post = post['PostFound']['PostHashHex'],
+        caption = post['PostFound']['Body'],
+        likes = str(post['PostFound']['LikeCount']),
+        comments = str(post['PostFound']['CommentCount']),
+        #posted_ago = post['PostFound']['PostEntryReaderState']['TimeAgo'],
+        diamonds = str(post['PostFound']['DiamondCount']),
+        repost = str(post['PostFound']['RecloutCount']),
+        postHashHex = post['PostFound']['PostHashHex']
+        ))
         
           
 
 # Create the homepage read only screen
-class HomePageReadOnlyScreen(Screen):
+class HomePageReadOnlyScreen(MDScreen):
     profile_picture = 'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
@@ -150,6 +147,12 @@ class HomePageReadOnlyScreen(Screen):
         self.username = profile['Profile']['Username']
         self.list_stories()
         self.list_posts()
+
+    #changes to the single read post screen
+    def change_screen_item(self, postHashHex):
+        pickle_post(postHashHex)
+        print('post was clicked', postHashHex)
+        self.manager.current = 'single_post_read_only'
 
     def storie_switcher(self, publicKey):
         desoUser = deso.User()
@@ -183,7 +186,7 @@ class HomePageReadOnlyScreen(Screen):
                 numToFetch=10, getPostsForFollowFeed=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
-        sm.current = 'username_login'
+        
         #print('anything?', userposts.json())
         for post in userposts.json()['PostsFound']:
             self.ids.stories.add_widget(CircularAvatarImage(
@@ -228,31 +231,32 @@ class HomePageReadOnlyScreen(Screen):
                 readmore=readmore,
                 post=postImage,
                 diamonds=str(post['DiamondCount']),
-                repost=str(post['RepostCount'])
-            ))
+                repost=str(post['RepostCount']),
+                on_press=lambda x: self.change_screen_item(postHashHex=str(post['PostHashHex'])
+            )))
 
-
-# Create the screen manager
-sm = ScreenManager()
-# Add the screens to the screen manager
-sm.add_widget(SignupScreen(name='signup'))
-sm.add_widget(LoginScreen(name='login'))
-sm.add_widget(UserNameLoginScreen(name='username_login'))
-sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
-sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
+Builder.load_file('signup.kv')
 
 
 # Create the main app
 class MainApp(MDApp):
 
     def build(self):
+        # Set the theme
         self.theme_cls.theme_style = "Light"
-        screen = Builder.load_file('signup.kv')
-        return screen
+        # Create the screen manager
+        sm = ScreenManager()
+        # Add the screens to the screen manager
+        sm.add_widget(LoginScreen(name='login'))
+        sm.add_widget(SignupScreen(name='signup'))
+        sm.add_widget(UserNameLoginScreen(name='username_login'))
+        sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
+        sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
 
+        return sm
 
-# Set the signup screen as the default
-sm.current = 'login'
+    
+
 
 
 # Run the app

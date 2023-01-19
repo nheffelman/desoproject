@@ -4,16 +4,67 @@
 #:import PostCard main.PostCard
 #:import kivymd kivymd
 
+<LoginScreen>:
+    name: 'login'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            text: 'Login to Desoliscious'
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        Label:
+            text: 'Read-only Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            on_press: root.manager.current = 'username_login'
+            text: 'Login with Username'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        Label:
+            text: 'Full Access Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            text: 'Login with Seed Phrase'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        Label:
+            text: 'Full Access Mode'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        MDRoundFlatButton:
+            text: 'Login with Desoliscious Identity'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+        
+        Label:
+            text: "Don't have a Deso Account, Sign Up"
+            font_size: '15sp'
+            text_size: self.size
+            halign: 'center'
+            color: (0, 0, 1, 1)
+            underline: True
+        MDRoundFlatButton:
+            text: 'Sign Up'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_press: root.manager.current = 'signup'
 
 
-ScreenManager:
-    id: sm
-    LoginScreen:
-    SignupScreen:
-    UserNameLoginScreen:
-    HomePageReadOnlyScreen:
-    SinglePostReadOnlyScreen:
-    	
 <SignupScreen>:
     name: 'signup'
     BoxLayout:
@@ -69,68 +120,9 @@ ScreenManager:
             color: (0, 0, 1, 1)
         	underline: True
             
-<LoginScreen>:
-    name: 'login'
-    BoxLayout:
-        orientation: 'vertical'
-        padding: '10dp'
-        spacing: '10dp'
-        Image:
-            source: 'assets/dragon.png'
-            size_hint: (1, 1)
-        Label:
-            text: 'Login to Desoliscious'
-            font_size: '20sp'
-            text_size: self.size
-            halign: 'center'
-        Label:
-            text: 'Read-only Mode'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        MDRoundFlatButton:
-            on_press: root.manager.current = 'username'
-            text: 'Login with Username'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        Label:
-            text: 'Full Access Mode'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        MDRoundFlatButton:
-            text: 'Login with Seed Phrase'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        Label:
-            text: 'Full Access Mode'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        MDRoundFlatButton:
-            text: 'Login with Desoliscious Identity'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-        
-        Label:
-            text: "Don't have a Deso Account, Sign Up"
-            font_size: '15sp'
-            text_size: self.size
-            halign: 'center'
-            color: (0, 0, 1, 1)
-            underline: True
-        MDRoundFlatButton:
-            text: 'Sign Up'
-            pos_hint: {'center_x': 0.5}
-            size_hint: (0.8, None)
-            height: '40dp'
-            on_press: root.manager.current = 'signup'
 
 <UserNameLoginScreen>:
-    name: 'username'
+    name: 'username_login'
     BoxLayout:
         orientation: 'vertical'
         padding: '10dp'
@@ -365,7 +357,7 @@ ScreenManager:
     height: "420dp"
     spacing: 2
     elevation: 0
-    on_press: root.on_post_click(root.postHashHex)
+    
     
 
     MDBoxLayout:
