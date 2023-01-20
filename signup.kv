@@ -130,14 +130,13 @@
         Image:
             source: 'assets/dragon.png'
             size_hint: (1, 1)
-        Label:
+        MDLabel:
             text: 'Login with Username'
             font_size: '20sp'
             text_size: self.size
             halign: 'center'
         MDTextField:
             id: username
-            hint_text: 'Username'
             pos_hint: {'center_x': 0.5}
             size_hint: (0.8, None)
             height: '40dp'
@@ -190,6 +189,7 @@
         orientation: 'vertical'
         # App Bar
         MDBoxLayout:
+            padding: '5dp'
             adaptive_height: True
 
             MDIconButton:
@@ -352,12 +352,14 @@
             text_color: 0,0,0,1
 
 <PostCard>
+    
     orientation: 'vertical'
     size_hint_y: None
     height: "420dp"
     spacing: 2
     elevation: 0
-    
+    padding: 5
+       
     
 
     MDBoxLayout:

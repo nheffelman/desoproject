@@ -16,13 +16,13 @@ global currentPost
 def unpickle_post():
     with open('post.pickle', 'rb') as handle:
         post = pickle.load(handle)
-        #print("post unpickled")
+        print("post unpickled")
     return post
 #pickles the current post
 def pickle_post(post):
     with open('post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        #print("post pickled")
+        print("post pickled")
 
 # unpickles the user's profile
 def unpickle_profile():
@@ -58,7 +58,7 @@ class StoryCreator(MDCard):
 
 
 class PostCard(MDCard):
-    def on_post_click(self, postHashHex, sm):
+    def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
         self.sm.current = 'single_post_read_only'
 
@@ -75,6 +75,7 @@ class PostCard(MDCard):
     diamonds = StringProperty()
     repost = StringProperty()
     postHashHex = StringProperty()
+    
 
 # Create the signup screen
 
@@ -111,6 +112,7 @@ class UserNameLoginScreen(MDScreen):
 #create the single post read only screen
 class SinglePostReadOnlyScreen(MDScreen):
     def on_enter(self):
+        self.ids.singlePost.clear_widgets()
         self.list_post()
 
     def list_post(self):
@@ -118,7 +120,7 @@ class SinglePostReadOnlyScreen(MDScreen):
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
         
-        print(post)
+        #print(post)
         self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
         
         self.ids.singlePost.add_widget(PostCard(     
@@ -142,6 +144,7 @@ class HomePageReadOnlyScreen(MDScreen):
     desoprice = StringProperty("")
     
     def on_enter(self):
+        self.ids.timeline.clear_widgets()
         profile = unpickle_profile()
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
@@ -149,9 +152,9 @@ class HomePageReadOnlyScreen(MDScreen):
         self.list_posts()
 
     #changes to the single read post screen
-    def change_screen_item(self, postHashHex):
+    def open_post(self, postHashHex):
         pickle_post(postHashHex)
-        print('post was clicked', postHashHex)
+        print('posthashhex was pickled', postHashHex)
         self.manager.current = 'single_post_read_only'
 
     def storie_switcher(self, publicKey):
@@ -187,7 +190,7 @@ class HomePageReadOnlyScreen(MDScreen):
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
         
-        #print('anything?', userposts.json())
+        
         for post in userposts.json()['PostsFound']:
             self.ids.stories.add_widget(CircularAvatarImage(
                 avatar=deso.User().getProfilePicURL(
@@ -211,15 +214,16 @@ class HomePageReadOnlyScreen(MDScreen):
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
 
-        print(userposts)
+        
         for post in userposts.json()['PostsFound']:
+            
             readmore = ''
             if len(post['Body']) > 144:
                 readmore = '  -- read more --'
             postImage = ''
             if post['ImageURLs']:
                 postImage = post['ImageURLs'][0]
-            self.ids.timeline.add_widget(PostCard(
+            postcard=(PostCard(
                 username=post["ProfileEntryResponse"]['Username'],
 
                 avatar=deso.User().getProfilePicURL(
@@ -232,10 +236,11 @@ class HomePageReadOnlyScreen(MDScreen):
                 post=postImage,
                 diamonds=str(post['DiamondCount']),
                 repost=str(post['RepostCount']),
-                on_press=lambda x: self.change_screen_item(postHashHex=str(post['PostHashHex'])
-            )))
+            ))
+            #bind the posthashhex to the postcard for each post in the timeline
+            postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+            self.ids.timeline.add_widget(postcard)
 
-Builder.load_file('signup.kv')
 
 
 # Create the main app
@@ -246,7 +251,7 @@ class MainApp(MDApp):
         self.theme_cls.theme_style = "Light"
         # Create the screen manager
         sm = ScreenManager()
-        # Add the screens to the screen manager
+        Builder.load_file('signup.kv')# Add the screens to the screen manager
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(SignupScreen(name='signup'))
         sm.add_widget(UserNameLoginScreen(name='username_login'))
