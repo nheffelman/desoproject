@@ -4,6 +4,9 @@
 #:import PostCard main.PostCard
 #:import kivymd kivymd
 
+
+
+#login screen
 <LoginScreen>:
     name: 'login'
     BoxLayout:
@@ -35,6 +38,7 @@
             size_hint: (0.8, None)
             height: '40dp'
         MDRoundFlatButton:
+            on_press: root.manager.current = 'seed_login'
             text: 'Login with Seed Phrase'
             pos_hint: {'center_x': 0.5}
             size_hint: (0.8, None)
@@ -63,6 +67,42 @@
             size_hint: (0.8, None)
             height: '40dp'
             on_press: root.manager.current = 'signup'
+
+#seed login screen
+<SeedLoginScreen>:
+    name: 'seed_login'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        Image:
+            source: 'assets/dragon.png'
+            size_hint: (1, 1)
+        Label:
+            text: 'Login with Seed Phrase'
+            font_size: '20sp'
+            text_size: self.size
+            halign: 'center'
+        MDTextField:
+            id: seedphrase
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_text_validate: root.textInput(self)
+        MDTextField:
+            id: userName
+            hint_text: 'Username'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_text_validate: root.textInput(self)
+        MDRoundFlatButton:
+            text: 'Login'
+            pos_hint: {'center_x': 0.5}
+            size_hint: (0.8, None)
+            height: '40dp'
+            on_press: root.onClick()
+
 
 
 <SignupScreen>:
@@ -157,6 +197,7 @@
         # App Bar
         MDBoxLayout:
             adaptive_height: True
+            id: appbar
             MDIconButton:
                 icon: 'arrow-left'
                 on_press: root.manager.current = 'homepage_read_only'
@@ -229,57 +270,9 @@
                                 spacing: 5
                                 padding: 5
 
-                                # Story Creator
-                                StoryCreator:
-                                    size_hint: None, None
-                                    size: 62, 100
-                                    padding: 5
-                                    spacing: 5
+                               
 
-                                    MDRelativeLayout:
-                                        size_hint: None, None
-                                        size: 60, 100
-
-                                        Circle:
-                                            radius: [50, ]
-                                            size: 60, 60
-                                            md_bg_color: 1,1,1,1
-
-                                        Circle:
-                                            radius: [50, ]
-                                            size: 55, 55
-                                            md_bg_color: 1,1,1,1
-
-                                        FitImage:
-                                            source: root.profile_picture
-                                            size_hint: None, None
-                                            size: 53,53
-                                            radius: [53]
-                                            pos_hint: {"center_x":0.5, "center_y":0.6}
-
-                                        Circle:
-                                            size_hint: None, None
-                                            size: 17, 17
-                                            md_bg_color: 1,1,1,1
-                                            radius: [17, ]
-                                            pos_hint: {"center_x":0.8, "center_y":0.4}
-
-                                        FitImage:
-                                            size_hint: None, None
-                                            source: 'assets/plus_icon.png'
-                                            size: 15, 15
-                                            md_bg_color: 0,0,1,1
-                                            radius: [15, ]
-                                            pos_hint: {"center_x":0.8, "center_y":0.4}
-
-                                        MDLabel:
-                                            text: "Your Story"
-                                            halign: 'center'
-                                            pos_hint: {"center_x":0.5, "center_y":0.2}
-                                            font_size: 11
-                                            theme_text_color: 'Custom'
-                                            text_color: 0, 0, 0, 1
-
+                                        
                                 MDBoxLayout:
                                     adaptive_width: True
                                     padding: 5
@@ -359,7 +352,8 @@
     spacing: 2
     elevation: 0
     padding: 5
-       
+    
+    
     
 
     MDBoxLayout:

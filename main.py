@@ -7,6 +7,7 @@ from kivymd.toast import toast
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 import deso
+from deso import Identity
 from kivy.properties import StringProperty
 import pickle
 
@@ -78,18 +79,33 @@ class PostCard(MDCard):
     
 
 # Create the signup screen
-
-
 class SignupScreen(MDScreen):
     pass
 
 # Create the login screen
-
-
 class LoginScreen(MDScreen):
     pass
-# Create the username login screen
 
+#create the login with seed phrase screen
+class SeedLoginScreen(MDScreen):
+    seedPhrase = StringProperty("")
+    userName = StringProperty("")
+
+    def textInput(self, widget):
+        self.seedPhrase = widget.text
+        
+    def nameInput(self, widget):
+        self.userName = widget.text
+
+    def onClick(self):
+        self.textInput(self.ids.seedphrase)
+        self.nameInput(self.ids.userName)
+        seedphrase = self.seedPhrase
+        username = self.userName
+        print(self.seedPhrase, 'seed phrase')
+        SEED_HEX = Identity.getSeedHexFromSeedPhrase(seedphrase)
+        print(SEED_HEX, 'seed hex')
+        print(self.userName, 'username')
 
 class UserNameLoginScreen(MDScreen):
     userName = StringProperty("")
@@ -120,10 +136,12 @@ class SinglePostReadOnlyScreen(MDScreen):
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
         
-        #print(post)
+        print(post)
         self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
         
         self.ids.singlePost.add_widget(PostCard(     
+        avatar=deso.User().getProfilePicURL(
+                    post['PostFound']['PosterPublicKeyBase58Check']),
         username = post['PostFound']['ProfileEntryResponse']['Username'],
         post = post['PostFound']['PostHashHex'],
         caption = post['PostFound']['Body'],
@@ -134,8 +152,12 @@ class SinglePostReadOnlyScreen(MDScreen):
         repost = str(post['PostFound']['RecloutCount']),
         postHashHex = post['PostFound']['PostHashHex']
         ))
-        
-          
+        self.ids.appbar.add_widget(CircularAvatarImage(
+                avatar=deso.User().getProfilePicURL(
+                    post['PostFound']['PosterPublicKeyBase58Check']),
+                name=post['PostFound']['ProfileEntryResponse']['Username'],
+    
+        ))          
 
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(MDScreen):
@@ -144,7 +166,7 @@ class HomePageReadOnlyScreen(MDScreen):
     desoprice = StringProperty("")
     
     def on_enter(self):
-        self.ids.timeline.clear_widgets()
+        #self.ids.timeline.clear_widgets()
         profile = unpickle_profile()
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
@@ -185,23 +207,19 @@ class HomePageReadOnlyScreen(MDScreen):
             posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
 
-            userposts = posts.getPostsStateless(readerPublicKey=profile['Profile']['PublicKeyBase58Check'],
-                numToFetch=10, getPostsForFollowFeed=True)
+            userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
         
         
         for post in userposts.json()['PostsFound']:
-            self.ids.stories.add_widget(CircularAvatarImage(
+            circle=CircularAvatarImage(
                 avatar=deso.User().getProfilePicURL(
                     post['PosterPublicKeyBase58Check']),
                 name=post['ProfileEntryResponse']['Username'],
-                # avatar=data[name]['avatar'],
-                # name=name,
-                on_press=lambda x: self.storie_switcher(
-                    post['ProfileEntryResponse']['PublicKeyBase58Check'])
-
-            ))
+                )
+            circle.bind(on_press=lambda widget, userid=post['ProfileEntryResponse']['PublicKeyBase58Check']: self.storie_switcher(userid))
+            self.ids.stories.add_widget(circle)
 
     def list_posts(self):
         profile = unpickle_profile()
@@ -209,8 +227,7 @@ class HomePageReadOnlyScreen(MDScreen):
             print(profile['Profile']['PublicKeyBase58Check'])
             posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-            userposts = posts.getPostsStateless(readerPublicKey=profile['Profile']['PublicKeyBase58Check'],
-                numToFetch=10, getPostsForFollowFeed=True)
+            userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
 
@@ -257,6 +274,7 @@ class MainApp(MDApp):
         sm.add_widget(UserNameLoginScreen(name='username_login'))
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
         sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
+        sm.add_widget(SeedLoginScreen(name='seed_login'))
 
         return sm
 
