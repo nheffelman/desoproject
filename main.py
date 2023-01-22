@@ -214,14 +214,15 @@ class HomePageReadOnlyScreen(MDScreen):
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
+    avatar = StringProperty("")
     
     def on_enter(self):
         profile = unpickle_profile()
         print(profile)
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
-        #self.profile_picture = deso.User().getProfilePicURL(
-                   # profile['Profile']['PublicKeyBase58Check'])
+        self.profile_picture = deso.User().getProfilePicURL(
+                    profile['Profile']['PublicKeyBase58Check'])
         self.list_stories()
         self.list_posts()
         print(user, 'printed user here')

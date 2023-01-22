@@ -272,22 +272,27 @@
             MDScreen:
                 MDBoxLayout:
                     orientation: 'vertical'
+                    
                     # App Bar
-                    MDTopAppBar:
-                        
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        anchor: 'top'
+                        id: appbar
+                        size_hint: (1, .2)
+                        #title: "DesoBase"
+                        #font_size: 38
+                        #font_name: 'assets/Instafont.otf'
                         #elevation: 4
-                        pos_hint: {"top": 1}
+                        #pos_hint: {"top": 1}
                         #md_bg_color: "#e7e4c0"
-                        3specific_text_color: "#4a4939"
+                        #specific_text_color: "#4a4939"
                         left_action_items: [['menu', lambda x: nav_drawer.set_state("open")]]
                         
-                        #FitImage:
-                        #    source: root.profile_picture
-                        #    size_hint: None, None
-                        #    size: 60, 100
-                        #    radius: [50, ]
-                        #    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-
+                        CircularAvatarImage:
+                            avatar: root.profile_picture
+                            size: '50dp', '50dp'
+                            on_press  : nav_drawer.set_state("open")
+                    
                         MDLabel:
                             id: username
                             text: 'Desoliscious'
@@ -296,10 +301,10 @@
                             font_size: 35
                             font_name: 'assets/Instafont.otf'
 
-                        #MDLabel:
-                        #    id: desoprice
-                        #    text: root.desoprice
-                        #    
+                        MDLabel:
+                            id: desoprice
+                            text: root.desoprice
+                            
                     MDBoxLayout:
                         ScrollView:
                             bar_width: 0
@@ -385,7 +390,7 @@
                 DrawerLabelItem:
                     icon: "information-outline"
                     text: "Label"
-
+            
 
 <Circle@MDCard>
     size_hint: None, None
