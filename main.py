@@ -12,31 +12,48 @@ from kivy.properties import StringProperty
 import pickle
 
 global currentPost 
+global loggedIn
+global user
+global publicKey    
+loggedIn = False
+user = ""
+publicKey = ""
+
+#pickles the current settings
+def pickle_settings(settings):
+    with open('temp/settings.pickle', 'wb') as handle:
+        pickle.dump(settings, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("settings pickled")
+
+#unpickles the current settings
+def unpickle_settings():
+    with open('temp/settings.pickle', 'rb') as handle:
+        settings = pickle.load(handle)
+        print("settings unpickled")
+    return settings
 
 #unpickles the current post
 def unpickle_post():
-    with open('post.pickle', 'rb') as handle:
+    with open('temp/post.pickle', 'rb') as handle:
         post = pickle.load(handle)
         print("post unpickled")
     return post
 #pickles the current post
 def pickle_post(post):
-    with open('post.pickle', 'wb') as handle:
+    with open('temp/post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("post pickled")
 
 # unpickles the user's profile
 def unpickle_profile():
-    with open('profile.pickle', 'rb') as handle:
+    with open('temp/profile.pickle', 'rb') as handle:
         profile = pickle.load(handle)
         #print("profile unpickled")
     return profile
 
 # pickles the user's profile
-
-
 def pickle_profile(profile):
-    with open('profile.pickle', 'wb') as handle:
+    with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
         #print("profile pickled")
 
@@ -101,11 +118,31 @@ class SeedLoginScreen(MDScreen):
         self.textInput(self.ids.seedphrase)
         self.nameInput(self.ids.userName)
         seedphrase = self.seedPhrase
-        username = self.userName
-        print(self.seedPhrase, 'seed phrase')
+        #print(self.seedPhrase, 'seed phrase')
         SEED_HEX = Identity.getSeedHexFromSeedPhrase(seedphrase)
-        print(SEED_HEX, 'seed hex')
-        print(self.userName, 'username')
+        #print(SEED_HEX, 'seed hex')
+        #print(self.userName, 'username')
+        #get user profile and pickle it
+        desoUser = deso.User()
+        profile = desoUser.getSingleProfile(username=self.userName).json()
+        #print(profile)
+        if 'error' in profile:
+            toast(profile['error'])
+        else:
+            pickle_profile(profile)
+            global user
+            global loggedIn
+            global publicKey
+            loggedIn = True
+            user=self.userName
+            publicKey=profile['Profile']['PublicKeyBase58Check']
+            settings = {}
+            settings['user'] = self.userName
+            settings['loggedIn'] = True
+            settings['seedHex'] = SEED_HEX
+            settings['publicKey'] = publicKey
+            pickle_settings(settings)
+            self.manager.current = 'homepage_read_only'
 
 class UserNameLoginScreen(MDScreen):
     userName = StringProperty("")
@@ -121,8 +158,16 @@ class UserNameLoginScreen(MDScreen):
             toast(profile['error'])
         else:
             pickle_profile(profile)
+            global user
+            global loggedIn
+            loggedIn = False
+            user=self.userName
+            settings = {}
+            settings['user'] = self.userName
+            settings['loggedIn'] = True
+            pickle_settings(settings)
             self.manager.current = 'homepage_read_only'
-
+            
         self.current = 'homepage_read_only'
 
 #create the single post read only screen
@@ -136,7 +181,7 @@ class SinglePostReadOnlyScreen(MDScreen):
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
         
-        print(post)
+        #print(post)
         self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
         
         self.ids.singlePost.add_widget(PostCard(     
@@ -172,7 +217,7 @@ class HomePageReadOnlyScreen(MDScreen):
         self.username = profile['Profile']['Username']
         self.list_stories()
         self.list_posts()
-
+        print(user, 'printed user here')
     #changes to the single read post screen
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -191,7 +236,35 @@ class HomePageReadOnlyScreen(MDScreen):
         self.list_stories()
         self.list_posts()
         
+    #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
+    def like(self, postHashHex):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to like a post')
+        else:
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                print(postHashHex, "posthashhex in like function")
+                for self.post in self.ids.timeline.children:
+                    print(self.post.postHashHex)
+                    if self.post.postHashHex == postHashHex:
+                        if self.post.ids.like.icon == 'heart':
+                            self.post.ids.like.icon = 'heart-outline'
+                            self.post.likes = str(int(self.post.likes) - 1)
+                            SEED_HEX = settings['seedHex']
+                            PUBLIC_KEY = settings['publicKey']
+                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                            print(desoSocial.like(postHashHex, isLike=False).json())
+                        else:
+                            self.post.ids.like.icon = 'heart'
+                            self.post.likes = str(int(self.post.likes) + 1)
+                            SEED_HEX = settings['seedHex']
+                            PUBLIC_KEY = settings['publicKey']
+                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                            print(desoSocial.like(postHashHex, isLike=True).json())
 
+                        break 
+        
     def list_stories(self):
         profile = unpickle_profile()
         desoMetadata = deso.Metadata()
@@ -233,13 +306,18 @@ class HomePageReadOnlyScreen(MDScreen):
 
         
         for post in userposts.json()['PostsFound']:
-            
+            print(post)
             readmore = ''
             if len(post['Body']) > 144:
                 readmore = '  -- read more --'
             postImage = ''
             if post['ImageURLs']:
                 postImage = post['ImageURLs'][0]
+            likedByReader = post['PostEntryReaderState']['LikedByReader']
+            if likedByReader == True:
+                likeIcon = 'heart'
+            else:
+                likeIcon = 'heart-outline'
             postcard=(PostCard(
                 username=post["ProfileEntryResponse"]['Username'],
 
@@ -255,6 +333,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 repost=str(post['RepostCount']),
             ))
             #bind the posthashhex to the postcard for each post in the timeline
+            postcard.ids.like.icon = likeIcon
+            postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
             postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
             self.ids.timeline.add_widget(postcard)
 
