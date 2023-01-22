@@ -223,6 +223,9 @@
                 height: '40dp'
                 on_press: root.onClick()
 
+
+
+
 #singe post read only screen with mdpostcard
 <SinglePostReadOnlyScreen>:
     name: 'single_post_read_only'
@@ -259,82 +262,129 @@
 
 
 <HomePageReadOnlyScreen>:
+
     name: 'homepage_read_only'
     orientation: 'vertical'
-    MDBoxLayout:
-        orientation: 'vertical'
-        # App Bar
-        MDBoxLayout:
-            padding: '5dp'
-            adaptive_height: True
+    
+    MDNavigationLayout:
+        MDScreenManager:
 
-            MDIconButton:
-                icon: 'plus'
-
-            MDLabel:
-                id: username
-                text: 'Desoliscious'
-                halign: 'center'
-                valign: 'top'
-                font_size: 50
-                font_name: 'assets/Instafont.otf'
-
-            MDLabel:
-                id: desoprice
-                text: root.desoprice
-        MDBoxLayout:
-            ScrollView:
-                bar_width: 0
-
+            MDScreen:
                 MDBoxLayout:
-                    adaptive_height: True
-                    
-                    MDBoxLayout:
-                        orientation: 'vertical'
-                        adaptive_height: True
-                        padding: '5dp'
-                        id: timeline
+                    orientation: 'vertical'
+                    # App Bar
+                    MDTopAppBar:
+                        
+                        #elevation: 4
+                        pos_hint: {"top": 1}
+                        #md_bg_color: "#e7e4c0"
+                        3specific_text_color: "#4a4939"
+                        left_action_items: [['menu', lambda x: nav_drawer.set_state("open")]]
+                        
+                        #FitImage:
+                        #    source: root.profile_picture
+                        #    size_hint: None, None
+                        #    size: 60, 100
+                        #    radius: [50, ]
+                        #    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
-                        # Stories
+                        MDLabel:
+                            id: username
+                            text: 'Desoliscious'
+                            halign: 'center'
+                            valign: 'top'
+                            font_size: 35
+                            font_name: 'assets/Instafont.otf'
+
+                        #MDLabel:
+                        #    id: desoprice
+                        #    text: root.desoprice
+                        #    
+                    MDBoxLayout:
                         ScrollView:
-                            size_hint_y: None
-                            height: 110
                             bar_width: 0
 
                             MDBoxLayout:
-                                adaptive_width: True
-                                spacing: 5
-                                padding: 5
+                                adaptive_height: True
 
-                               
-
-                                        
                                 MDBoxLayout:
-                                    adaptive_width: True
-                                    padding: 5
-                                    spacing: 5
-                                    id: stories
-                        MDSeparator:
+                                    orientation: 'vertical'
+                                    adaptive_height: True
+                                    padding: '5dp'
+                                    id: timeline
 
-        MDBoxLayout:
-            adaptive_height: True
-            spacing: 10
-            padding: 10
+                                    # Stories
+                                    ScrollView:
+                                        size_hint_y: None
+                                        height: 110
+                                        bar_width: 0
 
-            MDIconButton:
-                icon: 'home'
-            MDIconButton:
-                icon: 'magnify'
-            MDIconButton:
-                icon: 'movie'
-            MDIconButton:
-                icon: 'heart-outline'
-            FitImage:
-                source: root.profile_picture
-                size_hint: None, None
-                size: 25, 25
-                radius: [25, ]
-                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                                        MDBoxLayout:
+                                            adaptive_width: True
+                                            spacing: 5
+                                            padding: 5
+
+
+
+
+                                            MDBoxLayout:
+                                                adaptive_width: True
+                                                padding: 5
+                                                spacing: 5
+                                                id: stories
+
+                    MDBoxLayout:
+                        adaptive_height: True
+
+                        spacing: 10
+                        padding: 10
+
+                        MDIconButton:
+                            icon: 'home'
+                        MDIconButton:
+                            icon: 'magnify'
+                        MDIconButton:
+                            icon: 'alert-circle-outline'
+                        MDIconButton:
+                            icon: 'message-text-outline'
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+
+            MDNavigationDrawerMenu:
+
+                MDNavigationDrawerHeader:
+                    title: "Header title"
+                    title_color: "#4a4939"
+                    text: "Header text"
+                    spacing: "4dp"
+                    padding: "12dp", 0, 0, "56dp"
+
+                MDNavigationDrawerLabel:
+                    text: "Mail"
+
+                DrawerClickableItem:
+                    icon: "gmail"
+                    right_text: "+99"
+                    text_right_color: "#4a4939"
+                    text: "Inbox"
+
+                DrawerClickableItem:
+                    icon: "send"
+                    text: "Outbox"
+
+                MDNavigationDrawerDivider:
+
+                MDNavigationDrawerLabel:
+                    text: "Labels"
+
+                DrawerLabelItem:
+                    icon: "information-outline"
+                    text: "Label"
+
+                DrawerLabelItem:
+                    icon: "information-outline"
+                    text: "Label"
 
 
 <Circle@MDCard>
@@ -387,10 +437,7 @@
     height: "420dp"
     spacing: 2
     elevation: 0
-    padding: 5
-    
-    
-    
+    padding: 5  
 
     MDBoxLayout:
         padding: 2
@@ -413,7 +460,7 @@
 
     # Post
     FitImage:
-        adaptive_height: True
+        height: "210dp"
         source: root.post
 
     # Reactions
@@ -488,7 +535,10 @@
 
         HalfOpacityLabel:
             font_size: 10
-            text: f'{root.posted_ago} agp'
+            text: f'{root.posted_ago} ago'
+
+    MDSeparator:
+
 
 
 
@@ -499,6 +549,21 @@
 <HalfOpacityLabel@MyLabel>:
     theme_text_color: 'Custom'
     text_color: 0,0,0,0.5
+
+<DrawerClickableItem@MDNavigationDrawerItem>
+    focus_color: "#e7e4c0"
+    text_color: "#4a4939"
+    icon_color: "#4a4939"
+    ripple_color: "#c5bdd2"
+    selected_color: "#0c6c4d"
+
+
+<DrawerLabelItem@MDNavigationDrawerItem>
+    text_color: "#4a4939"
+    icon_color: "#4a4939"
+    focus_behavior: False
+    selected_color: "#4a4939"
+    _no_ripple_effect: True
 
 
         

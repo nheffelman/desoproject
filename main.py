@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 import deso
@@ -59,9 +60,8 @@ def pickle_profile(profile):
 
 
 
+
 # class for the avatar circle
-
-
 class CircularAvatarImage(MDCard):
     avatar = StringProperty()
     name = StringProperty()
@@ -93,6 +93,7 @@ class PostCard(MDCard):
     diamonds = StringProperty()
     repost = StringProperty()
     postHashHex = StringProperty()
+    posted_ago = StringProperty()
     
 
 # Create the signup screen
@@ -180,7 +181,11 @@ class SinglePostReadOnlyScreen(MDScreen):
         currentPost = unpickle_post()
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
-        
+        #print(post)
+        postImage = ''
+        if post['PostFound']['ImageURLs']:
+            postImage = post['PostFound']['ImageURLs'][0]
+            
         #print(post)
         self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
         
@@ -188,8 +193,8 @@ class SinglePostReadOnlyScreen(MDScreen):
         avatar=deso.User().getProfilePicURL(
                     post['PostFound']['PosterPublicKeyBase58Check']),
         username = post['PostFound']['ProfileEntryResponse']['Username'],
-        post = post['PostFound']['PostHashHex'],
-        caption = post['PostFound']['Body'],
+        body=str(post['PostFound']['Body']),
+        post = postImage,
         likes = str(post['PostFound']['LikeCount']),
         comments = str(post['PostFound']['CommentCount']),
         #posted_ago = post['PostFound']['PostEntryReaderState']['TimeAgo'],
@@ -206,15 +211,17 @@ class SinglePostReadOnlyScreen(MDScreen):
 
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(MDScreen):
-    profile_picture = 'https://avatars.githubusercontent.com/u/89080192?v=4'
+    profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
     
     def on_enter(self):
-        #self.ids.timeline.clear_widgets()
         profile = unpickle_profile()
+        print(profile)
         print(profile['Profile']['Username'])
         self.username = profile['Profile']['Username']
+        #self.profile_picture = deso.User().getProfilePicURL(
+                   # profile['Profile']['PublicKeyBase58Check'])
         self.list_stories()
         self.list_posts()
         print(user, 'printed user here')
@@ -306,7 +313,7 @@ class HomePageReadOnlyScreen(MDScreen):
 
         
         for post in userposts.json()['PostsFound']:
-            print(post)
+            #print(post)
             readmore = ''
             if len(post['Body']) > 144:
                 readmore = '  -- read more --'
@@ -331,6 +338,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 post=postImage,
                 diamonds=str(post['DiamondCount']),
                 repost=str(post['RepostCount']),
+                #posted_ago = str(post['TimeStampNanos']), doesn;t work
             ))
             #bind the posthashhex to the postcard for each post in the timeline
             postcard.ids.like.icon = likeIcon
