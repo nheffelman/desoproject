@@ -279,15 +279,7 @@
                         anchor: 'top'
                         id: appbar
                         size_hint: (1, .2)
-                        #title: "DesoBase"
-                        #font_size: 38
-                        #font_name: 'assets/Instafont.otf'
-                        #elevation: 4
-                        #pos_hint: {"top": 1}
-                        #md_bg_color: "#e7e4c0"
-                        #specific_text_color: "#4a4939"
-                        left_action_items: [['menu', lambda x: nav_drawer.set_state("open")]]
-                        
+
                         CircularAvatarImage:
                             avatar: root.profile_picture
                             size: '50dp', '50dp'
@@ -359,24 +351,22 @@
             MDNavigationDrawerMenu:
 
                 MDNavigationDrawerHeader:
-                    title: "Header title"
+                    title: "Account Info"
                     title_color: "#4a4939"
-                    text: "Header text"
+                    text: root.username
                     spacing: "4dp"
                     padding: "12dp", 0, 0, "56dp"
 
-                MDNavigationDrawerLabel:
-                    text: "Mail"
-
                 DrawerClickableItem:
-                    icon: "gmail"
-                    right_text: "+99"
-                    text_right_color: "#4a4939"
-                    text: "Inbox"
+                    icon: "account"
+                    text: "Profile"
+                    
 
                 DrawerClickableItem:
                     icon: "send"
+                    right_text: "+99"
                     text: "Outbox"
+                    text_right_color: "#4a4939"
 
                 MDNavigationDrawerDivider:
 
@@ -387,9 +377,12 @@
                     icon: "information-outline"
                     text: "Label"
 
-                DrawerLabelItem:
-                    icon: "information-outline"
-                    text: "Label"
+                DrawerClickableItem:
+                    icon: "close"
+                    text: "Log out"
+                    on_press: root.ids.timeline.clear_widgets()
+                    on_press: root.logout()
+
             
 
 <Circle@MDCard>
@@ -497,6 +490,7 @@
 			text: f'{root.repost}'
 			
         MDIconButton:
+            id: diamond
             icon: 'diamond-outline'
             
         MyLabel: 

@@ -143,6 +143,7 @@ class SeedLoginScreen(MDScreen):
             settings['seedHex'] = SEED_HEX
             settings['publicKey'] = publicKey
             pickle_settings(settings)
+
             self.manager.current = 'homepage_read_only'
 
 class UserNameLoginScreen(MDScreen):
@@ -165,7 +166,7 @@ class UserNameLoginScreen(MDScreen):
             user=self.userName
             settings = {}
             settings['user'] = self.userName
-            settings['loggedIn'] = True
+            settings['loggedIn'] = False
             pickle_settings(settings)
             self.manager.current = 'homepage_read_only'
             
@@ -220,12 +221,22 @@ class HomePageReadOnlyScreen(MDScreen):
         profile = unpickle_profile()
         print(profile)
         print(profile['Profile']['Username'])
+        username=profile['Profile']['Username']
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
         self.list_stories()
         self.list_posts()
         print(user, 'printed user here')
+
+    def logout(self):
+        settings = {}
+        settings['loggedIn'] = False
+        pickle_settings(settings)
+        global loggedIn
+        loggedIn = False
+        self.manager.current = 'login'
+
     #changes to the single read post screen
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -254,7 +265,7 @@ class HomePageReadOnlyScreen(MDScreen):
             if settings['loggedIn'] == True:
                 print(postHashHex, "posthashhex in like function")
                 for self.post in self.ids.timeline.children:
-                    print(self.post.postHashHex)
+                    #print(self.post.postHashHex)
                     if self.post.postHashHex == postHashHex:
                         if self.post.ids.like.icon == 'heart':
                             self.post.ids.like.icon = 'heart-outline'
@@ -272,7 +283,38 @@ class HomePageReadOnlyScreen(MDScreen):
                             print(desoSocial.like(postHashHex, isLike=True).json())
 
                         break 
-        
+     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
+    def diamond(self, postHashHex):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to diamond a post')
+        else:
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                print(postHashHex, "posthashhex in diamond function")
+                for self.post in self.ids.timeline.children:
+                    print(self.post.postHashHex)
+                    if self.post.postHashHex == postHashHex:   
+                        post = deso.Posts()
+                        post = post.getSinglePost(postHashHex=postHashHex).json()      
+                        if post['PostFound']['PosterPublicKeyBase58Check']:              
+                            self.post.ids.diamond.icon = 'diamond'
+                            self.post.diamonds = str(int(self.post.diamonds) + 1)
+                            SEED_HEX = settings['seedHex']
+                            PUBLIC_KEY = settings['publicKey']
+                            receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
+                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                            print(desoSocial.diamond(postHashHex, receiverPublicKey,  diamondLevel=1).json())
+                            toast('You have successfully diamonded this post')
+                        else: 
+                            toast('You cannot diamond your own post')
+                        
+
+                        break
+
+
+
+
     def list_stories(self):
         profile = unpickle_profile()
         desoMetadata = deso.Metadata()
@@ -314,13 +356,18 @@ class HomePageReadOnlyScreen(MDScreen):
 
         
         for post in userposts.json()['PostsFound']:
-            #print(post)
+            print(post)
             readmore = ''
             if len(post['Body']) > 144:
                 readmore = '  -- read more --'
             postImage = ''
             if post['ImageURLs']:
                 postImage = post['ImageURLs'][0]
+            diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
+            if diamondedByReader == 0:
+                diamondIcon = 'diamond-outline'
+            else:
+                diamondIcon = 'diamond'
             likedByReader = post['PostEntryReaderState']['LikedByReader']
             if likedByReader == True:
                 likeIcon = 'heart'
@@ -344,6 +391,8 @@ class HomePageReadOnlyScreen(MDScreen):
             #bind the posthashhex to the postcard for each post in the timeline
             postcard.ids.like.icon = likeIcon
             postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
+            postcard.ids.diamond.icon = diamondIcon
+            postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
             postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
             self.ids.timeline.add_widget(postcard)
 
@@ -364,6 +413,14 @@ class MainApp(MDApp):
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
         sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
         sm.add_widget(SeedLoginScreen(name='seed_login'))
+        
+        #check to see if logged in and go to homepage
+        settings=unpickle_settings()
+        print('settings are here', settings)
+        if settings['loggedIn']:
+            global loggedIn
+            loggedIn = True
+            sm.current = 'homepage_read_only'
 
         return sm
 
