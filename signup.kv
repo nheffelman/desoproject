@@ -383,7 +383,42 @@
                     on_press: root.ids.timeline.clear_widgets()
                     on_press: root.logout()
 
-            
+<PostScreen>:
+    name: 'post'
+    orientation: 'vertical'
+    
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        anchor: 'top'
+                        id: appbar
+                        size_hint: (1, .2)
+
+                        CircularAvatarImage:
+                            avatar: root.profile_picture
+                            size: '50dp', '50dp'
+                            on_press  : nav_drawer.set_state("open")
+                    
+                        MDLabel:
+                            id: username
+                            text: 'Desoliscious'
+                            halign: 'center'
+                            valign: 'top'
+                            font_size: 35
+                            font_name: 'assets/Instafont.otf'
+                        MDLabel:
+                            id: desoprice
+                            text: root.desoprice
+                        
+                            
+                    
 
 <Circle@MDCard>
     size_hint: None, None
@@ -484,10 +519,11 @@
 			text: f'{root.comments}'
 			
 		MDIconButton:
+            id: reclout
 			icon: 'repeat'
 
 		MyLabel:
-			text: f'{root.repost}'
+			text: f'{root.reclout}'
 			
         MDIconButton:
             id: diamond
@@ -564,7 +600,24 @@
     selected_color: "#4a4939"
     _no_ripple_effect: True
 
+<Item>
 
+    ImageLeftWidget:
+        source: root.source
+
+<Content>
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "420dp"
+
+    MDTextField:
+        id: quote
+        hint_text: "Add a comment"
+        multiline: True
+        max_text_length: 144
+
+    
         
 
     

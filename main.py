@@ -7,10 +7,14 @@ from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.button import MDRoundFlatButton
 import deso
 from deso import Identity
 from kivy.properties import StringProperty
 import pickle
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.list import OneLineAvatarListItem
+
 
 global currentPost 
 global loggedIn
@@ -58,8 +62,14 @@ def pickle_profile(profile):
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
         #print("profile pickled")
 
+#class for custom dialog content
+class Content(MDBoxLayout):
+    quote = StringProperty()
 
-
+# class for Item
+class Item(OneLineAvatarListItem):
+    divider = None
+    source = StringProperty()
 
 # class for the avatar circle
 class CircularAvatarImage(MDCard):
@@ -91,7 +101,7 @@ class PostCard(MDCard):
     body = StringProperty()
     readmore = StringProperty()
     diamonds = StringProperty()
-    repost = StringProperty()
+    reclout = StringProperty()
     postHashHex = StringProperty()
     posted_ago = StringProperty()
     
@@ -200,7 +210,7 @@ class SinglePostReadOnlyScreen(MDScreen):
         comments = str(post['PostFound']['CommentCount']),
         #posted_ago = post['PostFound']['PostEntryReaderState']['TimeAgo'],
         diamonds = str(post['PostFound']['DiamondCount']),
-        repost = str(post['PostFound']['RecloutCount']),
+        reclout = str(post['PostFound']['RecloutCount']),
         postHashHex = post['PostFound']['PostHashHex']
         ))
         self.ids.appbar.add_widget(CircularAvatarImage(
@@ -216,6 +226,7 @@ class HomePageReadOnlyScreen(MDScreen):
     username = StringProperty("")
     desoprice = StringProperty("")
     avatar = StringProperty("")
+    dialog = None
     
     def on_enter(self):
         profile = unpickle_profile()
@@ -312,8 +323,86 @@ class HomePageReadOnlyScreen(MDScreen):
 
                         break
 
+    #use a MDDIalog to ask user if they want to repost or quote post
+    def clout_or_quoteclout_dialog(self, postHashHex):
+        if not self.dialog:
+            self.dialog = MDDialog(
+            title="Would you like to reclout or quoteclout this post?",
+            type="simple",
+            items=[
+                Item(text="ReClout", source="assets/reclout.png", on_release= lambda widget, postHashHex=postHashHex: self.recloutpressed(postHashHex)),
+                Item(text="QuoteClout", source="assets/quoteclout.png", on_release= lambda widget, postHashHex=postHashHex: self.quotecloutpressed(postHashHex)),
+            ],
+            )
+            self.dialog.open()
+
+    # if user selects quoteclout, open a dialog box to enter a quote, else return error to reclout function
+    def quotecloutpressed(self, postHashHex):
+        self.dialog.dismiss()
+        self.dialog = None
+        if not self.dialog:
+            self.dialog = MDDialog(
+            title="Enter a quote",
+            type="custom",
+            content_cls=Content(),
+            buttons=[
+                MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.dialog.dismiss()),
+                MDRoundFlatButton(text="QUOTE", on_release= lambda widget, postHashHex=postHashHex: self.quoteclout(postHashHex)),
+            ],
+            )
+            self.dialog.open()
+
+    #if user selects quoteclout, send a quoteclout to the blockchain and close the dialog box, else return error to reclout function
+    def quoteclout(self, postHashHexToQuote):
+        
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        
+        quoteclout_response = desoSocial.quote(postHashHexToQuote=postHashHexToQuote, body=self.dialog.content_cls.ids.quote.text, ).json()
+        self.dialog.dismiss()
+        self.dialog = None
+        print(quoteclout_response)
+        if 'error' in quoteclout_response:
+            return False
+
+    #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
+    def recloutpressed(self, postHashHexToRepost):
+        #print(postHashHexToRepost, 'posthashhex in recloutpressed')
+        self.dialog.dismiss()
+        self.dialog = None
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
+        print(reclout_response)
+        if 'error' in reclout_response:
+            return False
 
 
+    #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
+    def reclout(self, postHashHex):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to reclout a post')
+        else:
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                #print(postHashHex, "posthashhex in reclout function")
+                if self.clout_or_quoteclout_dialog(postHashHex) == False:
+                    toast('An error occured reclouting this post')
+                else:
+                    #update the icon and reclout count
+                    for self.post in self.ids.timeline.children:
+                    #    print(self.post.postHashHex)
+                        if self.post.postHashHex == postHashHex:
+                            self.post.ids.reclout.icon = 'repeat-variant'
+                            self.post.reclout = str(int(self.post.reclout) + 1)
+                        
+                            break
+                    
 
     def list_stories(self):
         profile = unpickle_profile()
@@ -356,13 +445,18 @@ class HomePageReadOnlyScreen(MDScreen):
 
         
         for post in userposts.json()['PostsFound']:
-            print(post)
+            #print(post)
             readmore = ''
             if len(post['Body']) > 144:
                 readmore = '  -- read more --'
             postImage = ''
             if post['ImageURLs']:
                 postImage = post['ImageURLs'][0]
+            recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
+            if recloutedByReader == True:
+                recloutIcon = 'repeat-variant'
+            else:
+                recloutIcon = 'repeat'
             diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
             if diamondedByReader == 0:
                 diamondIcon = 'diamond-outline'
@@ -385,16 +479,36 @@ class HomePageReadOnlyScreen(MDScreen):
                 readmore=readmore,
                 post=postImage,
                 diamonds=str(post['DiamondCount']),
-                repost=str(post['RepostCount']),
+                reclout=str(post['RepostCount']),
                 #posted_ago = str(post['TimeStampNanos']), doesn;t work
             ))
             #bind the posthashhex to the postcard for each post in the timeline
             postcard.ids.like.icon = likeIcon
             postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
+            postcard.ids.reclout.icon = recloutIcon
+            postcard.ids.reclout.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.reclout(postHashHex))
             postcard.ids.diamond.icon = diamondIcon
             postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
             postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
             self.ids.timeline.add_widget(postcard)
+
+class PostScreen(Screen):
+    profile_picture = StringProperty("")
+    username = StringProperty("")
+    desoprice = StringProperty("")
+    postHashHex = StringProperty("")
+    posted_ago = StringProperty("")
+
+    
+    def on_enter(self):    
+        postHashHex = unpickle_post()
+        post = deso.Posts().getSinglePost(postHashHex=postHashHex).json()
+        print(post)
+        profile = deso.User().getSingleProfile(publicKey=post['PostFound']['PosterPublicKeyBase58Check']).json()
+        
+        profile_picture = deso.User().getProfilePicURL(post['PostFound']['PosterPublicKeyBase58Check'])
+        
+        
 
 
 
@@ -413,6 +527,7 @@ class MainApp(MDApp):
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
         sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
         sm.add_widget(SeedLoginScreen(name='seed_login'))
+        sm.add_widget(PostScreen(name='post'))
         
         #check to see if logged in and go to homepage
         settings=unpickle_settings()
