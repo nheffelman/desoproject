@@ -287,13 +287,14 @@
                     
                         MDLabel:
                             id: username
+                            text_size: self.size
                             text: 'Desoliscious'
                             halign: 'center'
                             valign: 'top'
-                            font_size: 35
+                            font_size: 28
                             font_name: 'assets/Instafont.otf'
-
                         MDLabel:
+                            halign: 'right'
                             id: desoprice
                             text: root.desoprice
                             
@@ -373,9 +374,9 @@
                 MDNavigationDrawerLabel:
                     text: "Labels"
 
-                DrawerLabelItem:
-                    icon: "information-outline"
-                    text: "Label"
+                DrawerClickableItem:
+                    icon: "home"
+                    text: "Home"
 
                 DrawerClickableItem:
                     icon: "close"
@@ -467,7 +468,7 @@
     
     orientation: 'vertical'
     size_hint_y: None
-    height: "420dp"
+    height: "630dp"  #started at 420dp
     spacing: 2
     elevation: 0
     padding: 5  
@@ -486,9 +487,11 @@
                 radius: [20, ]
         MDIconButton:
             icon: 'dots-vertical'
+            id: dots
+            
     MDLabel:
     	adaptive_height: True
-    	text: root.body[:144] + root.readmore
+    	text: root.body[:288] + root.readmore
         
 
     # Post
@@ -509,6 +512,7 @@
         MyLabel:
             id: likeNumber
             valign: 'top'
+            font_size: 10
             text: f'{root.likes}'
             bold: True
 
@@ -516,6 +520,7 @@
             icon: 'message-outline'
             
 		MyLabel:
+            font_size: 10
 			text: f'{root.comments}'
 			
 		MDIconButton:
@@ -523,6 +528,7 @@
 			icon: 'repeat'
 
 		MyLabel:
+            font_size: 10
 			text: f'{root.reclout}'
 			
         MDIconButton:
@@ -530,24 +536,24 @@
             icon: 'diamond-outline'
             
         MyLabel: 
+            font_size: 10
 			text: f'{root.diamonds}'
 			bold: True
 
         Widget:
 
       
-    MDBoxLayout:
-        orientation: 'vertical'
-        padding: 5,0,0,0
-        spacing: 3
-        adaptive_height: True
+   # MDBoxLayout:
+    #    orientation: 'vertical'
+    #    padding: 5,0,0,0
+    #    adaptive_height: True
 
-        MyLabel:
-            markup: True
-            text: f'[b]{root.username}[/b] {root.caption}'
+        #MyLabel:
+        #    markup: True
+        #    text: f'[b]{root.username}[/b] {root.caption}'
 
-        HalfOpacityLabel:
-            text: f'View all {root.comments} comments'
+        #HalfOpacityLabel:
+        #    text: f'View all {root.comments} comments'
 
     MDBoxLayout:
         padding: 5,0,0,0
@@ -560,17 +566,17 @@
             size: 20,20
             radius: [20, ]
 
-        HalfOpacityLabel:
-            text: 'Add a comment...'
+        #HalfOpacityLabel:
+        #    text: 'Add a comment...'
 
-    MDBoxLayout:
-        padding: 9,0,0,0
-        spacing: 0
-        adaptive_height: True
+    #MDBoxLayout:
+    #    padding: 9,0,0,0
+    #    spacing: 0
+    #    adaptive_height: True
 
-        HalfOpacityLabel:
-            font_size: 10
-            text: f'{root.posted_ago} ago'
+    #    HalfOpacityLabel:
+    #        font_size: 10
+    #        text: f'{root.posted_ago} ago'
 
     MDSeparator:
 
