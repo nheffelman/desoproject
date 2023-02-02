@@ -464,8 +464,218 @@
             theme_text_color: "Custom"
             text_color: 0,0,0,1
 
-<PostCard>
+<RePosterCard>
+    orientation: 'vertical'
+    size_hint_y: None
+    adaptive_height: True
+    #spacing: 2
+    #elevation: 0
+    padding: 10  
+
+    MDBoxLayout:
+        padding: 2
+        adaptive_height: True
+
+
+        OneLineAvatarListItem:
+            text: f'[b][size=24]{root.reposterUsername}[/size][/b]'
+            divider: None
+            _no_ripple_effect: True
+
+            ImageLeftWidget:
+                source: root.reposterAvatar
+                radius: [20, ]
+        MDIconButton:
+            icon: 'dots-vertical'
+            id: dots
+    MDLabel:
+    	adaptive_height: True
+    	text: root.reposterBody[:288]
+
+               
     
+    
+        
+
+    
+<RePostedCard>
+    orientation: 'vertical'
+    size_hint_y: None
+    adaptive_height: True#"420dp"  #started at 420dp
+    spacing: 2
+    elevation: 0
+    padding: 5  
+
+    MDBoxLayout:
+        padding: 2
+        adaptive_height: True
+        orientation: 'horizontal'
+        
+        MDBoxLayout:
+            size_hint: .1, 1
+            orientation: 'vertical'
+        
+        MDBoxLayout:
+            size_hint: .8, 1
+            orientation: 'vertical'
+
+            OneLineAvatarListItem:
+                text: f'[b][size=24]{root.repostUsername}[/size][/b]'
+                divider: None
+                _no_ripple_effect: True
+
+                ImageLeftWidget:
+                    source: root.repostAvatar
+                    radius: [20, ]
+        
+            
+            MDLabel:
+                adaptive_height: True
+                text: root.repostBody[:288]
+        
+<RePostCard>    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: "630dp"  #started at 420dp
+    spacing: 2
+    elevation: 0
+    padding: 5  
+    
+
+    MDBoxLayout:
+        padding: 2
+        adaptive_height: True
+
+        OneLineAvatarListItem:
+            text: f'[b][size=24]{root.username}[/size][/b]'
+            divider: None
+            _no_ripple_effect: True
+
+            ImageLeftWidget:
+                source: root.avatar
+                radius: [20, ]
+        MDIconButton:
+            icon: 'dots-vertical'
+            id: dots
+            
+    MDLabel:
+    	adaptive_height: True
+    	text: root.body[:288] 
+        
+
+    MDBoxLayout:
+        padding: 2
+        #adaptive_height: True
+        orientation: 'horizontal'
+        
+        MDBoxLayout:
+            size_hint: .1, 1
+            orientation: 'vertical'
+        
+        MDBoxLayout:
+            size_hint: .8, 1
+            orientation: 'vertical'
+
+            
+
+            OneLineAvatarListItem:
+                text: f'[b][size=24]{root.repostUsername}[/size][/b]'
+                divider: None
+                _no_ripple_effect: True
+                ImageLeftWidget:
+                    source: root.repostAvatar
+                    radius: [20, ]
+        
+            
+            MDLabel:
+                adaptive_height: True
+                text: root.repostBody[:288]
+                size_hint: .8, 1
+
+    # Reactions
+    MDBoxLayout:
+        padding: 5, 0, 0, 0
+        spacings: 2
+        adaptive_height: True
+
+        MDIconButton:
+            id: like
+            icon: "heart-outline"
+                        
+        MyLabel:
+            id: likeNumber
+            valign: 'top'
+            font_size: 10
+            text: f'{root.likes}'
+            bold: True
+
+        MDIconButton:
+            icon: 'message-outline'
+            
+		MyLabel:
+            font_size: 10
+			text: f'{root.comments}'
+			
+		MDIconButton:
+            id: reclout
+			icon: 'repeat'
+
+		MyLabel:
+            font_size: 10
+			text: f'{root.reclout}'
+			
+        MDIconButton:
+            id: diamond
+            icon: 'diamond-outline'
+            
+        MyLabel: 
+            font_size: 10
+			text: f'{root.diamonds}'
+			bold: True
+
+        Widget:
+
+      
+   # MDBoxLayout:
+    #    orientation: 'vertical'
+    #    padding: 5,0,0,0
+    #    adaptive_height: True
+
+        #MyLabel:
+        #    markup: True
+        #    text: f'[b]{root.username}[/b] {root.caption}'
+
+        #HalfOpacityLabel:
+        #    text: f'View all {root.comments} comments'
+
+    MDBoxLayout:
+        padding: 5,0,0,0
+        spacing: 2
+        adaptive_height: True
+
+        FitImage:
+            source: root.profile_pic
+            size_hint: None, None
+            size: 20,20
+            radius: [20, ]
+
+        #HalfOpacityLabel:
+        #    text: 'Add a comment...'
+
+    #MDBoxLayout:
+    #    padding: 9,0,0,0
+    #    spacing: 0
+    #    adaptive_height: True
+
+    #    HalfOpacityLabel:
+    #        font_size: 10
+    #        text: f'{root.posted_ago} ago'
+
+    MDSeparator:
+
+
+   
+<PostCard>    
     orientation: 'vertical'
     size_hint_y: None
     height: "630dp"  #started at 420dp

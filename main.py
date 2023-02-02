@@ -83,8 +83,6 @@ class StoryCreator(MDCard):
     avatar = StringProperty()
 
 # class for the post card
-
-
 class PostCard(MDCard):
     def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
@@ -106,6 +104,28 @@ class PostCard(MDCard):
     posted_ago = StringProperty()
     
 
+#class for the repost card
+class RePostCard(MDCard):
+    def on_post_click(self, postHashHex):
+        pickle_post(postHashHex)
+        self.sm.current = 'single_post_read_only'
+    profile_pic = StringProperty()
+    repostAvatar = StringProperty()
+    repostUsername = StringProperty()
+    repostBody = StringProperty()
+    postHashHex = StringProperty()
+    avatar =StringProperty()
+    username = StringProperty()
+    body = StringProperty()
+    likes = StringProperty()
+    diamonds = StringProperty()
+    reclout = StringProperty()
+    comments = StringProperty()
+    repostPostHashHex = StringProperty()
+    repostPost= StringProperty()
+
+
+    
 # Create the signup screen
 class SignupScreen(MDScreen):
     pass
@@ -452,37 +472,55 @@ class HomePageReadOnlyScreen(MDScreen):
             #If this is a repost of another post, get the original post and extra body text
 
             if post['RepostedPostEntryResponse'] != None:
-                print('repost found', post)
+                #print('repost found', post)
                 repostBody = post['RepostedPostEntryResponse']['Body']
                 repostImage=""
                 if post['RepostedPostEntryResponse']['ImageURLs'] != None:
                     repostImage = post['RepostedPostEntryResponse']['ImageURLs'][0]
-                reposterUsername=username=post["ProfileEntryResponse"]['Username']
-                reposterAvatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check'])
-                postcard=(PostCard(
-                username = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username'],
-                avatar=deso.User().getProfilePicURL(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']),
-                postHashHex=str(post['PostHashHex']),
-                #repostPostHashHex=post['RepostedPostEntryResponse']['PostHashHex'],
+                if recloutedByReader == True:
+                    recloutIcon = 'repeat-variant'
+                else:
+                    recloutIcon = 'repeat'
+                diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
+                if diamondedByReader == 0:
+                    diamondIcon = 'diamond-outline'
+                else:
+                    diamondIcon = 'diamond'
+                likedByReader = post['PostEntryReaderState']['LikedByReader']
+                if likedByReader == True:
+                    likeIcon = 'heart'
+                else:
+                    likeIcon = 'heart-outline'
+                repostcard=(RePostCard(
+                username=post["ProfileEntryResponse"]['Username'],
+                avatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check']),
+                body=str(post['Body']),
                 likes=str(post['LikeCount']),
                 comments=str(post['CommentCount']),
-                body=str(post['RepostedPostEntryResponse']['Body']),
-                readmore=readmore,
-                post=repostImage,
                 diamonds=str(post['DiamondCount']),
-                reclout=str(post['RepostCount'])
+                reclout=str(post['RepostCount']),
+                postHashHex=str(post['PostHashHex']),           
+                repostUsername = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username'],
+                repostAvatar=deso.User().getProfilePicURL(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']),
+                #repostPostHashHex=str(post['PostHashHex']),
+                repostPostHashHex=str(post['RepostedPostEntryResponse']['PostHashHex']),
+                repostBody=str(post['RepostedPostEntryResponse']['Body']),
+                repostPost=repostImage,                
                 ))
-                repostcard=(PostCard(
-                username = reposterUsername,
-                avatar=reposterAvatar,
-                postHashHex=str(post['PostHashHex']),
-                body=repostBody,
-                ))
-                box=MDBoxLayout(orientation='vertical')
-                box.add_widget(repostcard)
-                box.add_widget(postcard)
-                self.ids.timeline.add_widget(box)
+                #bind the posthashhex to the repostcard for each post in the timeline
+                repostcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
+                repostcard.ids.like.icon = likeIcon
+                repostcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
+                repostcard.ids.reclout.icon = recloutIcon
+                repostcard.ids.reclout.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.reclout(postHashHex))
+                repostcard.ids.diamond.icon = diamondIcon
+                repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
+                repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                
+                self.ids.timeline.add_widget(repostcard)
+
                 print('repost body', repostBody)
+
             #else this is a regular post add all info and card to the timeline
             else:
                 
