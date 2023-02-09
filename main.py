@@ -1,5 +1,6 @@
 from kivymd.app import MDApp
 from kivy.lang import Builder
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
@@ -102,6 +103,7 @@ class PostCard(MDCard):
     reclout = StringProperty()
     postHashHex = StringProperty()
     posted_ago = StringProperty()
+    video = StringProperty()
     
 
 #class for the repost card
@@ -123,6 +125,7 @@ class RePostCard(MDCard):
     comments = StringProperty()
     repostPostHashHex = StringProperty()
     repostPost= StringProperty()
+    repostVideo = StringProperty()
 
 
     
@@ -149,10 +152,15 @@ class SeedLoginScreen(MDScreen):
         self.textInput(self.ids.seedphrase)
         self.nameInput(self.ids.userName)
         seedphrase = self.seedPhrase
-        #print(self.seedPhrase, 'seed phrase')
-        SEED_HEX = Identity.getSeedHexFromSeedPhrase(seedphrase)
-        #print(SEED_HEX, 'seed hex')
-        #print(self.userName, 'username')
+        if len(seedphrase.split()) != 12:
+            toast("Seed phrase must have 12 words")
+            return
+        #try to get seed hex from seed phrase catch error if seed phrase is invalid
+        try:        
+            SEED_HEX = Identity.getSeedHexFromSeedPhrase(seedphrase)
+        except:
+            toast("Invalid seed phrase")
+            return
         #get user profile and pickle it
         desoUser = deso.User()
         profile = desoUser.getSingleProfile(username=self.userName).json()
@@ -473,10 +481,16 @@ class HomePageReadOnlyScreen(MDScreen):
 
             if post['RepostedPostEntryResponse'] != None:
                 #print('repost found', post)
+                postVideo = ''
+                if post['VideoURLs']:
+                    print('video found *****************8', post['VideoURLs'])
+                    print(post)
+                    postVideo = post['VideoURLs'][0]
                 repostBody = post['RepostedPostEntryResponse']['Body']
                 repostImage=""
                 if post['RepostedPostEntryResponse']['ImageURLs'] != None:
                     repostImage = post['RepostedPostEntryResponse']['ImageURLs'][0]
+                recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
                 if recloutedByReader == True:
                     recloutIcon = 'repeat-variant'
                 else:
@@ -498,6 +512,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 likes=str(post['LikeCount']),
                 comments=str(post['CommentCount']),
                 diamonds=str(post['DiamondCount']),
+                repostVideo=postVideo,
                 reclout=str(post['RepostCount']),
                 postHashHex=str(post['PostHashHex']),           
                 repostUsername = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username'],
@@ -516,14 +531,20 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostcard.ids.diamond.icon = diamondIcon
                 repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                
+                if postVideo:
+                    player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
+                    repostcard.ids.postVideo.add_widget(player)
                 self.ids.timeline.add_widget(repostcard)
 
-                print('repost body', repostBody)
+                #print('repost body', repostBody)
 
             #else this is a regular post add all info and card to the timeline
             else:
-                
+                postVideo = ''
+                if post['VideoURLs']:
+                    print('video found *****************8', post['VideoURLs'][0])
+                    print(post)
+                    postVideo = post['VideoURLs'][0]
                 readmore = ''
                 if len(post['Body']) > 144:
                     readmore = '  -- read more --'
@@ -556,6 +577,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     body=str(post['Body']),
                     readmore=readmore,
                     post=postImage,
+                    video=postVideo,
                     diamonds=str(post['DiamondCount']),
                     reclout=str(post['RepostCount']),
                     #posted_ago = str(post['TimeStampNanos']), doesn;t work
@@ -569,6 +591,9 @@ class HomePageReadOnlyScreen(MDScreen):
                 postcard.ids.diamond.icon = diamondIcon
                 postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                if postVideo:
+                    player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
+                    postcard.ids.postVideo.add_widget(player)
                 self.ids.timeline.add_widget(postcard)
 
 class PostScreen(Screen):
