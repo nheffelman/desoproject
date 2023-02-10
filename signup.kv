@@ -526,12 +526,15 @@
 
             # Post
             FitImage:
-                height: "210dp"
+                #height: "210dp"
                 source: root.repostPost
 
             MDBoxLayout:
-                #adaptive_height: True
+                adaptive_height: True
                 id: repostVideo
+
+            MDBoxLayout:
+                id: nftButtonBox
 
 
     # Reactions
@@ -654,6 +657,9 @@
     MDBoxLayout:
         #adaptive_height: True
         id: postVideo
+
+    MDBoxLayout:
+        id: nftButtonBox
 
 
     # Reactions
@@ -780,8 +786,22 @@
         multiline: True
         max_text_length: 144
 
+<NFTContent>
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "420dp"
+
+    
+    FitImage:
+        id: nftImage
+        height: "315dp"
+        source: root.nftImage
+
     
         
+
+    
 
     
 

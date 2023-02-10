@@ -8,14 +8,15 @@ from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton
+from kivymd.uix.label import MDLabel
 import deso
 from deso import Identity
 from kivy.properties import StringProperty
 import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
-
+import os
 
 global currentPost 
 global loggedIn
@@ -33,9 +34,12 @@ def pickle_settings(settings):
 
 #unpickles the current settings
 def unpickle_settings():
-    with open('temp/settings.pickle', 'rb') as handle:
-        settings = pickle.load(handle)
-        print("settings unpickled")
+    if os.path.exists('temp/settings.pickle'):
+        with open('temp/settings.pickle', 'rb') as handle:
+            settings = pickle.load(handle)
+            print("settings unpickled")
+    else:
+        settings = {}  
     return settings
 
 #unpickles the current post
@@ -46,6 +50,7 @@ def unpickle_post():
     return post
 #pickles the current post
 def pickle_post(post):
+    
     with open('temp/post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("post pickled")
@@ -59,6 +64,8 @@ def unpickle_profile():
 
 # pickles the user's profile
 def pickle_profile(profile):
+    if not os.path.exists('temp/settings.pickle'):
+        os.makedirs('temp')
     with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
         #print("profile pickled")
@@ -66,6 +73,14 @@ def pickle_profile(profile):
 #class for custom dialog content
 class Content(MDBoxLayout):
     quote = StringProperty()
+
+#class for custom nft dialog content
+class NFTContent(MDBoxLayout):
+    bid = StringProperty()
+    nftImage = StringProperty()
+    numNftCopies = StringProperty()
+    numNftCopiesForSale = StringProperty()
+    nftTitle = StringProperty()
 
 # class for Item
 class Item(OneLineAvatarListItem):
@@ -270,7 +285,7 @@ class HomePageReadOnlyScreen(MDScreen):
 
     def logout(self):
         settings = {}
-        settings['loggedIn'] = False
+        
         pickle_settings(settings)
         global loggedIn
         loggedIn = False
@@ -434,6 +449,21 @@ class HomePageReadOnlyScreen(MDScreen):
     def toast_3dots(self):
         toast('3 dots pressed')
             
+    #function for nft modal
+    def open_nft_modal(self, postHashHex, nftImageURL, numNftCopiesForSale, numNftCopies, nftTitle):
+        self.nftmodal = MDDialog(
+            title=nftTitle,
+            type="custom",
+            content_cls=NFTContent(nftImage = nftImageURL, numNftCopiesForSale = numNftCopiesForSale, numNftCopies = numNftCopies),
+            
+            buttons=[
+                MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.nftmodal.dismiss()),
+                MDRoundFlatButton(text="BUY", on_release= lambda widget, postHashHex=postHashHex: self.buy_nft(postHashHex)),
+            ],
+        )
+        self.nftmodal.open()
+    def buy_nft(self, postHashHex):
+        pass
 
     def list_stories(self):
         profile = unpickle_profile()
@@ -478,7 +508,9 @@ class HomePageReadOnlyScreen(MDScreen):
         for post in userposts.json()['PostsFound']:
             #print(post)
             #If this is a repost of another post, get the original post and extra body text
-
+            nftImage = ''
+            if post['IsNFT']:
+                print('caught nft', post)
             if post['RepostedPostEntryResponse'] != None:
                 #print('repost found', post)
                 postVideo = ''
@@ -522,7 +554,17 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostBody=str(post['RepostedPostEntryResponse']['Body']),
                 repostPost=repostImage,                
                 ))
-                #bind the posthashhex to the repostcard for each post in the timeline
+                #check if has nft, if so add a button to the postcard
+                if post['RepostedPostEntryResponse']['IsNFT']:
+                    print('adding nft button', post['RepostedPostEntryResponse'])
+                    #bind a mdiconbutton to the postcard to open the nft modal
+                    
+                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
+                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=repostImage,
+                        numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
+                        self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
+                    repostcard.ids.nftButtonBox.add_widget(nftButton)
+                #bind the posthashhex to the repostcard for each post in the time, nftTitle=str(post['Body'])line
                 repostcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
                 repostcard.ids.like.icon = likeIcon
                 repostcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
@@ -540,10 +582,12 @@ class HomePageReadOnlyScreen(MDScreen):
 
             #else this is a regular post add all info and card to the timeline
             else:
+                
+                
                 postVideo = ''
                 if post['VideoURLs']:
                     print('video found *****************8', post['VideoURLs'][0])
-                    print(post)
+                    #print(post)
                     postVideo = post['VideoURLs'][0]
                 readmore = ''
                 if len(post['Body']) > 144:
@@ -583,6 +627,15 @@ class HomePageReadOnlyScreen(MDScreen):
                     #posted_ago = str(post['TimeStampNanos']), doesn;t work
                 ))
                 #bind the posthashhex to the postcard for each post in the timeline
+                #check if has nft, if so add a button to the postcard
+                if post['IsNFT']:
+                    print('adding nft button')
+                    #bind a mdiconbutton to the postcard to open the nft modal
+                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
+                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=repostImage,
+                        numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
+                        self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
+                    postcard.ids.nftButtonBox.add_widget(nftButton)
                 postcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
                 postcard.ids.like.icon = likeIcon
                 postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
@@ -636,13 +689,12 @@ class MainApp(MDApp):
         #check to see if logged in and go to homepage
         settings=unpickle_settings()
         print('settings are here', settings)
-        if settings['loggedIn']:
+        if settings:
             global loggedIn
             loggedIn = True
             sm.current = 'homepage_read_only'
 
         return sm
-
     
 
 
