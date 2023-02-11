@@ -70,6 +70,10 @@ def pickle_profile(profile):
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
         #print("profile pickled")
 
+#class for custom comment dialog content
+class CommentContent(MDBoxLayout):
+    comment = StringProperty()
+
 #class for custom dialog content
 class Content(MDBoxLayout):
     quote = StringProperty()
@@ -235,7 +239,7 @@ class SinglePostReadOnlyScreen(MDScreen):
         currentPost = unpickle_post()
         post = deso.Posts()
         post = post.getSinglePost(postHashHex=currentPost).json()
-        #print(post)
+        print(post['PostFound']['Comments'])
         postImage = ''
         if post['PostFound']['ImageURLs']:
             postImage = post['PostFound']['ImageURLs'][0]
@@ -337,7 +341,51 @@ class HomePageReadOnlyScreen(MDScreen):
                             print(desoSocial.like(postHashHex, isLike=True).json())
 
                         break 
-     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
+    #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
+    def comment(self, postHashHex):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to comment a post')
+        else:
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                print(postHashHex, "posthashhex in comment function")
+                
+                self.dialog = None
+                if not self.dialog:
+                    self.dialog = MDDialog(
+                        title="Comment",
+                        type="custom",
+                        content_cls=CommentContent(),
+                        buttons=[
+                            MDRoundFlatButton(
+                                text="CANCEL", on_release=lambda widget: self.dialog.dismiss()
+                            ),
+                            MDRoundFlatButton(
+                                text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex)
+                            ),
+                        ],
+                    )
+                    self.dialog.open()
+
+    def postComment(self, postHashHex):
+        for self.post in self.ids.timeline.children:
+            #print(self.post.postHashHex)
+            if self.post.postHashHex == postHashHex:
+                settings=unpickle_settings()
+                SEED_HEX = settings['seedHex']
+                PUBLIC_KEY = settings['publicKey']
+                desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                print(self.dialog.content_cls.ids.comment.text)
+                comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+                self.dialog.dismiss()
+                self.dialog = None
+                print(comment_response)
+                if 'error' in comment_response:
+                    return False
+                self.post.comments = str(int(self.post.comments) + 1)
+
+    #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
     def diamond(self, postHashHex):
         global loggedIn
         if loggedIn != True:
@@ -510,7 +558,7 @@ class HomePageReadOnlyScreen(MDScreen):
             #If this is a repost of another post, get the original post and extra body text
             nftImage = ''
             if post['IsNFT']:
-                print('caught nft', post)
+                pass#print('caught nft', post)
             if post['RepostedPostEntryResponse'] != None:
                 #print('repost found', post)
                 postVideo = ''
@@ -639,6 +687,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 postcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
                 postcard.ids.like.icon = likeIcon
                 postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
+                postcard.ids.comment.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
                 postcard.ids.reclout.icon = recloutIcon
                 postcard.ids.reclout.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.reclout(postHashHex))
                 postcard.ids.diamond.icon = diamondIcon

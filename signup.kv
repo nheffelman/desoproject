@@ -555,6 +555,7 @@
             bold: True
 
         MDIconButton:
+            id: comment
             icon: 'message-outline'
             
 		MyLabel:
@@ -623,7 +624,9 @@
 <PostCard>    
     orientation: 'vertical'
     size_hint_y: None
-    height: "630dp"  #started at 420dp
+    #height: "630dp"  #started at 420dp
+    #adaptive_height: True
+    height: self.minimum_height
     spacing: 2
     elevation: 0
     padding: 5  
@@ -651,19 +654,23 @@
 
     # Post
     FitImage:
-        height: "210dp"
+        #height: "420dp"        
         source: root.post
-
+        size_hint: {.5, 1}
+        pos_hint: {"bottom": 1}
+        
+        
     MDBoxLayout:
-        #adaptive_height: True
+        adaptive_height: True
         id: postVideo
 
     MDBoxLayout:
         id: nftButtonBox
-
-
+        
     # Reactions
     MDBoxLayout:
+        
+        size_hint: 1, None
         padding: 5, 0, 0, 0
         spacings: 2
         adaptive_height: True
@@ -680,6 +687,7 @@
             bold: True
 
         MDIconButton:
+            id: comment
             icon: 'message-outline'
             
 		MyLabel:
@@ -773,6 +781,18 @@
 
     ImageLeftWidget:
         source: root.source
+
+<CommentContent>
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "420dp"
+
+    MDTextField:
+        id: comment
+        hint_text: "Add a comment"
+        multiline: True
+        max_text_length: 144
 
 <Content>
     orientation: "vertical"
