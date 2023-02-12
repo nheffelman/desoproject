@@ -106,7 +106,7 @@ class StoryCreator(MDCard):
     avatar = StringProperty()
 
 # class for the post card
-class PostCard(MDCard):
+class PostCard(MDBoxLayout):
     def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
         self.sm.current = 'single_post_read_only'
@@ -129,7 +129,7 @@ class PostCard(MDCard):
     
 
 #class for the repost card
-class RePostCard(MDCard):
+class RePostCard(MDBoxLayout):
     def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
         self.sm.current = 'single_post_read_only'
@@ -379,7 +379,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 SEED_HEX = settings['seedHex']
                 PUBLIC_KEY = settings['publicKey']
                 desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                print(self.dialog.content_cls.ids.comment.text)
+                #print(self.dialog.content_cls.ids.comment.text)
                 comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
                 self.dialog.dismiss()
                 self.dialog = None
@@ -567,7 +567,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 postVideo = ''
                 if post['VideoURLs']:
                     print('video found *****************8', post['VideoURLs'])
-                    print(post)
+                    #print(post)
                     postVideo = post['VideoURLs'][0]
                 repostBody = post['RepostedPostEntryResponse']['Body']
                 repostImage=""
@@ -605,6 +605,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostBody=str(post['RepostedPostEntryResponse']['Body']),
                 repostPost=repostImage,                
                 ))
+                print('added repostImage', repostImage)
                 #check if has nft, if so add a button to the postcard
                 if post['RepostedPostEntryResponse']['IsNFT']:
                     print('adding nft button', post['RepostedPostEntryResponse'])
@@ -624,9 +625,14 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostcard.ids.diamond.icon = diamondIcon
                 repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                if repostImage:
+                    imageCard = MDCard(FitImage(source=repostImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
+                     pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
+                    imageCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex)),
+                    repostcard.ids.mediaBox.add_widget(imageCard)
                 if postVideo:
                     player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
-                    repostcard.ids.postVideo.add_widget(player)
+                    repostcard.ids.mediaBox.add_widget(player)
                 self.ids.timeline.add_widget(repostcard)
 
                 #print('repost body', repostBody)
@@ -671,12 +677,13 @@ class HomePageReadOnlyScreen(MDScreen):
                     comments=str(post['CommentCount']),
                     body=str(post['Body']),
                     readmore=readmore,
-                    post=postImage,
+                    #post=postImage, 
                     video=postVideo,
                     diamonds=str(post['DiamondCount']),
                     reclout=str(post['RepostCount']),
                     #posted_ago = str(post['TimeStampNanos']), doesn;t work
                 ))
+                print('added postImage', postImage)
                 #bind the posthashhex to the postcard for each post in the timeline
                 #check if has nft, if so add a button to the postcard
                 if post['IsNFT']:
@@ -696,9 +703,14 @@ class HomePageReadOnlyScreen(MDScreen):
                 postcard.ids.diamond.icon = diamondIcon
                 postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                if postImage:
+                    imageCard = MDCard(FitImage(source=postImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
+                     pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
+                    imageCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex)),
+                    postcard.ids.mediaBox.add_widget(imageCard)
                 if postVideo:
                     player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
-                    postcard.ids.postVideo.add_widget(player)
+                    postcard.ids.mediaBox.add_widget(player)
                 self.ids.timeline.add_widget(postcard)
 
 class PostScreen(Screen):
@@ -813,12 +825,24 @@ class CreatePostScreen(Screen):
        # postImage = self.ids.postImage.source
        # postVideo = self.ids.postVideo.source
         settings=unpickle_settings()
+        print(settings, 'settings&&&&&&&&&&&&&&&&&&&')
         if settings['loggedIn'] == True:
+            #upload images to images.bitclout.com
+            imageURLs = []
+            for imagePath in self.postImage:
+                SEED_HEX = settings['seedHex']
+                PUBLIC_KEY = settings['publicKey']
+                desoMedia = deso.Media(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                imageFileList = [('file', ('screenshot.jpg', open(imagePath, "rb"), 'image/png'))]
+                responseURL = desoMedia.uploadImage(imageFileList)
+                print(responseURL.json(), '*******************responseURL')
+                imageURLs.append(responseURL.json()['ImageURL'])
             SEED_HEX = settings['seedHex']
             PUBLIC_KEY = settings['publicKey']
             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-            post_response = desoSocial.submitPost(body=postBody ).json()
+            post_response = desoSocial.submitPost(body=postBody, imageURLs=imageURLs ).json()
             print(post_response)
+            self.clearPostWidgets()
             self.manager.current = 'homepage_read_only'
         else:
             self.manager.current = 'login'

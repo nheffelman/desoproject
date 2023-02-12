@@ -314,7 +314,7 @@
                                 MDBoxLayout:
                                     orientation: 'vertical'
                                     adaptive_height: True
-                                    padding: '5dp'
+                                    spacing: '10dp'
                                     id: timeline
 
                                     # Stories
@@ -569,15 +569,17 @@
 <RePostCard>    
     orientation: 'vertical'
     size_hint_y: None
-    height: "740dp"  #started at 420dp
-    spacing: 2
+    #height: "630dp"  #started at 420dp
+    #adaptive_height: True
+    height: self.minimum_height
+    spacing: 40
     elevation: 0
     padding: 5  
-    
 
     MDBoxLayout:
         padding: 2
         adaptive_height: True
+        
 
         OneLineAvatarListItem:
             text: f'[b][size=24]{root.username}[/size][/b]'
@@ -598,6 +600,8 @@
 
     MDBoxLayout:
         padding: 2
+        spacing: 10
+        size_hint: 1, None
         #adaptive_height: True
         orientation: 'horizontal'
         
@@ -624,14 +628,10 @@
                 text: root.repostBody[:288]
                 #size_hint: .8, 1
 
-            # Post
-            FitImage:
-                height: "210dp"
-                source: root.repostPost
-
             MDBoxLayout:
-                adaptive_height: True
-                id: repostVideo
+                spacing: 10
+                size_hint: 1, None
+                id: mediaBox            
 
             MDBoxLayout:
                 id: nftButtonBox
@@ -680,43 +680,6 @@
 			text: f'{root.diamonds}'
 			bold: True
 
-        Widget:
-
-      
-   # MDBoxLayout:
-    #    orientation: 'vertical'
-    #    padding: 5,0,0,0
-    #    adaptive_height: True
-
-        #MyLabel:
-        #    markup: True
-        #    text: f'[b]{root.username}[/b] {root.caption}'
-
-        #HalfOpacityLabel:
-        #    text: f'View all {root.comments} comments'
-
-    MDBoxLayout:
-        padding: 5,0,0,0
-        spacing: 2
-        adaptive_height: True
-
-        FitImage:
-            source: root.profile_pic
-            size_hint: None, None
-            size: 20,20
-            radius: [20, ]
-
-        #HalfOpacityLabel:
-        #    text: 'Add a comment...'
-
-    #MDBoxLayout:
-    #    padding: 9,0,0,0
-    #    spacing: 0
-    #    adaptive_height: True
-
-    #    HalfOpacityLabel:
-    #        font_size: 10
-    #        text: f'{root.posted_ago} ago'
 
     MDSeparator:
 
@@ -728,9 +691,13 @@
     #height: "630dp"  #started at 420dp
     #adaptive_height: True
     height: self.minimum_height
-    spacing: 2
+    spacing: 40
     elevation: 0
     padding: 5  
+
+    MDBoxLayout:
+        padding: 2
+        adaptive_height: True
 
     MDBoxLayout:
         padding: 2
@@ -748,23 +715,18 @@
             icon: 'dots-vertical'
             id: dots
             
+    
+            
     MDLabel:
     	adaptive_height: True
-    	text: root.body[:288] + root.readmore
-        
-
-    # Post
-    FitImage:
-        height: "420dp"        
-        source: root.post
-        #size_hint: {.5, 1}
-        #pos_hint: {"bottom": 1}
-        
+        padding: [2,2]
+    	text: root.body[:288] # + root.readmore
         
     MDBoxLayout:
-        adaptive_height: True
-        id: postVideo
-
+        spacing: 10
+        size_hint: 1, None
+        id: mediaBox
+    
     MDBoxLayout:
         id: nftButtonBox
         
@@ -812,43 +774,7 @@
 			text: f'{root.diamonds}'
 			bold: True
 
-        Widget:
-
-      
-   # MDBoxLayout:
-    #    orientation: 'vertical'
-    #    padding: 5,0,0,0
-    #    adaptive_height: True
-
-        #MyLabel:
-        #    markup: True
-        #    text: f'[b]{root.username}[/b] {root.caption}'
-
-        #HalfOpacityLabel:
-        #    text: f'View all {root.comments} comments'
-
-    MDBoxLayout:
-        padding: 5,0,0,0
-        spacing: 2
-        adaptive_height: True
-
-        FitImage:
-            source: root.profile_pic
-            size_hint: None, None
-            size: 20,20
-            radius: [20, ]
-
-        #HalfOpacityLabel:
-        #    text: 'Add a comment...'
-
-    #MDBoxLayout:
-    #    padding: 9,0,0,0
-    #    spacing: 0
-    #    adaptive_height: True
-
-    #    HalfOpacityLabel:
-    #        font_size: 10
-    #        text: f'{root.posted_ago} ago'
+     
 
     MDSeparator:
 
