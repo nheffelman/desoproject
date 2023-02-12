@@ -1,6 +1,9 @@
 from kivymd.app import MDApp
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.videoplayer import VideoPlayer
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.fitimage import FitImage
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
@@ -12,7 +15,7 @@ from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton
 from kivymd.uix.label import MDLabel
 import deso
 from deso import Identity
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ListProperty 
 import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
@@ -537,7 +540,7 @@ class HomePageReadOnlyScreen(MDScreen):
             circle=CircularAvatarImage(
                 avatar=deso.User().getProfilePicURL(
                     post['PosterPublicKeyBase58Check']),
-                name=post['ProfileEntryResponse']['Username'],
+                #name=post['ProfileEntryResponse']['Username'],
                 )
             circle.bind(on_press=lambda widget, userid=post['ProfileEntryResponse']['PublicKeyBase58Check']: self.storie_switcher(userid))
             self.ids.stories.add_widget(circle)
@@ -714,16 +717,130 @@ class PostScreen(Screen):
         
         profile_picture = deso.User().getProfilePicURL(post['PostFound']['PosterPublicKeyBase58Check'])
         
+  #class that allows user to create a post add a video and image and child posts to the post and post to the blockchain
+class CreatePostScreen(Screen):
+    userName = StringProperty("")
+    postHashHex = StringProperty("")
+    postBody = StringProperty("")
+    postImage = ListProperty([])
+    postVideo = ListProperty([])
+    mediaType = StringProperty("")
+
+    def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            Window.bind(on_keyboard=self.events)
+            self.manager_open = False
+            self.file_manager = MDFileManager(
+                exit_manager=self.exit_manager,
+                preview= True,
+                select_path=self.select_path
+            )
+    def file_manager_open(self):
+        self.file_manager.show(os.path.expanduser("~"))  # output manager to the screen
+        
+        self.manager_open = True
+
+    def select_path(self, path: str):
+        '''
+        It will be called when you click on the file name
+        or the catalog selection button.
+
+        :param path: path to the selected directory or file;
+        '''
+        if self.mediaType == 'video':
+            self.postVideo.append(path)
+            video = VideoPlayer(source=path, state='pause', options={'allow_stretch': True})
+            video.on_image_overlay_play = 'assets/preview.png'
+            self.ids.previewBox.add_widget(video)
+        if self.mediaType == 'image':
+            self.postImage.append(path)
+            img = FitImage(source=path)
+            self.ids.previewBox.add_widget(img)
+        self.mediaType = ''
+        self.exit_manager()
+        toast(path)
         
 
+    def exit_manager(self, *args):
+        '''Called when the user reaches the root of the directory tree.'''
 
+        self.manager_open = False
+        self.file_manager.close()
+
+    def events(self, instance, keyboard, keycode, text, modifiers):
+        '''Called when buttons are pressed on the mobile device.'''
+
+        if keyboard in (1001, 27):
+            if self.manager_open:
+                self.file_manager.back()
+        return True
+
+    def on_enter(self):
+        settings = unpickle_settings()
+        if settings['loggedIn'] != True:
+            self.manager.current = 'login'
+        else:
+            profile = unpickle_profile()
+            print(profile)
+            
+            username = profile['Profile']['Username']
+            circle=CircularAvatarImage(
+                avatar=deso.User().getProfilePicURL(
+                    profile['Profile']['PublicKeyBase58Check']))   
+            Box = MDBoxLayout()
+            Box.add_widget(circle)
+            label = MDLabel(text=username, halign='left', theme_text_color='Primary')
+            Box.add_widget(label)
+            self.ids.userBox.add_widget(Box)
+
+    #function to add a video to the post
+    def select_video(self):
+        self.mediaType = "video"
+        self.file_manager.show(os.path.expanduser("~"))
+        self.manager_open = True
+    
+    #function to add an image to the post
+    def select_image(self):
+        self.mediaType = "image"
+        self.file_manager.show(os.path.expanduser("~"))  # output manager to the screen
+        self.manager_open = True
+
+    #function to create a post, get all text, images, gifs, and videos and post to the blockchain
+    def post(self):
+        
+        toast(text=self.ids.postBox.text)
+        postBody = self.ids.postBox.text
+       # postImage = self.ids.postImage.source
+       # postVideo = self.ids.postVideo.source
+        settings=unpickle_settings()
+        if settings['loggedIn'] == True:
+            SEED_HEX = settings['seedHex']
+            PUBLIC_KEY = settings['publicKey']
+            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+            post_response = desoSocial.submitPost(body=postBody ).json()
+            print(post_response)
+            self.manager.current = 'homepage_read_only'
+        else:
+            self.manager.current = 'login'
+
+    def clearPostWidgets(self):
+        self.ids.previewBox.clear_widgets()
+        self.ids.postBox.text = ''
+        self.ids.userBox.clear_widgets()
+        self.postImage = []
+        self.postVideo = []
+        self.postBody = ''
+        self.mediaType = ''
+        
 
 # Create the main app
 class MainApp(MDApp):
 
     def build(self):
+        
         # Set the theme
         self.theme_cls.theme_style = "Light"
+        
         # Create the screen manager
         sm = ScreenManager()
         Builder.load_file('signup.kv')# Add the screens to the screen manager
@@ -734,6 +851,7 @@ class MainApp(MDApp):
         sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
         sm.add_widget(SeedLoginScreen(name='seed_login'))
         sm.add_widget(PostScreen(name='post'))
+        sm.add_widget(CreatePostScreen(name='create_post'))
         
         #check to see if logged in and go to homepage
         settings=unpickle_settings()

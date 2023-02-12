@@ -279,24 +279,30 @@
                         anchor: 'top'
                         id: appbar
                         size_hint: (1, .2)
-
-                        CircularAvatarImage:
-                            avatar: root.profile_picture
-                            size: '50dp', '50dp'
-                            on_press  : nav_drawer.set_state("open")
-                    
-                        MDLabel:
-                            id: username
-                            text_size: self.size
-                            text: 'Desoliscious'
-                            halign: 'center'
-                            valign: 'top'
-                            font_size: 28
-                            font_name: 'assets/Instafont.otf'
-                        MDLabel:
-                            halign: 'right'
-                            id: desoprice
-                            text: root.desoprice
+                        MDBoxLayout:
+                            size_hint: (.3, 1)
+                            CircularAvatarImage:
+                                avatar: root.profile_picture
+                                size: '50dp', '50dp'
+                                on_press  : nav_drawer.set_state("open")
+                                halign: 'center'
+                                
+                        MDBoxLayout:
+                            size_hint: (.4, 1)
+                            MDLabel:
+                                id: username
+                                text_size: self.size
+                                text: 'Desoliscious'
+                                halign: 'center'
+                                valign: 'top'
+                                font_size: 28
+                                font_name: 'assets/Instafont.otf'
+                        MDBoxLayout:
+                            size_hint: (.3, 1)
+                            MDLabel:
+                                halign: 'center'
+                                id: desoprice
+                                text: root.desoprice
                             
                     MDBoxLayout:
                         ScrollView:
@@ -333,18 +339,30 @@
 
                     MDBoxLayout:
                         adaptive_height: True
-
-                        spacing: 10
-                        padding: 10
-
-                        MDIconButton:
-                            icon: 'home'
-                        MDIconButton:
-                            icon: 'magnify'
-                        MDIconButton:
-                            icon: 'alert-circle-outline'
-                        MDIconButton:
-                            icon: 'message-text-outline'
+                        size_hint: (1, .1)
+                        anchor: 'bottom'
+                        id: bottombar
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'home'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'magnify'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'plus-box-outline'
+                                on_press: root.manager.current = 'create_post'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'alert-circle-outline'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'message-text-outline'
         MDNavigationDrawer:
             id: nav_drawer
             radius: (0, 16, 16, 0)
@@ -383,6 +401,88 @@
                     text: "Log out"
                     on_press: root.ids.timeline.clear_widgets()
                     on_press: root.logout()
+
+<CreatePostScreen>:
+    name: 'create_post'
+    orientation: 'vertical'
+    MDBoxLayout:
+        orientation: 'vertical'
+        # App Bar
+        anchor: 'top'
+        MDBoxLayout:
+            adaptive_height: True
+            id: appbar
+            anchor: 'top'
+            size_hint: (1, .15)
+            MDBoxLayout:
+                size_hint: (.3, 1)                
+                MDIconButton:
+                    icon: 'arrow-left'
+                    user_font_size: "96sp"   
+                    text_color: app.theme_cls.primary_color
+                    on_press: root.clearPostWidgets()             
+                    on_press: root.manager.current = 'homepage_read_only'
+            MDBoxLayout:
+                size_hint: (.4, 1)
+            MDBoxLayout:
+                size_hint: (.3, 1)
+                MDRaisedButton:
+                    text: 'Post'                    
+                    on_press: root.post()
+        MDBoxLayout:
+            id: userBox
+            adaptive_height: True
+
+        MDBoxLayout:
+            adaptive_height: True
+            MDTextField:
+                id: postBox
+                multiline: True
+                hint_text: "Want to share something?"
+                max_text_length: 1000
+
+        MDBoxLayout:
+            id: imageBox
+            adaptive_height: True
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+                MDBoxLayout:
+                    adaptive_height: True
+                    MDIconButton:
+                        icon: 'image'
+                        user_font_size: "96sp"   
+                        text_color: app.theme_cls.primary_color
+                        on_press: root.select_image()
+                MDBoxLayout:
+                    adaptive_height: True
+                    MDIconButton:
+                        icon: 'gif'
+                        user_font_size: "96sp"   
+                        text_color: app.theme_cls.primary_color
+                        on_press: root.select_gif()
+                MDBoxLayout:
+                    adaptive_height: True
+                    MDIconButton:
+                        icon: 'video'
+                        user_font_size: "96sp"   
+                        text_color: app.theme_cls.primary_color
+                        #on_press: root.select_video()
+                MDBoxLayout:
+                    adaptive_height: True
+                    MDIconButton:
+                        icon: 'poll'
+                        user_font_size: "96sp"   
+                        text_color: app.theme_cls.primary_color
+                        on_press: root.create_poll()
+
+        Widget:
+
+        MDBoxLayout:
+            id: previewBox
+            adaptive_height: True
+        
+
 
 <PostScreen>:
     name: 'post'
@@ -526,7 +626,7 @@
 
             # Post
             FitImage:
-                #height: "210dp"
+                height: "210dp"
                 source: root.repostPost
 
             MDBoxLayout:
@@ -542,6 +642,7 @@
         padding: 5, 0, 0, 0
         spacings: 2
         adaptive_height: True
+        size_hint_x: 1
 
         MDIconButton:
             id: like
@@ -654,10 +755,10 @@
 
     # Post
     FitImage:
-        #height: "420dp"        
+        height: "420dp"        
         source: root.post
-        size_hint: {.5, 1}
-        pos_hint: {"bottom": 1}
+        #size_hint: {.5, 1}
+        #pos_hint: {"bottom": 1}
         
         
     MDBoxLayout:
