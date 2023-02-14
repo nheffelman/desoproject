@@ -11,7 +11,7 @@ from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
 from kivymd.uix.label import MDLabel
 import deso
 from deso import Identity
@@ -277,6 +277,7 @@ class HomePageReadOnlyScreen(MDScreen):
     desoprice = StringProperty("")
     avatar = StringProperty("")
     dialog = None
+    follow_unfollow = StringProperty("")
     
     def on_enter(self):
         profile = unpickle_profile()
@@ -609,9 +610,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 #check if has nft, if so add a button to the postcard
                 if post['RepostedPostEntryResponse']['IsNFT']:
                     print('adding nft button', post['RepostedPostEntryResponse'])
-                    #bind a mdiconbutton to the postcard to open the nft modal
-                    
-                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
+                    #bind a mdiconbutton to the postcard to open the nft modal                    
+                    nftButton = MDRectangleFlatIconButton(icon='nfc-variant', width="420", text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5})
                     nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=repostImage,
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
