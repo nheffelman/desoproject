@@ -13,6 +13,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
 from kivymd.uix.label import MDLabel
+from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
 from deso import Identity
 from kivy.properties import StringProperty, ListProperty 
@@ -498,8 +499,30 @@ class HomePageReadOnlyScreen(MDScreen):
                         
                             break
 
+    def callback_for_menu_items(self, *args):
+        toast(args[0])
+
     def toast_3dots(self):
-        toast('3 dots pressed')
+        
+        bottom_sheet_menu = MDListBottomSheet()
+        data = {
+            "Follow": "account-plus",
+            "Share": "share-variant",
+            "Report": "alert-circle",
+            "Cancel": "cancel",
+            
+        }
+        for item in data.items():
+            bottom_sheet_menu.add_item(
+                item[0],    
+                lambda x, y=item[0]: self.callback_for_menu_items(y),
+                icon=item[1],
+                
+
+            )
+                
+        bottom_sheet_menu.open()
+
             
     #function for nft modal
     def open_nft_modal(self, postHashHex, nftImageURL, numNftCopiesForSale, numNftCopies, nftTitle):
