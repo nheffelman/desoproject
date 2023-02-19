@@ -21,6 +21,7 @@ import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
 import os
+from Post import SinglePostScreen
 
 global currentPost 
 global loggedIn
@@ -190,7 +191,10 @@ class SeedLoginScreen(MDScreen):
         #print(profile)
         if 'error' in profile:
             toast(profile['error'])
+        #if no error in profile get user identity and make a derived key for signing transactions    
         else:
+            settings = {}
+            desoIdentity = deso.Identity(publicKey=profile['Profile']['PublicKeyBase58Check'], seedHex=SEED_HEX)
             pickle_profile(profile)
             global user
             global loggedIn
@@ -198,11 +202,13 @@ class SeedLoginScreen(MDScreen):
             loggedIn = True
             user=self.userName
             publicKey=profile['Profile']['PublicKeyBase58Check']
-            settings = {}
+            
             settings['user'] = self.userName
             settings['loggedIn'] = True
             settings['seedHex'] = SEED_HEX
             settings['publicKey'] = publicKey
+            
+
             pickle_settings(settings)
 
             self.manager.current = 'homepage_read_only'
@@ -325,6 +331,7 @@ class HomePageReadOnlyScreen(MDScreen):
             toast('You must be logged in to like a post')
         else:
             settings=unpickle_settings()
+            print(settings)
             if settings['loggedIn'] == True:
                 print(postHashHex, "posthashhex in like function")
                 for self.post in self.ids.timeline.children:
@@ -498,24 +505,49 @@ class HomePageReadOnlyScreen(MDScreen):
                             self.post.reclout = str(int(self.post.reclout) + 1)
                         
                             break
-
+    def unfollow(self, posterPublicKey):
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        print(desoSocial.follow(posterPublicKey, isFollow=False).json())
+        print('unfollow', posterPublicKey)
+    
+    def follow(self, posterPublicKey):
+        pass
     def callback_for_menu_items(self, *args):
         toast(args[0])
+        if args[0] == "Follow":
+            self.follow(args[1])
+        elif args[0] == "Unfollow":
+            self.unfollow(args[1])
 
-    def toast_3dots(self):
-        
-        bottom_sheet_menu = MDListBottomSheet()
-        data = {
+    #function to change 3dots data(self, following)
+    def change_3dots_data(self, following):
+        if following == True:
+            data = {
+            "Unfollow": "account-minus",
+            "Share": "share-variant",
+            "Report": "alert-circle",
+            "Cancel": "cancel",
+            }
+        else:
+            data = {
             "Follow": "account-plus",
             "Share": "share-variant",
             "Report": "alert-circle",
             "Cancel": "cancel",
-            
-        }
+            }
+        return data
+
+    def toast_3dots(self, data, posterPublicKey):
+        
+        bottom_sheet_menu = MDListBottomSheet()
+        data = data
         for item in data.items():
             bottom_sheet_menu.add_item(
                 item[0],    
-                lambda x, y=item[0]: self.callback_for_menu_items(y),
+                lambda x, y=item[0], posterPublicKey=posterPublicKey: self.callback_for_menu_items(y, posterPublicKey),
                 icon=item[1],
                 
 
@@ -570,12 +602,21 @@ class HomePageReadOnlyScreen(MDScreen):
             self.ids.stories.add_widget(circle)
 
     def list_posts(self):
+        
         profile = unpickle_profile()
         if profile:
             print(profile['Profile']['PublicKeyBase58Check'])
             posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
             userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
+            #get the list of accounts the user is following
+            desoUser = deso.User()
+            followingResponse = desoUser.getFollowsStateless(username = profile['Profile']['Username']).json()
+            following = []
+            for publicKey in followingResponse['PublicKeyToProfileEntry']:
+                following.append(publicKey)
+            
+        
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
 
@@ -612,9 +653,11 @@ class HomePageReadOnlyScreen(MDScreen):
                     likeIcon = 'heart'
                 else:
                     likeIcon = 'heart-outline'
+                print('postHashHex', str(post['PostHashHex'])),
                 repostcard=(RePostCard(
                 username=post["ProfileEntryResponse"]['Username'],
                 avatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check']),
+                
                 body=str(post['Body']),
                 likes=str(post['LikeCount']),
                 comments=str(post['CommentCount']),
@@ -640,14 +683,18 @@ class HomePageReadOnlyScreen(MDScreen):
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     repostcard.ids.nftButtonBox.add_widget(nftButton)
                 #bind the posthashhex to the repostcard for each post in the time, nftTitle=str(post['Body'])line
-                repostcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
+                if post['PosterPublicKeyBase58Check'] in following:
+                    data = self.change_3dots_data(following=True)
+                repostcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 repostcard.ids.like.icon = likeIcon
                 repostcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
+                repostcard.ids.comment.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
                 repostcard.ids.reclout.icon = recloutIcon
                 repostcard.ids.reclout.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.reclout(postHashHex))
                 repostcard.ids.diamond.icon = diamondIcon
                 repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                repostcard.ids.bodyCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 if repostImage:
                     imageCard = MDCard(FitImage(source=repostImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
                      pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
@@ -717,7 +764,10 @@ class HomePageReadOnlyScreen(MDScreen):
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     postcard.ids.nftButtonBox.add_widget(nftButton)
-                postcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots())
+                #add data to dots menu 
+                if post['PosterPublicKeyBase58Check'] in following:
+                    data = self.change_3dots_data(following=True)
+                postcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 postcard.ids.like.icon = likeIcon
                 postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
                 postcard.ids.comment.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
@@ -725,7 +775,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 postcard.ids.reclout.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.reclout(postHashHex))
                 postcard.ids.diamond.icon = diamondIcon
                 postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
-                postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                #postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                postcard.ids.bCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 if postImage:
                     imageCard = MDCard(FitImage(source=postImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
                      pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
@@ -735,22 +786,6 @@ class HomePageReadOnlyScreen(MDScreen):
                     player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
                     postcard.ids.mediaBox.add_widget(player)
                 self.ids.timeline.add_widget(postcard)
-
-class PostScreen(Screen):
-    profile_picture = StringProperty("")
-    username = StringProperty("")
-    desoprice = StringProperty("")
-    postHashHex = StringProperty("")
-    posted_ago = StringProperty("")
-
-    
-    def on_enter(self):    
-        postHashHex = unpickle_post()
-        post = deso.Posts().getSinglePost(postHashHex=postHashHex).json()
-        print(post)
-        profile = deso.User().getSingleProfile(publicKey=post['PostFound']['PosterPublicKeyBase58Check']).json()
-        
-        profile_picture = deso.User().getProfilePicURL(post['PostFound']['PosterPublicKeyBase58Check'])
         
   #class that allows user to create a post add a video and image and child posts to the post and post to the blockchain
 class CreatePostScreen(Screen):
@@ -895,9 +930,8 @@ class MainApp(MDApp):
         sm.add_widget(SignupScreen(name='signup'))
         sm.add_widget(UserNameLoginScreen(name='username_login'))
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
-        sm.add_widget(SinglePostReadOnlyScreen(name='single_post_read_only'))
+        sm.add_widget(SinglePostScreen(name='single_post'))
         sm.add_widget(SeedLoginScreen(name='seed_login'))
-        sm.add_widget(PostScreen(name='post'))
         sm.add_widget(CreatePostScreen(name='create_post'))
         
         #check to see if logged in and go to homepage

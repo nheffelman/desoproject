@@ -227,8 +227,8 @@
 
 
 #singe post read only screen with mdpostcard
-<SinglePostReadOnlyScreen>:
-    name: 'single_post_read_only'
+<SinglePostScreen>:
+    name: 'single_post'
     
     MDBoxLayout:
         orientation: 'vertical'
@@ -280,27 +280,42 @@
                         id: appbar
                         size_hint: (1, .2)
                         MDBoxLayout:
-                            size_hint: (.3, 1)
+                            size_hint: (.2, 1)
                             CircularAvatarImage:
                                 avatar: root.profile_picture
                                 size: '50dp', '50dp'
                                 on_press  : nav_drawer.set_state("open")
                                 halign: 'center'
+
+                        MDBoxLayout:
+                            pos_hint: {'center_y': 1}
+                            size_hint: (.2, 1)
+                            MDFillRoundFlatButton:
+                                id: trending
+                                text: 'Trending'
+
+                        MDBoxLayout: 
+                            pos_hint: {'center_y': 1}
+                            size_hint: (.2, 1)
+                            MDFillRoundFlatButton:
+                                id: following
+                                text: 'Following'
                                 
+                                
+                        #MDBoxLayout:                            
+                        #    size_hint: (.2, 1)
+                        #    MDLabel:
+                        #        id: username
+                        #        text_size: self.size
+                        #        text: 'Desoliscious'
+                        #        halign: 'center'
+                        #        valign: 'top'
+                        #        font_size: 28
+                        #        font_name: 'assets/Instafont.otf'
                         MDBoxLayout:
-                            size_hint: (.4, 1)
+                            size_hint: (.2, 1)
                             MDLabel:
-                                id: username
-                                text_size: self.size
-                                text: 'Desoliscious'
-                                halign: 'center'
-                                valign: 'top'
-                                font_size: 28
-                                font_name: 'assets/Instafont.otf'
-                        MDBoxLayout:
-                            size_hint: (.3, 1)
-                            MDLabel:
-                                halign: 'center'
+                                #halign: 'center'
                                 id: desoprice
                                 text: root.desoprice
                             
@@ -600,10 +615,13 @@
         MDBoxLayout:            
             adaptive_height: True
             orientation: 'vertical'
-                    
-            MDLabel:
-                adaptive_height: True
-                text: root.body[:288]         
+
+
+            MDCard:
+                id: bodyCard
+                MDLabel:
+                    adaptive_height: True
+                    text: root.body[:288]         
 
     MDBoxLayout:
         padding: 2
@@ -729,11 +747,13 @@
             id: dots
             
     
-            
-    MDLabel:
-    	adaptive_height: True
-        padding: [2,2]
-    	text: root.body[:288] # + root.readmore
+    MDCard:
+        id: bCard
+        adaptive_height: True
+        MDLabel:
+            adaptive_height: True
+            padding: [2,2]
+            text: root.body[:288] # + root.readmore
         
     MDBoxLayout:
         spacing: 10
