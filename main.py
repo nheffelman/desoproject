@@ -111,7 +111,7 @@ class StoryCreator(MDCard):
 class PostCard(MDBoxLayout):
     def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
-        self.sm.current = 'single_post_read_only'
+        self.sm.current = 'single_post'
 
     profile_pic = StringProperty()
     avatar = StringProperty()
@@ -134,7 +134,7 @@ class PostCard(MDBoxLayout):
 class RePostCard(MDBoxLayout):
     def on_post_click(self, postHashHex):
         pickle_post(postHashHex)
-        self.sm.current = 'single_post_read_only'
+        self.sm.current = 'single_post'
     profile_pic = StringProperty()
     repostAvatar = StringProperty()
     repostUsername = StringProperty()
@@ -239,44 +239,6 @@ class UserNameLoginScreen(MDScreen):
             
         self.current = 'homepage_read_only'
 
-#create the single post read only screen
-class SinglePostReadOnlyScreen(MDScreen):
-    def on_enter(self):
-        self.ids.singlePost.clear_widgets()
-        self.list_post()
-
-    def list_post(self):
-        currentPost = unpickle_post()
-        post = deso.Posts()
-        post = post.getSinglePost(postHashHex=currentPost).json()
-        print(post['PostFound']['Comments'])
-        postImage = ''
-        if post['PostFound']['ImageURLs']:
-            postImage = post['PostFound']['ImageURLs'][0]
-            
-        #print(post)
-        self.ids.username.text = post['PostFound']['ProfileEntryResponse']['Username']
-        
-        self.ids.singlePost.add_widget(PostCard(     
-        avatar=deso.User().getProfilePicURL(
-                    post['PostFound']['PosterPublicKeyBase58Check']),
-        username = post['PostFound']['ProfileEntryResponse']['Username'],
-        body=str(post['PostFound']['Body']),
-        post = postImage,
-        likes = str(post['PostFound']['LikeCount']),
-        comments = str(post['PostFound']['CommentCount']),
-        #posted_ago = post['PostFound']['PostEntryReaderState']['TimeAgo'],
-        diamonds = str(post['PostFound']['DiamondCount']),
-        reclout = str(post['PostFound']['RecloutCount']),
-        postHashHex = post['PostFound']['PostHashHex']
-        ))
-        self.ids.appbar.add_widget(CircularAvatarImage(
-                avatar=deso.User().getProfilePicURL(
-                    post['PostFound']['PosterPublicKeyBase58Check']),
-                name=post['PostFound']['ProfileEntryResponse']['Username'],
-    
-        ))          
-
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(MDScreen):
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
@@ -310,7 +272,7 @@ class HomePageReadOnlyScreen(MDScreen):
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
         print('posthashhex was pickled', postHashHex)
-        self.manager.current = 'single_post_read_only'
+        self.manager.current = 'single_post'
 
     def storie_switcher(self, publicKey):
         desoUser = deso.User()
@@ -669,7 +631,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostAvatar=deso.User().getProfilePicURL(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']),
                 #repostPostHashHex=str(post['PostHashHex']),
                 repostPostHashHex=str(post['RepostedPostEntryResponse']['PostHashHex']),
-                repostBody=str(post['RepostedPostEntryResponse']['Body']),
+                #repostBody=str(post['RepostedPostEntryResponse']['Body']),
                 repostPost=repostImage,                
                 ))
                 print('added repostImage', repostImage)
@@ -694,7 +656,11 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostcard.ids.diamond.icon = diamondIcon
                 repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                repostcard.ids.bodyCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                if post['RepostedPostEntryResponse']['Body']:
+                    bodyCard = MDCard()
+                    bodyCard.add_widget(MDLabel(text=str(post['RepostedPostEntryResponse']['Body'])[:288]))
+                    bodyCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    repostcard.ids.bodyBox.add_widget(bodyCard)
                 if repostImage:
                     imageCard = MDCard(FitImage(source=repostImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
                      pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
@@ -745,7 +711,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     postHashHex=str(post['PostHashHex']),
                     likes=str(post['LikeCount']),
                     comments=str(post['CommentCount']),
-                    body=str(post['Body']),
+                    #body=str(post['Body']),
                     readmore=readmore,
                     #post=postImage, 
                     video=postVideo,
@@ -760,7 +726,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     print('adding nft button')
                     #bind a mdiconbutton to the postcard to open the nft modal
                     nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
-                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=repostImage,
+                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=postImage,
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     postcard.ids.nftButtonBox.add_widget(nftButton)
@@ -776,7 +742,11 @@ class HomePageReadOnlyScreen(MDScreen):
                 postcard.ids.diamond.icon = diamondIcon
                 postcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 #postcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                postcard.ids.bCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                if post['Body']:
+                    bodyCard = MDCard()
+                    bodyCard.add_widget(MDLabel(text=post['Body'][:288]))
+                    bodyCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    postcard.ids.bodyBox.add_widget(bodyCard)
                 if postImage:
                     imageCard = MDCard(FitImage(source=postImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
                      pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
