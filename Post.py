@@ -418,7 +418,7 @@ class SinglePostScreen(MDScreen):
         self.nftmodal = MDDialog(
             title=nftTitle,
             type="custom",
-            content_cls=NFTContent(nftImage = nftImageURL, numNftCopiesForSale = numNftCopiesForSale, numNftCopies = numNftCopies),
+            content_cls=NFTContent(nftImage = str(nftImageURL), numNftCopiesForSale = numNftCopiesForSale, numNftCopies = numNftCopies),
             
             buttons=[
                 MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.nftmodal.dismiss()),
@@ -586,8 +586,9 @@ class SinglePostScreen(MDScreen):
                 if post['IsNFT']:
                     print('adding nft button')
                     #bind a mdiconbutton to the postcard to open the nft modal
+
                     nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
-                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=repostImage,
+                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=postImage,
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     postcard.ids.nftButtonBox.add_widget(nftButton)

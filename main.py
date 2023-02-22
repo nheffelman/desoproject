@@ -256,9 +256,11 @@ class HomePageReadOnlyScreen(MDScreen):
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
+       
         self.list_stories()
         self.list_posts()
         print(user, 'printed user here')
+
 
     def logout(self):
         settings = {}
@@ -534,7 +536,26 @@ class HomePageReadOnlyScreen(MDScreen):
     def buy_nft(self, postHashHex):
         pass
 
+    def trending_pressed(self):
+        settings = unpickle_settings()
+        settings['trending'] = True
+        pickle_settings(settings)
+        self.ids.trending.md_bg_color = "blue"
+        self.ids.following.md_bg_color = "white"
+        self.ids.timeline.clear_widgets()
+        self.list_posts()
+
+    def following_pressed(self):
+        settings = unpickle_settings()
+        settings['trending'] = False
+        pickle_settings(settings)
+        self.ids.trending.md_bg_color = "white"
+        self.ids.following.md_bg_color = "blue"
+        self.ids.timeline.clear_widgets()
+        self.list_posts()
+
     def list_stories(self):
+        
         profile = unpickle_profile()
         desoMetadata = deso.Metadata()
         # getDiamondLevelMap takes optional inDesoNanos argument which is by default True.
@@ -563,28 +584,40 @@ class HomePageReadOnlyScreen(MDScreen):
             circle.bind(on_press=lambda widget, userid=post['ProfileEntryResponse']['PublicKeyBase58Check']: self.storie_switcher(userid))
             self.ids.stories.add_widget(circle)
 
+    
+
+
     def list_posts(self):
-        
         profile = unpickle_profile()
-        if profile:
-            print(profile['Profile']['PublicKeyBase58Check'])
-            posts = deso.Posts()
-            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-            userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
-            #get the list of accounts the user is following
-            desoUser = deso.User()
-            followingResponse = desoUser.getFollowsStateless(username = profile['Profile']['Username']).json()
-            following = []
-            for publicKey in followingResponse['PublicKeyToProfileEntry']:
-                following.append(publicKey)
-            
-        
+        settings = unpickle_settings()
+        #if trending feed true or if theres no profile get trending posts else get following posts for user
+        if 'trending' in settings:
+            if settings['trending'] == True:
+                self.ids.trending.md_bg_color = "blue"
+                userposts = deso.Posts().getPostsStateless(numToFetch=10)
+                following = []
         else:
-            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+            self.ids.following.md_bg_color = "blue"        
+            if profile:
+                print(profile['Profile']['PublicKeyBase58Check'])
+                posts = deso.Posts()
+                posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+                userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
+                #get the list of accounts the user is following
+                desoUser = deso.User()
+                followingResponse = desoUser.getFollowsStateless(username = profile['Profile']['Username']).json()
+                following = []
+                for publicKey in followingResponse['PublicKeyToProfileEntry']:
+                    following.append(publicKey)                    
+            else:
+                userposts = deso.Posts().getPostsStateless(numToFetch=10)
+        
 
         
+
+            
         for post in userposts.json()['PostsFound']:
-            #print(post)
+            print(post)
             #If this is a repost of another post, get the original post and extra body text
             nftImage = ''
             if post['IsNFT']:
@@ -596,10 +629,11 @@ class HomePageReadOnlyScreen(MDScreen):
                     print('video found *****************8', post['VideoURLs'])
                     #print(post)
                     postVideo = post['VideoURLs'][0]
-                repostBody = post['RepostedPostEntryResponse']['Body']
-                repostImage=""
-                if post['RepostedPostEntryResponse']['ImageURLs'] != None:
-                    repostImage = post['RepostedPostEntryResponse']['ImageURLs'][0]
+                repostBody = post['RecloutedPostEntryResponse']['Body']
+                repostImage = ''
+                print(post['RecloutedPostEntryResponse']['ImageURLs'],'*****************************')
+                if post['RecloutedPostEntryResponse']['ImageURLs']:
+                    repostImage = post['RecloutedPostEntryResponse']['ImageURLs'][0]
                 recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
                 if recloutedByReader == True:
                     recloutIcon = 'repeat-variant'
@@ -618,9 +652,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 print('postHashHex', str(post['PostHashHex'])),
                 repostcard=(RePostCard(
                 username=post["ProfileEntryResponse"]['Username'],
-                avatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check']),
-                
-                body=str(post['Body']),
+                avatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check']),                
                 likes=str(post['LikeCount']),
                 comments=str(post['CommentCount']),
                 diamonds=str(post['DiamondCount']),
@@ -656,11 +688,16 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostcard.ids.diamond.icon = diamondIcon
                 repostcard.ids.diamond.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.diamond(postHashHex))
                 repostcard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                if post['RepostedPostEntryResponse']['Body']:
+                if post['Body']:
                     bodyCard = MDCard()
-                    bodyCard.add_widget(MDLabel(text=str(post['RepostedPostEntryResponse']['Body'])[:288]))
+                    bodyCard.add_widget(MDLabel(text=str(post['Body'])[:288]))
                     bodyCard.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     repostcard.ids.bodyBox.add_widget(bodyCard)
+                if post['RecloutedPostEntryResponse']['Body']:
+                    bodyCard = MDCard()
+                    bodyCard.add_widget(MDLabel(text=str(post['RecloutedPostEntryResponse']['Body'])[:288]))
+                    bodyCard.bind(on_press= lambda widget, postHashHex=post['RecloutedPostEntryResponse']['PostHashHex']: self.open_post(postHashHex))
+                    repostcard.ids.repostBodyBox.add_widget(bodyCard)
                 if repostImage:
                     imageCard = MDCard(FitImage(source=repostImage, size_hint_y=1, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
                      pos_hint={"center_x": .5, "center_y": .5}, size_hint=(0.8, 1.7))
