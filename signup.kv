@@ -327,6 +327,9 @@
                     MDBoxLayout:
                         ScrollView:
                             bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            on_touch_up: root.touch_up_value(self)
 
                             MDBoxLayout:
                                 adaptive_height: True

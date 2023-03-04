@@ -592,10 +592,17 @@ class HomePageReadOnlyScreen(MDScreen):
             circle.bind(on_press=lambda widget, userid=post['ProfileEntryResponse']['PublicKeyBase58Check']: self.storie_switcher(userid))
             self.ids.stories.add_widget(circle)
 
-    
+    #monitors the scrollview and calls refresh when it reaches the bottom
+    def touch_up_value(self, *args):
+        #print(self.ids.mainScrollView.scroll_y)
+        if self.ids.mainScrollView.scroll_y  <= 0:
+            self.refresh_posts()
+            toast("refreshing")
 
-
-    def list_posts(self):
+    def refresh_posts(self):
+        pass
+        
+    def get_posts(self):
         profile = unpickle_profile()
         settings = unpickle_settings()
         following = []
@@ -603,8 +610,7 @@ class HomePageReadOnlyScreen(MDScreen):
             desoUser = deso.User()
             followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
-                        following.append(publicKey) 
-        
+                        following.append(publicKey)         
 
         #if trending feed true or if theres no profile get trending posts
         if 'trending' in settings:
@@ -622,10 +628,12 @@ class HomePageReadOnlyScreen(MDScreen):
                                  
         else:
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
-        
 
-        
+        return userposts,following
 
+    def list_posts(self):
+               
+        userposts, following = self.get_posts()
             
         for post in userposts.json()['PostsFound']:
             print(post)
