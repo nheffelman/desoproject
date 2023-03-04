@@ -4,12 +4,16 @@ from kivy.lang import Builder
 from kivy.uix.videoplayer import VideoPlayer
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.fitimage import FitImage
+from kivymd.uix.widget import MDWidget
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.card import MDCard
+from kivymd.uix.card import (
+    MDCardSwipe, MDCardSwipeLayerBox, MDCardSwipeFrontBox, MDCard
+)
+from kivymd.uix.list import MDList, OneLineListItem, OneLineAvatarIconListItem, ImageLeftWidget, IconRightWidget
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
 from kivymd.uix.label import MDLabel
@@ -90,6 +94,7 @@ class NFTContent(MDBoxLayout):
     numNftCopies = StringProperty()
     numNftCopiesForSale = StringProperty()
     nftTitle = StringProperty()
+
 
 # class for Item
 class Item(OneLineAvatarListItem):
@@ -330,6 +335,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 self.dialog = None
                 if not self.dialog:
                     self.dialog = MDDialog(
+                        pos_hint={"center_x": 0.5, "center_y": .8},
+                        size_hint=(0.8, 0.6),
                         title="Comment",
                         type="custom",
                         content_cls=CommentContent(),
@@ -339,8 +346,9 @@ class HomePageReadOnlyScreen(MDScreen):
                             ),
                             MDRoundFlatButton(
                                 text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex)
-                            ),
-                        ],
+                            )],
+                        
+    
                     )
                     self.dialog.open()
 
@@ -590,27 +598,30 @@ class HomePageReadOnlyScreen(MDScreen):
     def list_posts(self):
         profile = unpickle_profile()
         settings = unpickle_settings()
-        #if trending feed true or if theres no profile get trending posts else get following posts for user
+        following = []
+        if 'publicKey' in settings:
+            desoUser = deso.User()
+            followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
+            for publicKey in followingResponse['PublicKeyToProfileEntry']:
+                        following.append(publicKey) 
+        
+
+        #if trending feed true or if theres no profile get trending posts
         if 'trending' in settings:
             if settings['trending'] == True:
                 self.ids.trending.md_bg_color = "blue"
-                userposts = deso.Posts().getPostsStateless(numToFetch=10)
-                following = []
-        else:
-            self.ids.following.md_bg_color = "blue"        
-            if profile:
-                print(profile['Profile']['PublicKeyBase58Check'])
-                posts = deso.Posts()
-                posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
-                #get the list of accounts the user is following
-                desoUser = deso.User()
-                followingResponse = desoUser.getFollowsStateless(username = profile['Profile']['Username']).json()
-                following = []
-                for publicKey in followingResponse['PublicKeyToProfileEntry']:
-                    following.append(publicKey)                    
+                userposts = deso.Posts().getPostsStateless(numToFetch=13)
+                
             else:
-                userposts = deso.Posts().getPostsStateless(numToFetch=10)
+                self.ids.following.md_bg_color = "blue"        
+                if profile:
+                    print(profile['Profile']['PublicKeyBase58Check'])
+                    posts = deso.Posts()
+                    posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+                    userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
+                                 
+        else:
+            userposts = deso.Posts().getPostsStateless(numToFetch=10)
         
 
         
@@ -649,7 +660,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     likeIcon = 'heart'
                 else:
                     likeIcon = 'heart-outline'
-                print('postHashHex', str(post['PostHashHex'])),
+                #print('postHashHex', str(post['PostHashHex'])),
                 repostcard=(RePostCard(
                 username=post["ProfileEntryResponse"]['Username'],
                 avatar=deso.User().getProfilePicURL(post['ProfileEntryResponse']['PublicKeyBase58Check']),                
@@ -679,6 +690,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 #bind the posthashhex to the repostcard for each post in the time, nftTitle=str(post['Body'])line
                 if post['PosterPublicKeyBase58Check'] in following:
                     data = self.change_3dots_data(following=True)
+                else: 
+                    data = self.change_3dots_data(following=False)
                 repostcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 repostcard.ids.like.icon = likeIcon
                 repostcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
@@ -770,6 +783,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 #add data to dots menu 
                 if post['PosterPublicKeyBase58Check'] in following:
                     data = self.change_3dots_data(following=True)
+                else:
+                    data = self.change_3dots_data(following=False)
                 postcard.ids.dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 postcard.ids.like.icon = likeIcon
                 postcard.ids.like.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.like(postHashHex))
@@ -795,7 +810,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 self.ids.timeline.add_widget(postcard)
         
   #class that allows user to create a post add a video and image and child posts to the post and post to the blockchain
-class CreatePostScreen(Screen):
+class CreatePostScreen(MDScreen):
     userName = StringProperty("")
     postHashHex = StringProperty("")
     postBody = StringProperty("")
@@ -920,7 +935,107 @@ class CreatePostScreen(Screen):
         self.postVideo = []
         self.postBody = ''
         self.mediaType = ''
-        
+
+class NotificationsScreen(MDScreen):
+    #toast test
+    def toast(self, transactionType):
+        toast(transactionType)
+    #topappbar callback
+    def callback(self, instance):
+        if str(instance.icon)=='arrow-left':
+            self.ids.notificationsList.clear_widgets()
+            self.manager.current = 'homepage_read_only'
+    def on_enter(self):
+        settings = unpickle_settings()
+        desoUser = deso.User()
+        if settings['publicKey'] != True:
+            publicKey = settings['publicKey']
+            notifications = desoUser.getNotifications(publicKey, numToFetch=10).json()
+        if not 'error' in notifications:
+            for notification in notifications['Notifications']:
+                print(notification)
+                transactionType = notification['Metadata']['TxnType']
+                txnType = {
+                    'LIKE': 'liked your post', 
+                    'REPOST': 'reposted your post',
+                    'FOLLOW': 'followed you',
+                    'CREATOR_COIN': 'sent you some creator coin',
+                    'SUBMIT_POST': 'replied to your post',
+                    'HODL': 'hodled you',
+                    'SEND': 'sent you some DESO',
+                    'ACCEPT': 'accepted your follow request',
+                    'REJECT': 'rejected your follow request',
+                    'BLOCK': 'blocked you',
+                    'UNBLOCK': 'unblocked you',
+                    'MINT': 'minted some creator coin',
+                    'BURN': 'burned some creator coin',
+                    'EXCHANGE': 'exchanged some DESO',
+                    'CREATE_NFT': 'created an NFT',
+                    'UPDATE_NFT': 'updated an NFT',
+                    'BASIC_TRANSFER': 'sent you a diamond',
+                    'DAO_COIN_TRANSFER': 'sent you some DAO coin',
+                    'DAO_COIN_LIMIT_ORDER': 'bought some DAO coin',
+                }
+                txnIcon = {
+                    'LIKE': 'thumb-up',
+                    'REPOST': 'repeat',
+                    'FOLLOW': 'account-plus',
+                    'CREATOR_COIN': 'coin',
+                    'SUBMIT_POST': 'comment-text',
+                    'HODL': 'hand-heart',
+                    'SEND': 'send',
+                    'ACCEPT': 'check',
+                    'REJECT': 'close',
+                    'BLOCK': 'block-helper',
+                    'UNBLOCK': 'block-helper',
+                    'MINT': 'plus-circle-multiple',
+                    'BURN': 'minus-circle-multiple',
+                    'EXCHANGE': 'swap-horizontal',
+                    'CREATE_NFT': 'image',
+                    'UPDATE_NFT': 'image',
+                    'BASIC_TRANSFER': 'diamond',
+                    'DAO_COIN_TRANSFER': 'hand-coin',
+                    'DAO_COIN_LIMIT_ORDER': 'hand-coin',
+
+                }
+                transactorPublicKey = notification['Metadata']['TransactorPublicKeyBase58Check']
+                desoUser = deso.User()
+                transactorProfile = desoUser.getSingleProfile(publicKey=transactorPublicKey).json()
+                print('transactorProfile', transactorProfile)
+                print('large profile pic', transactorProfile['Profile']['ExtraData']['LargeProfilePicURL'])
+                transactorUsername = transactorProfile['Profile']['Username']
+                transactorPic = transactorProfile['Profile']['ExtraData']['LargeProfilePicURL']
+                if not transactorPic:
+                    transactorPic = 'https://bitclout.com/assets/img/default_profile_pic.png'
+                print(transactorUsername)
+                notificationCard = OneLineAvatarIconListItem(
+                    ImageLeftWidget(
+                        source=transactorPic
+                    ),
+                    IconRightWidget(
+                        icon=txnIcon[transactionType]
+                    ),
+                    text= transactorUsername + ' ' + txnType[transactionType],
+                    on_press = lambda x, transactionType=transactionType, notification=notification: self.transactionCallback(transactionType, notification)
+                    
+                )
+                self.ids.notificationsList.add_widget(notificationCard)
+    
+    def transactionCallback(self, transactionType, notification):
+        print(transactionType)
+        print(notification)
+        if transactionType == 'LIKE':
+            postHashHex = notification['Metadata']['LikeTxindexMetadata']['PostHashHex']
+            pickle_post(postHashHex)
+            self.manager.current = 'single_post'
+        elif transactionType == 'SUBMIT_POST':
+            postHashHex = notification['Metadata']['SubmitPostTxindexMetadata']['PostHashBeingModifiedHex']
+            pickle_post(postHashHex)
+            self.manager.current = 'single_post'    
+        elif transactionType == 'BASIC_TRANSFER':
+            postHashHex = notification['Metadata']['BasicTransferTxindexMetadata']['PostHashHex']
+            pickle_post(postHashHex)
+            self.manager.current = 'single_post'
 
 # Create the main app
 class MainApp(MDApp):
@@ -937,9 +1052,11 @@ class MainApp(MDApp):
         sm.add_widget(SignupScreen(name='signup'))
         sm.add_widget(UserNameLoginScreen(name='username_login'))
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
+        sm.add_widget(NotificationsScreen(name='notifications'))
         sm.add_widget(SinglePostScreen(name='single_post'))
         sm.add_widget(SeedLoginScreen(name='seed_login'))
         sm.add_widget(CreatePostScreen(name='create_post'))
+
         
         #check to see if logged in and go to homepage
         settings=unpickle_settings()

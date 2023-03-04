@@ -91,9 +91,7 @@
             orientation: 'vertical'
             padding: '10dp'
             spacing: '10dp'
-            Image:
-                source: 'assets/dragon.png'
-                size_hint: (1, 1)
+            
             Label:
                 text: 'Login with Seed Phrase'
                 font_size: '20sp'
@@ -119,6 +117,7 @@
                 size_hint: (0.8, None)
                 height: '40dp'
                 on_press: root.onClick()
+            Widget:
 
 
 
@@ -201,9 +200,6 @@
             orientation: 'vertical'
             padding: '10dp'
             spacing: '10dp'
-            Image:
-                source: 'assets/dragon.png'
-                size_hint: (1, 1)
             MDLabel:
                 text: 'Login with Username'
                 font_size: '20sp'
@@ -222,6 +218,7 @@
                 size_hint: (0.8, None)
                 height: '40dp'
                 on_press: root.onClick()
+            Widget:
 
 
 
@@ -381,6 +378,7 @@
                         MDBoxLayout:
                             size_hint: (2, 1)
                             MDIconButton:
+                                on_press: root.manager.current = 'notifications'
                                 icon: 'alert-circle-outline'
                         MDBoxLayout:
                             size_hint: (2, 1)
@@ -505,7 +503,29 @@
             id: previewBox
             adaptive_height: True
         
-
+<NotificationsScreen>:
+    name: 'notifications'
+    orientation: 'vertical'
+    MDBoxLayout:
+        id: box
+        orientation: 'vertical'
+        # App Bar
+        MDTopAppBar:
+            height: self.minimum_height
+            size_hint: 1, 0.1
+            title: 'Notifications'
+            left_action_items: [['arrow-left', lambda x, : root.callback(x), "",'back']]
+        MDBoxLayout:
+            id: notBox  
+            orientation: 'vertical'
+            MDScrollView:
+                id: scroll
+                orientation: 'vertical'
+                #scroll_timeout: 200
+                MDList:
+                    id: notificationsList
+        
+        
 
 <PostScreen>:
     name: 'post'
@@ -1066,6 +1086,12 @@
     selected_color: "#4a4939"
     _no_ripple_effect: True
 
+<NotificationItem>
+    text: root.text
+    ImageLeftWidget:
+        source: root.source
+        radius: [20,20,20,20]
+
 <Item>
 
     ImageLeftWidget:
@@ -1079,7 +1105,9 @@
 
     MDTextField:
         id: comment
+        pos_hint: {"center_x": .5, "center_y": .5}
         hint_text: "Add a comment"
+        
         multiline: True
         max_text_length: 144
 
@@ -1094,6 +1122,11 @@
         hint_text: "Add a comment"
         multiline: True
         max_text_length: 144
+    MDWidget:
+        size_hint: .5, None
+        height: self.width
+        radius: self.height / 2
+        md_bg_color: app.theme_cls.primary_color
 
 <NFTContent>
     orientation: "vertical"
