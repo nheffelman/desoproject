@@ -434,6 +434,7 @@ class SinglePostScreen(MDScreen):
         profile = unpickle_profile()
 
         desopost = deso.Posts()
+        desopost.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
         post = desopost.getSinglePost(postHashHex=PostHashHex).json()
         if 'error' in post:
             toast('An error occured getting this post')

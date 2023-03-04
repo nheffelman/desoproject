@@ -573,13 +573,13 @@ class HomePageReadOnlyScreen(MDScreen):
         # print(dollars)
         self.desoprice = str(dollars)
         # load 10 posts for the user or 10 posts for the stateless user
+        posts = deso.Posts()
         if profile:
             print(profile['Profile']['PublicKeyBase58Check'])
-            posts = deso.Posts()
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-
-            userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
+            userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
         else:
+            posts.reaerPublicKey = None
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
         
         
@@ -606,28 +606,31 @@ class HomePageReadOnlyScreen(MDScreen):
         profile = unpickle_profile()
         settings = unpickle_settings()
         following = []
+        #if theres a user public Key get the users following list
         if 'publicKey' in settings:
             desoUser = deso.User()
             followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
                         following.append(publicKey)         
-
+        
+        posts = deso.Posts()
         #if trending feed true or if theres no profile get trending posts
         if 'trending' in settings:
             if settings['trending'] == True:
                 self.ids.trending.md_bg_color = "blue"
-                userposts = deso.Posts().getPostsStateless(numToFetch=13)
+                posts.readerPublicKey = None
+                userposts = posts.getHotFeed(numToFetch=10)
                 
             else:
                 self.ids.following.md_bg_color = "blue"        
                 if profile:
-                    print(profile['Profile']['PublicKeyBase58Check'])
-                    posts = deso.Posts()
                     posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                    userposts = posts.getPostsStateless(readerPublicKey = profile['Profile']['PublicKeyBase58Check'],numToFetch=10, getPostsForFollowFeed=True)
-                                 
+                    userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
+        
+        #if theres no profile get trending posts                         
         else:
-            userposts = deso.Posts().getPostsStateless(numToFetch=10)
+            posts.readerPublicKey = None
+            userposts = posts.getHotFeed(numToFetch=10)
 
         return userposts,following
 
@@ -636,7 +639,7 @@ class HomePageReadOnlyScreen(MDScreen):
         userposts, following = self.get_posts()
             
         for post in userposts.json()['PostsFound']:
-            print(post)
+            #print(post)
             #If this is a repost of another post, get the original post and extra body text
             nftImage = ''
             if post['IsNFT']:
