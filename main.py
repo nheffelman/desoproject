@@ -1,3 +1,4 @@
+from kivy.clock import Clock
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -30,10 +31,12 @@ from Post import SinglePostScreen
 global currentPost 
 global loggedIn
 global user
-global publicKey    
+global publicKey 
+global scrollIndex   
 loggedIn = False
 user = ""
 publicKey = ""
+scrollIndex = 0
 
 #pickles the current settings
 def pickle_settings(settings):
@@ -53,10 +56,28 @@ def unpickle_settings():
 
 #unpickles the current post
 def unpickle_post():
-    with open('temp/post.pickle', 'rb') as handle:
-        post = pickle.load(handle)
-        print("post unpickled")
+    if os.path.exists('temp/post.pickle'):
+        with open('temp/post.pickle', 'rb') as handle:
+            post = pickle.load(handle)
+            print("post unpickled")
+    else:
+        post = {}
     return post
+#pickles posts
+def pickle_posts(posts):
+    with open('temp/posts.pickle', 'wb') as handle:
+        pickle.dump(posts, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("posts pickled")
+
+#unpickles posts
+def unpickle_posts():
+    if os.path.exists('temp/posts.pickle'):
+        with open('temp/posts.pickle', 'rb') as handle:
+            posts = pickle.load(handle)
+            print("posts unpickled")
+    else:
+        posts = {}
+    return posts
 #pickles the current post
 def pickle_post(post):
     
@@ -66,9 +87,12 @@ def pickle_post(post):
 
 # unpickles the user's profile
 def unpickle_profile():
-    with open('temp/profile.pickle', 'rb') as handle:
-        profile = pickle.load(handle)
-        #print("profile unpickled")
+    if os.path.exists('temp/profile.pickle'):
+        with open('temp/profile.pickle', 'rb') as handle:
+            profile = pickle.load(handle)
+            #print("profile unpickled")
+    else:
+        profile = {}
     return profile
 
 # pickles the user's profile
@@ -596,49 +620,92 @@ class HomePageReadOnlyScreen(MDScreen):
     def touch_up_value(self, *args):
         #print(self.ids.mainScrollView.scroll_y)
         if self.ids.mainScrollView.scroll_y  <= 0:
-            self.refresh_posts()
-            toast("refreshing")
+            print('all the widgets', self.ids.timeline.children)
+            self.refresh_posts(target_widget=self.ids.timeline.children[0])
+            toast("refreshing posts")
 
-    def refresh_posts(self):
-        pass
-        
+    def refresh_posts(self, target_widget=None):
+        global scrollIndex
+        children = len(self.ids.timeline.children)
+        print('children', children)
+        trigger = Clock.create_trigger(self.list_posts(target_widget=target_widget))
+        trigger()
+        #self.ids.mainScrollView.scroll_y = 1
+        #self.ids.mainScrollView.scroll_to(target_widget)
+        #print('refreshed posts', target_widget)
+        #print(self.ids.timeline.children)
+        print('scrollIndex', scrollIndex)
+        scrollIndex += 10
+        Clock.schedule_once(lambda *x : self.ids.mainScrollView.scroll_to(self.ids.timeline.children[::-1][-children]), 0)
+
     def get_posts(self):
         profile = unpickle_profile()
         settings = unpickle_settings()
+        cached_posts = unpickle_posts()
+
+        #get the users following list
         following = []
-        #if theres a user public Key get the users following list
         if 'publicKey' in settings:
             desoUser = deso.User()
             followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
                         following.append(publicKey)         
         
-        posts = deso.Posts()
-        #if trending feed true or if theres no profile get trending posts
-        if 'trending' in settings:
-            if settings['trending'] == True:
-                self.ids.trending.md_bg_color = "blue"
-                posts.readerPublicKey = None
-                userposts = posts.getHotFeed(numToFetch=10)
-                
+        #check to see if there are any posts in the cache
+        if 'posts' in cached_posts:
+            #print(cached_posts['posts'])
+            userposts = []
+            reversed = cached_posts['posts']
+            reversed.reverse()
+            userposts = []
+            print(len(reversed), 'length of reversed')
+            for i in range(9):
+                #print(reversed[i])
+                if reversed != []:
+                    userposts.append(reversed.pop())
+            if len(reversed) > 0:
+                reversed.reverse()
+                cached_posts['posts'] = reversed
+                pickle_posts(cached_posts)
             else:
-                self.ids.following.md_bg_color = "blue"        
-                if profile:
-                    posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                    userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
-        
-        #if theres no profile get trending posts                         
-        else:
-            posts.readerPublicKey = None
-            userposts = posts.getHotFeed(numToFetch=10)
+                cached_posts = {}
+                pickle_posts(cached_posts)
+            print("posts loaded from cache")
 
+        else:
+            # load 100 posts for the user or 100 posts for the stateless user
+            posts = deso.Posts()
+            #if trending feed true or if theres no profile get trending posts
+            if 'trending' in settings:
+                if settings['trending'] == True:
+                    self.ids.trending.md_bg_color = "blue"
+                    posts.readerPublicKey = None
+                    userposts = posts.getHotFeed(numToFetch=100)
+                    
+                else:
+                    self.ids.following.md_bg_color = "blue"        
+                    if profile:
+                        posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+                        userposts = posts.getPostsStateless(numToFetch=100, getPostsForFollowFeed=True)
+            
+            #if theres no profile get trending posts                         
+            else:
+                posts.readerPublicKey = None
+                userposts = posts.getHotFeed(numToFetch=100)
+            userposts=userposts.json()['PostsFound']
+            #cache the posts
+            cached_posts = {}
+            cached_posts['posts'] = userposts[9:]
+            pickle_posts(cached_posts)
+            print("posts loaded from network")
+            userposts = userposts[:9]
         return userposts,following
 
-    def list_posts(self):
+    def list_posts(self,target_widget=None):
                
         userposts, following = self.get_posts()
             
-        for post in userposts.json()['PostsFound']:
+        for post in userposts:
             #print(post)
             #If this is a repost of another post, get the original post and extra body text
             nftImage = ''
@@ -819,6 +886,9 @@ class HomePageReadOnlyScreen(MDScreen):
                     player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
                     postcard.ids.mediaBox.add_widget(player)
                 self.ids.timeline.add_widget(postcard)
+        #if target_widget:
+        #    print('scrolling to target widget', target_widget)
+        #    self.ids.mainScrollView.scroll_to(self.ids.timeline.children[-target_widget])
         
   #class that allows user to create a post add a video and image and child posts to the post and post to the blockchain
 class CreatePostScreen(MDScreen):
