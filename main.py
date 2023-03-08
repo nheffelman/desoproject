@@ -1,3 +1,4 @@
+
 from kivy.clock import Clock
 from kivymd.app import MDApp
 from kivy.core.window import Window
@@ -620,23 +621,22 @@ class HomePageReadOnlyScreen(MDScreen):
     def touch_up_value(self, *args):
         #print(self.ids.mainScrollView.scroll_y)
         if self.ids.mainScrollView.scroll_y  <= 0:
-            print('all the widgets', self.ids.timeline.children)
-            self.refresh_posts(target_widget=self.ids.timeline.children[0])
-            toast("refreshing posts")
+            toast('refreshing')
+            self.refresh_posts(target_widget=self.ids.timeline.children[-1])
+            
 
     def refresh_posts(self, target_widget=None):
-        global scrollIndex
-        children = len(self.ids.timeline.children)
-        print('children', children)
+        
+        self.ids.timeline.clear_widgets()
         trigger = Clock.create_trigger(self.list_posts(target_widget=target_widget))
         trigger()
-        #self.ids.mainScrollView.scroll_y = 1
+        self.ids.mainScrollView.scroll_y = 1
         #self.ids.mainScrollView.scroll_to(target_widget)
         #print('refreshed posts', target_widget)
         #print(self.ids.timeline.children)
-        print('scrollIndex', scrollIndex)
-        scrollIndex += 10
-        Clock.schedule_once(lambda *x : self.ids.mainScrollView.scroll_to(self.ids.timeline.children[::-1][-children]), 0)
+      #  print('scrollIndex', scrollIndex)
+      #  scrollIndex += 10
+        #Clock.schedule_once(lambda *x : self.ids.mainScrollView.scroll_y(1))
 
     def get_posts(self):
         profile = unpickle_profile()
@@ -680,7 +680,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 if settings['trending'] == True:
                     self.ids.trending.md_bg_color = "blue"
                     posts.readerPublicKey = None
-                    userposts = posts.getHotFeed(numToFetch=100)
+                    userposts = posts.getPostsStateless(numToFetch=100)
                     
                 else:
                     self.ids.following.md_bg_color = "blue"        
@@ -691,7 +691,7 @@ class HomePageReadOnlyScreen(MDScreen):
             #if theres no profile get trending posts                         
             else:
                 posts.readerPublicKey = None
-                userposts = posts.getHotFeed(numToFetch=100)
+                userposts = posts.getPostsStateless(numToFetch=100)
             userposts=userposts.json()['PostsFound']
             #cache the posts
             cached_posts = {}
