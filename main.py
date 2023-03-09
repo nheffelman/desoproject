@@ -720,24 +720,26 @@ class HomePageReadOnlyScreen(MDScreen):
                     postVideo = post['VideoURLs'][0]
                 repostBody = post['RecloutedPostEntryResponse']['Body']
                 repostImage = ''
+                recloutIcon = 'repeat'
+                diamondIcon = 'diamond-outline'
+                likeIcon = 'heart-outline'
+
                 print(post['RecloutedPostEntryResponse']['ImageURLs'],'*****************************')
                 if post['RecloutedPostEntryResponse']['ImageURLs']:
                     repostImage = post['RecloutedPostEntryResponse']['ImageURLs'][0]
-                recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
-                if recloutedByReader == True:
-                    recloutIcon = 'repeat-variant'
-                else:
-                    recloutIcon = 'repeat'
-                diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
-                if diamondedByReader == 0:
-                    diamondIcon = 'diamond-outline'
-                else:
-                    diamondIcon = 'diamond'
-                likedByReader = post['PostEntryReaderState']['LikedByReader']
-                if likedByReader == True:
-                    likeIcon = 'heart'
-                else:
-                    likeIcon = 'heart-outline'
+                if post['PostEntryReaderState']:
+                    recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
+                    if recloutedByReader == True:
+                        recloutIcon = 'repeat-variant'
+                    
+                    diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
+                    if diamondedByReader != 0:
+                        diamondIcon = 'diamond'
+                    
+                    likedByReader = post['PostEntryReaderState']['LikedByReader']
+                    if likedByReader == True:
+                        likeIcon = 'heart'
+                
                 #print('postHashHex', str(post['PostHashHex'])),
                 repostcard=(RePostCard(
                 username=post["ProfileEntryResponse"]['Username'],
@@ -814,23 +816,25 @@ class HomePageReadOnlyScreen(MDScreen):
                 if len(post['Body']) > 144:
                     readmore = '  -- read more --'
                 postImage = ''
+                recloutIcon = 'repeat'
+                diamondIcon = 'diamond-outline'
+                likeIcon = 'heart-outline'
                 if post['ImageURLs']:
                     postImage = post['ImageURLs'][0]
-                recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
-                if recloutedByReader == True:
-                    recloutIcon = 'repeat-variant'
-                else:
-                    recloutIcon = 'repeat'
-                diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
-                if diamondedByReader == 0:
-                    diamondIcon = 'diamond-outline'
-                else:
-                    diamondIcon = 'diamond'
-                likedByReader = post['PostEntryReaderState']['LikedByReader']
-                if likedByReader == True:
-                    likeIcon = 'heart'
-                else:
-                    likeIcon = 'heart-outline'
+                #if reader is logged in check if they have liked, reclouted, or diamonded the post
+                if post['PostEntryReaderState']:
+                    recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
+                    if recloutedByReader == True:
+                        recloutIcon = 'repeat-variant'
+                    
+                    diamondedByReader = post['PostEntryReaderState']['DiamondLevelBestowed']
+                    if diamondedByReader != 0:
+                        diamondIcon = 'diamond'
+                    
+                    likedByReader = post['PostEntryReaderState']['LikedByReader']
+                    if likedByReader == True:
+                        likeIcon = 'heart'
+                
                 postcard=(PostCard(
                     username=post["ProfileEntryResponse"]['Username'],
 
