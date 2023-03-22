@@ -356,7 +356,7 @@
                                 MDBoxLayout:
                                     orientation: 'vertical'
                                     adaptive_height: True
-                                    spacing: '10dp'
+                                    spacing: '20dp'
                                     id: timeline
 
                                 
@@ -972,6 +972,55 @@
 
     MDSeparator:
 
+<PostLayout>
+    id: postLayout
+    
+
+<Reactions>
+    # Reactions
+    id: reactions
+
+    MDBoxLayout:
+        padding: 5, 0, 0, 0
+        spacings: 2
+        size_hint_y: None
+        size_hint_x: 1
+
+        MDIconButton:
+            id: like
+            icon: "heart-outline"
+                        
+        MyLabel:
+            id: likes
+            valign: 'top'
+            font_size: 10
+            text: f'{root.likes}'
+            bold: True
+
+        MDIconButton:
+            id: comment
+            icon: 'message-outline'
+            
+		MyLabel:
+            font_size: 10
+			text: f'{root.comments}'
+			
+		MDIconButton:
+            id: reclout
+			icon: 'repeat'
+
+		MyLabel:
+            font_size: 10
+			text: f'{root.reclout}'
+			
+        MDIconButton:
+            id: diamond
+            icon: 'diamond-outline'
+            
+        MyLabel: 
+            font_size: 10
+			text: f'{root.diamonds}'
+			bold: True
 
    
 <PostCard>    
