@@ -3,6 +3,7 @@ from kivy.clock import Clock
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.uix.label import Label
 from kivy.uix.videoplayer import VideoPlayer
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.fitimage import FitImage
@@ -146,7 +147,9 @@ def pickle_profilePicUrl(cache):
 unpickle_profilePicUrl()
        
 
-	
+class BodyLabel(MDLabel):
+    pass
+
 #class for custom comment dialog content
 class CommentContent(MDBoxLayout):
     comment = StringProperty()
@@ -329,6 +332,10 @@ class UserNameLoginScreen(MDScreen):
 
 # Create the homepage read only screen
 class HomePageReadOnlyScreen(MDScreen):
+    def build(self):
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Orange"
+
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
@@ -765,7 +772,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 pass#print('caught nft', post)
             
             #layout for the post
-            layout = PostLayout(orientation='vertical', size_hint_x = 1, size_hint_y = None, spacing = 20, postHashHex=str(post['PostHashHex']),)
+            layout = PostLayout(orientation='vertical', size_hint_x = 1, size_hint_y = None, spacing = 50, postHashHex=str(post['PostHashHex']),)
             #layout for the post header
             header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
             #one line avatar list item
@@ -794,6 +801,8 @@ class HomePageReadOnlyScreen(MDScreen):
             
             #add the header to the layout
             layout.add_widget(header)
+            layout.height += header.height
+
             #get the post body and find any links
             body=str(post['Body'])
             lineCount = 1
@@ -807,12 +816,14 @@ class HomePageReadOnlyScreen(MDScreen):
             for url in urls:
                 beforeUrl = body.split(url,1)[0]
                 print('text before link===================', beforeUrl)
-                bodyLabel = MDLabel(text=beforeUrl)
-                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                layout.add_widget(bodyLabel)
+                if beforeUrl !='':
+                	bodyLabel = BodyLabel(text=beforeUrl, padding= [20,20])
+                	bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                	layout.add_widget(bodyLabel)
+                	layout.height += bodyLabel.height
+
                 body = body.split(url,1)[1] 
-                #find the image for the link
-                previewHeight += 300
+                
                 try:
                     preview = link_preview(url)
                 except:
@@ -821,57 +832,69 @@ class HomePageReadOnlyScreen(MDScreen):
                     
                     if preview.image:
                         print('image found *****************8', preview.image)
-                        preview_image = MDCard(FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
-                        pos_hint={"center_x": .5, "center_y": .5})
+                        preview_image = MDCard(size_hint_y = None, radius=18)
+                        fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
+                        preview_image.add_widget(fitimage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        preview_image.height = 300
                         layout.add_widget(preview_image)    
+                        layout.height += preview_image.height
                 else:
-                    urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
+                    urlLabel = MDLabel(text=url, halign =  "center" )
                     layout.add_widget(urlLabel)
+                    layout.height += urlLabel.height
                     previewHeight -= 250
             #add any remaining body to the layout
-            bodyLabel = MDLabel(text=body)
-            bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-            #add the body card to the layout
-            layout.add_widget(bodyLabel)
+            if body != '':
+            	bodyLabel = BodyLabel(text=body, padding= [20,20])
+            	bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+            	#add the body card to the layout
+            	layout.add_widget(bodyLabel)
+            	layout.height += bodyLabel.height
             
             #create a card for the post Image
             postImage = ''
             imageHeight = 0
             if post['ImageURLs']:                 
-            
-                swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
+                
+                #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    swiperItem = MDSwiperItem(MDCard(FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
-                     pos_hint={"center_x": .5, "center_y": .5}))
-                    swiper.add_widget(swiperItem)
-                imageHeight = 300
-                swiper.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                layout.add_widget(swiper)
+                    card = MDCard(size_hint_y = None, radius=18)
+                    fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
+                    card.add_widget(fitimage)
+                    #swiper.add_widget(swiperItem)
+                #imageHeight = 300
+                    card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    #swiperBox.add_widget(swiper)
+                    card.height = 300
+                    layout.add_widget(card)
+                    layout.height += card.height 
             if post['VideoURLs']:
                 print('video found *****************8', post['VideoURLs'][0])
                 #print(post)
                 postVideo = post['VideoURLs'][0]
-                player = VideoPlayer(source=postVideo, state='pause', options={'allow_stretch': True})
+                player = VideoPlayer(size_hint_y = True, source=postVideo, state='pause', options={'allow_stretch': True})
                 player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 layout.add_widget(player)
+                layout.height += player.height
 
             #check if post is nft
                 if post['IsNFT']:
                     print('adding nft button')
                     #bind a mdiconbutton to the postcard to open the nft modal
-                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, 0.4))
+                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, None))
                     nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=post['ImageURLs'][0],
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     layout.ids.nftButtonBox.add_widget(nftButton)
+                    layout.height += nftButton.height
             
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] != None:
                 print('reclout found777777777777777777777777777777777')
-                recloutLayout = MDBoxLayout(orientation = 'horizontal', size_hint_y = None)
+                recloutLayout = MDBoxLayout(orientation = 'horizontal', adaptive_height = True)
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
-                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, size_hint_y = None)
+                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, size_hint_y = None, spacing = 20)
                 
                 #make the header
                 #layout for the post header
@@ -898,6 +921,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 header.add_widget(three_dots)
                 #add the header to the right layout
                 rightLayout.add_widget(header)
+                rightLayout.height += header.height
                     
                 #get the reclout post body and find any links
                 body=str(post['RecloutedPostEntryResponse']['Body'])
@@ -912,9 +936,11 @@ class HomePageReadOnlyScreen(MDScreen):
                 for url in urls:
                     beforeUrl = body.split(url,1)[0]
                     print('text before link===================', beforeUrl)
-                    bodyLabel = MDLabel(text=beforeUrl)
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                    rightLayout.add_widget(bodyLabel)
+                    if beforeUrl != '':
+                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        rightLayout.add_widget(bodyLabel)
+                        rightLayout.height += bodyLabel.height + 100
                     body = body.split(url,1)[1] 
                     #find the image for the link
                     repostPreviewHeight += 300
@@ -927,19 +953,25 @@ class HomePageReadOnlyScreen(MDScreen):
                         if preview.image:
                             previewImages.append(preview.image)
                             print('image found *****************8', preview.image)
-                            preview_image = MDCard(FitImage(size_hint_y = None ,source=preview.image, height = 320, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
-                            pos_hint={"center_x": .5, "center_y": .5})
+                            preview_image = MDCard(size_hint_y = None, radius = 18,)
+                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
+                            preview_image.add_widget(fitimage)
+                            preview_image.height = 300
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                            rightLayout.add_widget(preview_image)    
+                            rightLayout.add_widget(preview_image)  
+                            rightLayout.height += preview_image.height
                     else:
                         urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
                         rightLayout.add_widget(urlLabel)
+                        rightLayout.height += urlLabel.height
                         repostPreviewHeight += 25
                 #add any remaining body to the layout
-                bodyLabel = MDLabel(text=body)
-                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                #add the body card to the layout
-                rightLayout.add_widget(bodyLabel)
+                if body != '':
+                    bodyLabel = BodyLabel(text=body)
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    #add the body card to the layout
+                    rightLayout.add_widget(bodyLabel)
+                    rightLayout.height += bodyLabel.height
 
                 #create a card for the post Image
                 postImage = ''
@@ -951,15 +983,18 @@ class HomePageReadOnlyScreen(MDScreen):
                         print('image already added')
                     else:
                         repostImageHeight = 0
-                        swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
+                        #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            swiperItem = MDSwiperItem(MDCard(FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),), radius=18, md_bg_color="grey",
-                            pos_hint={"center_x": .5, "center_y": .5}))
-                            swiper.add_widget(swiperItem)
-                        repostImageHeight += 320
-                        swiper.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                        rightLayout.add_widget(swiper)
+                            card = MDCard(size_hint_y = None, radius = 18)
+                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
+                            card.add_widget(fitimage)
+                            #swiper.add_widget(swiperItem)
+                            repostImageHeight += 320
+                            card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            card.height = 300
+                            rightLayout.add_widget(card)
+                            rightLayout.height += card.height
 
                 #check if repost is nft, if so add a button to the right layout
                 if post['RepostedPostEntryResponse']['IsNFT']:
@@ -973,6 +1008,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     rightLayout.add_widget(nftButton)
+                    rightLayout.height += nftButton.height
                     #add 50 to the reclout height
                     recloutHeight += 50
 
@@ -981,16 +1017,17 @@ class HomePageReadOnlyScreen(MDScreen):
                 #calculate height of reclout layout
                 recloutHeight += 185
                 recloutHeight += repostPostLength * 1.6 + repostPreviewHeight + repostLineCount * 18 + repostImageHeight
-                rightLayout.height = recloutHeight
+                #rightLayout.height = recloutHeight
 
                 #add the leftside and rightside to the reclout layout
                 recloutLayout.add_widget(leftLayout)
                 recloutLayout.add_widget(rightLayout)
-                recloutLayout.height = recloutHeight
+                recloutLayout.height = rightLayout.height
 
                
                 #add the reclout layout to the timeline
                 layout.add_widget(recloutLayout)
+                layout.height += rightLayout.height
             
 
             #declare the icons
@@ -1045,13 +1082,14 @@ class HomePageReadOnlyScreen(MDScreen):
 
             #add the reactions to the layout
             layout.add_widget(reactions)
+            layout.height += reactions.height
 
 
 
 
             #calculate height of layout
             height = 185 + postLength * 1.6 + imageHeight + previewHeight + lineCount * 18 + recloutHeight
-            layout.height = height        
+            #layout.height = height        
 
             #add the layout to the timeline
             self.ids.timeline.add_widget(layout)
