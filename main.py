@@ -145,7 +145,9 @@ def pickle_profilePicUrl(cache):
 
 #on start up load càched profile pic urls   
 unpickle_profilePicUrl()
-       
+
+class RecloutLayout(MDBoxLayout):
+	pass           
 
 class BodyLabel(MDLabel):
     pass
@@ -772,7 +774,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 pass#print('caught nft', post)
             
             #layout for the post
-            layout = PostLayout(orientation='vertical', size_hint_x = 1, size_hint_y = None, spacing = 50, postHashHex=str(post['PostHashHex']),)
+            layout = PostLayout(orientation='vertical', size_hint_x = 1, adaptive_height = True, postHashHex=str(post['PostHashHex']),)
             #layout for the post header
             header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
             #one line avatar list item
@@ -873,7 +875,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 print('video found *****************8', post['VideoURLs'][0])
                 #print(post)
                 postVideo = post['VideoURLs'][0]
-                player = VideoPlayer(size_hint_y = True, source=postVideo, state='pause', options={'allow_stretch': True})
+                player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
                 player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 layout.add_widget(player)
                 layout.height += player.height
@@ -892,9 +894,9 @@ class HomePageReadOnlyScreen(MDScreen):
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] != None:
                 print('reclout found777777777777777777777777777777777')
-                recloutLayout = MDBoxLayout(orientation = 'horizontal', adaptive_height = True)
+                recloutLayout = RecloutLayout(orientation = 'horizontal')
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
-                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, size_hint_y = None, spacing = 20)
+                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
                 
                 #make the header
                 #layout for the post header
@@ -940,7 +942,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
                         bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         rightLayout.add_widget(bodyLabel)
-                        rightLayout.height += bodyLabel.height + 100
+                        rightLayout.height += bodyLabel.height * 1.5
                     body = body.split(url,1)[1] 
                     #find the image for the link
                     repostPreviewHeight += 300
@@ -956,6 +958,7 @@ class HomePageReadOnlyScreen(MDScreen):
                             preview_image = MDCard(size_hint_y = None, radius = 18,)
                             fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
                             preview_image.add_widget(fitimage)
+                      
                             preview_image.height = 300
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             rightLayout.add_widget(preview_image)  
@@ -971,7 +974,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     #add the body card to the layout
                     rightLayout.add_widget(bodyLabel)
-                    rightLayout.height += bodyLabel.height
+                    rightLayout.height += bodyLabel.height * 1.5
 
                 #create a card for the post Image
                 postImage = ''
@@ -990,9 +993,9 @@ class HomePageReadOnlyScreen(MDScreen):
                             fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
                             card.add_widget(fitimage)
                             #swiper.add_widget(swiperItem)
-                            repostImageHeight += 320
+                            card.height += fitimage.height
                             card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                            card.height = 300
+                            
                             rightLayout.add_widget(card)
                             rightLayout.height += card.height
 
@@ -1009,25 +1012,15 @@ class HomePageReadOnlyScreen(MDScreen):
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                     rightLayout.add_widget(nftButton)
                     rightLayout.height += nftButton.height
-                    #add 50 to the reclout height
-                    recloutHeight += 50
-
                 
-
-                #calculate height of reclout layout
-                recloutHeight += 185
-                recloutHeight += repostPostLength * 1.6 + repostPreviewHeight + repostLineCount * 18 + repostImageHeight
-                #rightLayout.height = recloutHeight
-
-                #add the leftside and rightside to the reclout layout
                 recloutLayout.add_widget(leftLayout)
                 recloutLayout.add_widget(rightLayout)
-                recloutLayout.height = rightLayout.height
+                recloutLayout.height += rightLayout.height
 
                
                 #add the reclout layout to the timeline
                 layout.add_widget(recloutLayout)
-                layout.height += rightLayout.height
+                layout.height += recloutLayout.height
             
 
             #declare the icons
@@ -1078,18 +1071,12 @@ class HomePageReadOnlyScreen(MDScreen):
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
             reactions.ids.diamond.icon = diamondIcon
             reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, liked, reactions))
-
-
+            
+            
             #add the reactions to the layout
             layout.add_widget(reactions)
             layout.height += reactions.height
 
-
-
-
-            #calculate height of layout
-            height = 185 + postLength * 1.6 + imageHeight + previewHeight + lineCount * 18 + recloutHeight
-            #layout.height = height        
 
             #add the layout to the timeline
             self.ids.timeline.add_widget(layout)
