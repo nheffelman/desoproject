@@ -14,6 +14,7 @@ from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.card import (
     MDCardSwipe, MDCardSwipeLayerBox, MDCardSwipeFrontBox, MDCard
 )
@@ -47,14 +48,14 @@ scrollIndex = 0
 def pickle_settings(settings):
     with open('temp/settings.pickle', 'wb') as handle:
         pickle.dump(settings, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("settings pickled")
+
 
 #unpickles the current settings
 def unpickle_settings():
     if os.path.exists('temp/settings.pickle'):
         with open('temp/settings.pickle', 'rb') as handle:
             settings = pickle.load(handle)
-            print("settings unpickled")
+
     else:
         settings = {}  
     return settings
@@ -64,7 +65,7 @@ def unpickle_post():
     if os.path.exists('temp/post.pickle'):
         with open('temp/post.pickle', 'rb') as handle:
             post = pickle.load(handle)
-            print("post unpickled")
+
     else:
         post = {}
     return post
@@ -72,14 +73,14 @@ def unpickle_post():
 def pickle_posts(posts):
     with open('temp/posts.pickle', 'wb') as handle:
         pickle.dump(posts, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("posts pickled")
+
 
 #unpickles posts
 def unpickle_posts():
     if os.path.exists('temp/posts.pickle'):
         with open('temp/posts.pickle', 'rb') as handle:
             posts = pickle.load(handle)
-            print("posts unpickled")
+
     else:
         posts = {}
     return posts
@@ -88,14 +89,14 @@ def pickle_post(post):
     
     with open('temp/post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("post pickled")
+
 
 # unpickles the user's profile
 def unpickle_profile():
     if os.path.exists('temp/profile.pickle'):
         with open('temp/profile.pickle', 'rb') as handle:
             profile = pickle.load(handle)
-            #print("profile unpickled")
+
     else:
         profile = {}
     return profile
@@ -106,7 +107,7 @@ def pickle_profile(profile):
         os.makedirs('temp')
     with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        #print("profile pickled")
+
         
 #simple custom caching function 
 def cached(func):
@@ -130,7 +131,7 @@ def unpickle_profilePicUrl():
     if os.path.exists('temp/profilePicUrl.pickle'):
         with open('temp/profilePicUrl.pickle', 'rb') as handle:
             getCachedProfilePicUrl.cache = pickle.load(handle)
-            print("profile pics unpickled")
+
     else:
         getCachedProfilePicUrl.cache = {}
     return
@@ -149,7 +150,7 @@ unpickle_profilePicUrl()
 class RecloutLayout(MDBoxLayout):
 	pass           
 
-class BodyLabel(MDLabel):
+class BodyLabel(ButtonBehavior, MDLabel):
     pass
 
 #class for custom comment dialog content
@@ -281,7 +282,7 @@ class SeedLoginScreen(MDScreen):
         #get user profile and pickle it
         desoUser = deso.User()
         profile = desoUser.getSingleProfile(username=self.userName).json()
-        #print(profile)
+
         if 'error' in profile:
             toast(profile['error'])
         #if no error in profile get user identity and make a derived key for signing transactions    
@@ -347,8 +348,8 @@ class HomePageReadOnlyScreen(MDScreen):
     
     def on_enter(self):
         profile = unpickle_profile()
-        print(profile)
-        print(profile['Profile']['Username'])
+
+
         username=profile['Profile']['Username']
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
@@ -356,7 +357,7 @@ class HomePageReadOnlyScreen(MDScreen):
        
         self.list_stories()
         self.list_posts()
-        print(user, 'printed user here')
+
 
 
     def logout(self):
@@ -370,7 +371,7 @@ class HomePageReadOnlyScreen(MDScreen):
     #changes to the single read post screen
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
-        print('posthashhex was pickled', postHashHex)
+
         self.manager.current = 'single_post'
 
     def storie_switcher(self, publicKey):
@@ -392,7 +393,7 @@ class HomePageReadOnlyScreen(MDScreen):
             toast('You must be logged in to like a post')
         else:
             settings=unpickle_settings()
-            print(settings)
+
             if settings['loggedIn'] == True:
                               
                 if liked == True:
@@ -402,7 +403,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                    print(desoSocial.like(postHashHex, isLike=False).json())
+
                 else:
                     reactions.ids.like.icon = 'heart'
                     reactions.ids.likes.text = str(int(reactions.ids.likes.text) + 1)
@@ -410,7 +411,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                    print(desoSocial.like(postHashHex, isLike=True).json())
+
 
     #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
     def comment(self, postHashHex):
@@ -420,7 +421,7 @@ class HomePageReadOnlyScreen(MDScreen):
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                print(postHashHex, "posthashhex in comment function")
+
                 
                 self.dialog = None
                 if not self.dialog:
@@ -444,22 +445,23 @@ class HomePageReadOnlyScreen(MDScreen):
 
     def postComment(self, postHashHex):
         for self.post in self.ids.timeline.children:
-            #print(self.post.postHashHex)
+
             if self.post.postHashHex == postHashHex:
                 settings=unpickle_settings()
                 SEED_HEX = settings['seedHex']
                 PUBLIC_KEY = settings['publicKey']
                 desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                #print(self.dialog.content_cls.ids.comment.text)
+
                 comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
                 self.dialog.dismiss()
                 self.dialog = None
-                print(comment_response)
+
                 if 'error' in comment_response:
                     return False
                 self.post.comments = str(int(self.post.comments) + 1)
             else: 
-                print('post not found')
+                print('no posthashhex match')
+
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
     def diamond(self, postHashHex, diamonded, reactions):
@@ -469,17 +471,17 @@ class HomePageReadOnlyScreen(MDScreen):
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                print(postHashHex, "posthashhex in diamond function")
+
                 PUBLIC_KEY = settings['publicKey']
                 post = deso.Posts()
                 post.readerPublicKey = PUBLIC_KEY
                 post = post.getSinglePost(postHashHex=postHashHex).json()
-                print(post)
+
                 if post['PostFound']['PosterPublicKeyBase58Check']:
                     SEED_HEX = settings['seedHex']
                     receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                    print(desoSocial.diamond(postHashHex, receiverPublicKey,  diamondLevel=1).json())
+
                     toast('You have successfully diamonded this post')
                     reactions.ids.diamond.icon = 'diamond'
                     reactions.diamonds = str(int(reactions.diamonds) + 1)
@@ -528,13 +530,13 @@ class HomePageReadOnlyScreen(MDScreen):
         quoteclout_response = desoSocial.quote(postHashHexToQuote=postHashHexToQuote, body=self.dialog.content_cls.ids.quote.text, ).json()
         self.dialog.dismiss()
         self.dialog = None
-        print(quoteclout_response)
+
         if 'error' in quoteclout_response:
             return False
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reclouted, reactions):
-        #print(postHashHexToRepost, 'posthashhex in recloutpressed')
+
         self.dialog.dismiss()
         self.dialog = None
         settings=unpickle_settings()
@@ -542,7 +544,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
-        print(reclout_response)
+
         if 'error' in reclout_response:
             return False
 
@@ -555,7 +557,7 @@ class HomePageReadOnlyScreen(MDScreen):
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                #print(postHashHex, "posthashhex in reclout function")
+
                 if self.clout_or_quoteclout_dialog(postHashHex, reclouted, reactions) == False:
                     toast('An error occured reclouting this post')
                 else:
@@ -568,8 +570,8 @@ class HomePageReadOnlyScreen(MDScreen):
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-        print(desoSocial.follow(posterPublicKey, isFollow=False).json())
-        print('unfollow', posterPublicKey)
+
+
     
     def follow(self, posterPublicKey):
         pass
@@ -656,12 +658,12 @@ class HomePageReadOnlyScreen(MDScreen):
         price = desoMetadata.getExchangeRate().json()
         # toast(str(price))
         dollars = price['USDCentsPerDeSoExchangeRate']/100
-        # print(dollars)
+
         self.desoprice = str(dollars)
         # load 10 posts for the user or 10 posts for the stateless user
         posts = deso.Posts()
         if profile:
-            print(profile['Profile']['PublicKeyBase58Check'])
+
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
             userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
         else:
@@ -679,7 +681,7 @@ class HomePageReadOnlyScreen(MDScreen):
 
     #monitors the scrollview and calls refresh when it reaches the bottom
     def touch_up_value(self, *args):
-        #print(self.ids.mainScrollView.scroll_y)
+
         if self.ids.mainScrollView.scroll_y  <= 0:
             toast('refreshing')
             if self.ids.timeline.children:
@@ -693,9 +695,9 @@ class HomePageReadOnlyScreen(MDScreen):
         trigger()
         self.ids.mainScrollView.scroll_y = 1
         #self.ids.mainScrollView.scroll_to(target_widget)
-        #print('refreshed posts', target_widget)
-        #print(self.ids.timeline.children)
-      #  print('scrollIndex', scrollIndex)
+
+
+
       #  scrollIndex += 10
         #Clock.schedule_once(lambda *x : self.ids.mainScrollView.scroll_y(1))
 
@@ -714,14 +716,14 @@ class HomePageReadOnlyScreen(MDScreen):
         
         #check to see if there are any posts in the cache
         if 'posts' in cached_posts:
-            #print(cached_posts['posts'])
+
             userposts = []
             reversed = cached_posts['posts']
             reversed.reverse()
             userposts = []
-            print(len(reversed), 'length of reversed')
+
             for i in range(9):
-                #print(reversed[i])
+
                 if reversed != []:
                     userposts.append(reversed.pop())
             if len(reversed) > 0:
@@ -731,7 +733,7 @@ class HomePageReadOnlyScreen(MDScreen):
             else:
                 cached_posts = {}
                 pickle_posts(cached_posts)
-            print("posts loaded from cache")
+
 
         else:
             # load 100 posts for the user or 100 posts for the stateless user
@@ -758,20 +760,20 @@ class HomePageReadOnlyScreen(MDScreen):
             cached_posts = {}
             cached_posts['posts'] = userposts[9:]
             pickle_posts(cached_posts)
-            print("posts loaded from network")
+
             userposts = userposts[:9]
         return userposts,following
 
-    def list_posts(self,target_widget=None):
+    def list_posts(self):
                
         userposts, following = self.get_posts()
         
         for post in userposts:
-            #print(post)
+
             #If this is a repost of another post, get the original post and extra body text
             nftImage = ''
             if post['IsNFT']:
-                pass#print('caught nft', post)
+                pass
             
             #layout for the post
             layout = PostLayout(orientation='vertical', size_hint_x = 1, adaptive_height = True, postHashHex=str(post['PostHashHex']),)
@@ -782,7 +784,7 @@ class HomePageReadOnlyScreen(MDScreen):
             avatar = getCachedProfilePicUrl(post['ProfileEntryResponse']['PublicKeyBase58Check'])
             #avatar=deso.User().getProfilePicURL(
                     #post['ProfileEntryResponse']['PublicKeyBase58Check'])
-            print('username', username)
+
             olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
             ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
             #add the avatar to the list item
@@ -811,18 +813,18 @@ class HomePageReadOnlyScreen(MDScreen):
             lineCount += body.count('\n')
             postLength = len(body)
             recloutHeight = 0
-            print('line count', lineCount)
+
             urls = re.findall(r'(https?://[^\s]+)', body)
             #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
             previewHeight = 0
             for url in urls:
                 beforeUrl = body.split(url,1)[0]
-                print('text before link===================', beforeUrl)
+
                 if beforeUrl !='':
-                	bodyLabel = BodyLabel(text=beforeUrl, padding= [20,20])
-                	bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                	layout.add_widget(bodyLabel)
-                	layout.height += bodyLabel.height
+                    bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    layout.add_widget(bodyLabel)
+                    layout.height += bodyLabel.height
 
                 body = body.split(url,1)[1] 
                 
@@ -833,7 +835,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 if preview:
                     
                     if preview.image:
-                        print('image found *****************8', preview.image)
+
                         preview_image = MDCard(size_hint_y = None, radius=18)
                         fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
                         preview_image.add_widget(fitimage)
@@ -848,11 +850,11 @@ class HomePageReadOnlyScreen(MDScreen):
                     previewHeight -= 250
             #add any remaining body to the layout
             if body != '':
-            	bodyLabel = BodyLabel(text=body, padding= [20,20])
-            	bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                bodyLabel = BodyLabel(text=body, padding= [20,20])
+                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
             	#add the body card to the layout
-            	layout.add_widget(bodyLabel)
-            	layout.height += bodyLabel.height
+                layout.add_widget(bodyLabel)
+                layout.height += bodyLabel.height
             
             #create a card for the post Image
             postImage = ''
@@ -872,8 +874,8 @@ class HomePageReadOnlyScreen(MDScreen):
                     layout.add_widget(card)
                     layout.height += card.height 
             if post['VideoURLs']:
-                print('video found *****************8', post['VideoURLs'][0])
-                #print(post)
+
+
                 postVideo = post['VideoURLs'][0]
                 player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
                 player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -882,7 +884,7 @@ class HomePageReadOnlyScreen(MDScreen):
 
             #check if post is nft
                 if post['IsNFT']:
-                    print('adding nft button')
+
                     #bind a mdiconbutton to the postcard to open the nft modal
                     nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, None))
                     nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=post['ImageURLs'][0],
@@ -893,7 +895,7 @@ class HomePageReadOnlyScreen(MDScreen):
             
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] != None:
-                print('reclout found777777777777777777777777777777777')
+
                 recloutLayout = RecloutLayout(orientation = 'horizontal')
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
                 rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
@@ -904,7 +906,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 #one line avatar list item
                 repostUsername = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username']
                 repostAvatar = getCachedProfilePicUrl(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'])
-                print('username', username)
+
                 olali = OneLineAvatarListItem(text=repostUsername, divider = None, _no_ripple_effect = True)
                 ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ])          
                 #add the avatar to the list item
@@ -930,14 +932,14 @@ class HomePageReadOnlyScreen(MDScreen):
                 repostLineCount = body.count('\n')
                 repostPostLength = len(body)
                 recloutHeight = 0
-                print('line count', lineCount)
+
                 urls = re.findall(r'(https?://[^\s]+)', body)
                 #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
                 repostPreviewHeight = 0
                 previewImages = []
                 for url in urls:
                     beforeUrl = body.split(url,1)[0]
-                    print('text before link===================', beforeUrl)
+
                     if beforeUrl != '':
                         bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
                         bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -954,7 +956,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         
                         if preview.image:
                             previewImages.append(preview.image)
-                            print('image found *****************8', preview.image)
+
                             preview_image = MDCard(size_hint_y = None, radius = 18,)
                             fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
                             preview_image.add_widget(fitimage)
@@ -983,7 +985,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 if post['RecloutedPostEntryResponse']['ImageURLs']:                 
                     if post['RecloutedPostEntryResponse']['ImageURLs'][0] in previewImages:
                         repostImageHeight = 0
-                        print('image already added')
+
                     else:
                         repostImageHeight = 0
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
@@ -1001,7 +1003,7 @@ class HomePageReadOnlyScreen(MDScreen):
 
                 #check if repost is nft, if so add a button to the right layout
                 if post['RepostedPostEntryResponse']['IsNFT']:
-                    print('adding nft button', post['RepostedPostEntryResponse'])
+
                     #bind a mdiconbutton to the right layout to open the nft modal                    
                     image = ''
                     if post['RepostedPostEntryResponse']['ImageURLs']:
@@ -1150,7 +1152,7 @@ class CreatePostScreen(MDScreen):
             self.manager.current = 'login'
         else:
             profile = unpickle_profile()
-            print(profile)
+
             
             username = profile['Profile']['Username']
             circle=CircularAvatarImage(
@@ -1182,7 +1184,7 @@ class CreatePostScreen(MDScreen):
        # postImage = self.ids.postImage.source
        # postVideo = self.ids.postVideo.source
         settings=unpickle_settings()
-        print(settings, 'settings&&&&&&&&&&&&&&&&&&&')
+
         if settings['loggedIn'] == True:
             #upload images to images.bitclout.com
             imageURLs = []
@@ -1192,13 +1194,13 @@ class CreatePostScreen(MDScreen):
                 desoMedia = deso.Media(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                 imageFileList = [('file', ('screenshot.jpg', open(imagePath, "rb"), 'image/png'))]
                 responseURL = desoMedia.uploadImage(imageFileList)
-                print(responseURL.json(), '*******************responseURL')
+
                 imageURLs.append(responseURL.json()['ImageURL'])
             SEED_HEX = settings['seedHex']
             PUBLIC_KEY = settings['publicKey']
             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
             post_response = desoSocial.submitPost(body=postBody, imageURLs=imageURLs ).json()
-            print(post_response)
+
             self.clearPostWidgets()
             self.manager.current = 'homepage_read_only'
         else:
@@ -1230,7 +1232,7 @@ class NotificationsScreen(MDScreen):
             notifications = desoUser.getNotifications(publicKey, numToFetch=10).json()
         if not 'error' in notifications:
             for notification in notifications['Notifications']:
-                print(notification)
+
                 transactionType = notification['Metadata']['TxnType']
                 txnType = {
                     'LIKE': 'liked your post', 
@@ -1278,13 +1280,13 @@ class NotificationsScreen(MDScreen):
                 transactorPublicKey = notification['Metadata']['TransactorPublicKeyBase58Check']
                 desoUser = deso.User()
                 transactorProfile = desoUser.getSingleProfile(publicKey=transactorPublicKey).json()
-                print('transactorProfile', transactorProfile)
-                print('large profile pic', transactorProfile['Profile']['ExtraData']['LargeProfilePicURL'])
+
+
                 transactorUsername = transactorProfile['Profile']['Username']
                 transactorPic = transactorProfile['Profile']['ExtraData']['LargeProfilePicURL']
                 if not transactorPic:
                     transactorPic = 'https://bitclout.com/assets/img/default_profile_pic.png'
-                print(transactorUsername)
+
                 notificationCard = OneLineAvatarIconListItem(
                     ImageLeftWidget(
                         source=transactorPic
@@ -1299,8 +1301,8 @@ class NotificationsScreen(MDScreen):
                 self.ids.notificationsList.add_widget(notificationCard)
     
     def transactionCallback(self, transactionType, notification):
-        print(transactionType)
-        print(notification)
+
+
         if transactionType == 'LIKE':
             postHashHex = notification['Metadata']['LikeTxindexMetadata']['PostHashHex']
             pickle_post(postHashHex)
@@ -1337,7 +1339,7 @@ class MainApp(MDApp):
         
         #check to see if logged in and go to homepage
         settings=unpickle_settings()
-        print('settings are here', settings)
+
         if settings:
             global loggedIn
             loggedIn = True
