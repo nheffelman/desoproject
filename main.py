@@ -691,7 +691,7 @@ class HomePageReadOnlyScreen(MDScreen):
     def refresh_posts(self, target_widget=None):
         
         self.ids.timeline.clear_widgets()
-        trigger = Clock.create_trigger(self.list_posts(target_widget=target_widget))
+        trigger = Clock.create_trigger(self.list_posts())
         trigger()
         self.ids.mainScrollView.scroll_y = 1
         #self.ids.mainScrollView.scroll_to(target_widget)
