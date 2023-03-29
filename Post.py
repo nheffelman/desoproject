@@ -293,31 +293,32 @@ class SinglePostScreen(MDScreen):
     
             
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
-    def like(self, postHashHex):
+    def like(self, postHashHex, liked, reactions):
         global loggedIn
         if loggedIn != True:
             toast('You must be logged in to like a post')
         else:
             settings=unpickle_settings()
-            #print(settings)
+
             if settings['loggedIn'] == True:
-                #print(postHashHex, "posthashhex in like function")
-                for self.post in self.ids.singlePost.children:
-                    if self.post.ids.like.icon == 'heart':
-                        self.post.ids.like.icon = 'heart-outline'
-                        self.post.likes = str(int(self.post.likes) - 1)
-                        SEED_HEX = settings['seedHex']
-                        PUBLIC_KEY = settings['publicKey']
-                        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                        print(desoSocial.like(postHashHex, isLike=False).json())
-                    else:
-                        self.post.ids.like.icon = 'heart'
-                        self.post.likes = str(int(self.post.likes) + 1)
-                        SEED_HEX = settings['seedHex']
-                        PUBLIC_KEY = settings['publicKey']
-                        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                        print(desoSocial.like(postHashHex, isLike=True).json())
-                
+                              
+                if liked == True:
+                    reactions.ids.like.icon = 'heart-outline'
+                    reactions.ids.likes.text = str(int(reactions.ids.likes.text) - 1)
+                    reactions.liked = False
+                    SEED_HEX = settings['seedHex']
+                    PUBLIC_KEY = settings['publicKey']
+                    desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+
+                else:
+                    reactions.ids.like.icon = 'heart'
+                    reactions.ids.likes.text = str(int(reactions.ids.likes.text) + 1)
+                    reactions.liked = True
+                    SEED_HEX = settings['seedHex']
+                    PUBLIC_KEY = settings['publicKey']
+                    desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+
+
     #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
     def comment(self, postHashHex):
         global loggedIn
@@ -326,11 +327,13 @@ class SinglePostScreen(MDScreen):
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                print(postHashHex, "posthashhex in comment function")
+
                 
                 self.dialog = None
                 if not self.dialog:
                     self.dialog = MDDialog(
+                        pos_hint={"center_x": 0.5, "center_y": .8},
+                        size_hint=(0.8, 0.6),
                         title="Comment",
                         type="custom",
                         content_cls=CommentContent(),
@@ -340,75 +343,74 @@ class SinglePostScreen(MDScreen):
                             ),
                             MDRoundFlatButton(
                                 text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex)
-                            ),
-                        ],
+                            )],
+                        
+    
                     )
                     self.dialog.open()
 
     def postComment(self, postHashHex):
-        global loggedIn
-        if loggedIn != True:
-            toast('You must be logged in to diamond a post')
-        else:
-        
-            settings=unpickle_settings()
-            SEED_HEX = settings['seedHex']
-            PUBLIC_KEY = settings['publicKey']
-            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-            #print(self.dialog.content_cls.ids.comment.text)
-            comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-            self.dialog.dismiss()
-            self.dialog = None
-            print(comment_response)
-            if 'error' in comment_response:
-                return False
-            for self.post in self.ids.singlePost.children:
+        for self.post in self.ids.timeline.children:
+
+            if self.post.postHashHex == postHashHex:
+                settings=unpickle_settings()
+                SEED_HEX = settings['seedHex']
+                PUBLIC_KEY = settings['publicKey']
+                desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+
+                comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+                self.dialog.dismiss()
+                self.dialog = None
+
+                if 'error' in comment_response:
+                    return False
                 self.post.comments = str(int(self.post.comments) + 1)
+            else: 
+                print('no posthashhex match')
+
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
-    def diamond(self, postHashHex):
+    def diamond(self, postHashHex, diamonded, reactions):
         global loggedIn
         if loggedIn != True:
             toast('You must be logged in to diamond a post')
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                print(postHashHex, "posthashhex in diamond function")
-                for self.post in self.ids.singlePost.children:
-                    print(self.post.postHashHex)
-                    if self.post.postHashHex == postHashHex:   
-                        post = deso.Posts()
-                        post = post.getSinglePost(postHashHex=postHashHex).json()      
-                        if post['PostFound']['PosterPublicKeyBase58Check']:              
-                            self.post.ids.diamond.icon = 'diamond'
-                            self.post.diamonds = str(int(self.post.diamonds) + 1)
-                            SEED_HEX = settings['seedHex']
-                            PUBLIC_KEY = settings['publicKey']
-                            receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
-                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                            print(desoSocial.diamond(postHashHex, receiverPublicKey,  diamondLevel=1).json())
-                            toast('You have successfully diamonded this post')
-                        else: 
+
+                PUBLIC_KEY = settings['publicKey']
+                post = deso.Posts()
+                post.readerPublicKey = PUBLIC_KEY
+                post = post.getSinglePost(postHashHex=postHashHex).json()
+
+                if post['PostFound']['PosterPublicKeyBase58Check']:
+                    SEED_HEX = settings['seedHex']
+                    receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
+                    desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+
+                    toast('You have successfully diamonded this post')
+                    reactions.ids.diamond.icon = 'diamond'
+                    reactions.diamonds = str(int(reactions.diamonds) + 1)
+                    reactions.diamonded = True
+                else: 
                             toast('You cannot diamond your own post')
-                        
 
-                        break
-
+                
     #use a MDDIalog to ask user if they want to repost or quote post
-    def clout_or_quoteclout_dialog(self, postHashHex):
+    def clout_or_quoteclout_dialog(self, postHashHex, reclouted, reactions):
         if not self.dialog:
             self.dialog = MDDialog(
             title="Would you like to reclout or quoteclout this post?",
             type="simple",
             items=[
-                Item(text="ReClout", source="assets/reclout.png", on_release= lambda widget, postHashHex=postHashHex: self.recloutpressed(postHashHex)),
-                Item(text="QuoteClout", source="assets/quoteclout.png", on_release= lambda widget, postHashHex=postHashHex: self.quotecloutpressed(postHashHex)),
+                Item(text="ReClout", source="assets/reclout.png", on_release= lambda *x: self.recloutpressed(postHashHex, reclouted, reactions)),
+                Item(text="QuoteClout", source="assets/quoteclout.png", on_release= lambda *x: self.quotecloutpressed(postHashHex, reclouted, reactions)),
             ],
             )
             self.dialog.open()
 
     # if user selects quoteclout, open a dialog box to enter a quote, else return error to reclout function
-    def quotecloutpressed(self, postHashHex):
+    def quotecloutpressed(self, postHashHex, reclouted, reactions):
         self.dialog.dismiss()
         self.dialog = None
         if not self.dialog:
@@ -418,13 +420,13 @@ class SinglePostScreen(MDScreen):
             content_cls=Content(),
             buttons=[
                 MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.dialog.dismiss()),
-                MDRoundFlatButton(text="QUOTE", on_release= lambda widget, postHashHex=postHashHex: self.quoteclout(postHashHex)),
+                MDRoundFlatButton(text="QUOTE", on_release= lambda *x: self.quoteclout(postHashHex, reclouted, reactions)),
             ],
             )
             self.dialog.open()
 
     #if user selects quoteclout, send a quoteclout to the blockchain and close the dialog box, else return error to reclout function
-    def quoteclout(self, postHashHexToQuote):
+    def quoteclout(self, postHashHexToQuote, reclouted, reactions):
         
         settings=unpickle_settings()
         SEED_HEX = settings['seedHex']
@@ -434,57 +436,48 @@ class SinglePostScreen(MDScreen):
         quoteclout_response = desoSocial.quote(postHashHexToQuote=postHashHexToQuote, body=self.dialog.content_cls.ids.quote.text, ).json()
         self.dialog.dismiss()
         self.dialog = None
-        print(quoteclout_response)
+
         if 'error' in quoteclout_response:
             return False
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
-    def recloutpressed(self, postHashHexToRepost):
-        #print(postHashHexToRepost, 'posthashhex in recloutpressed')
-        global loggedIn
-        if loggedIn != True:
-            toast('You must be logged in to diamond a post')
-        else:
-            self.dialog.dismiss()
-            self.dialog = None
-            settings=unpickle_settings()
-            SEED_HEX = settings['seedHex']
-            PUBLIC_KEY = settings['publicKey']
-            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-            reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
-            print(reclout_response)
-            if 'error' in reclout_response:
-                return False
+    def recloutpressed(self, postHashHexToRepost, reclouted, reactions):
+
+        self.dialog.dismiss()
+        self.dialog = None
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
+
+        if 'error' in reclout_response:
+            return False
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
-    def reclout(self, postHashHex):
+    def reclout(self, postHashHex, reclouted, reactions):
         global loggedIn
         if loggedIn != True:
             toast('You must be logged in to reclout a post')
         else:
             settings=unpickle_settings()
             if settings['loggedIn'] == True:
-                #print(postHashHex, "posthashhex in reclout function")
-                if self.clout_or_quoteclout_dialog(postHashHex) == False:
+
+                if self.clout_or_quoteclout_dialog(postHashHex, reclouted, reactions) == False:
                     toast('An error occured reclouting this post')
                 else:
-                    #update the icon and reclout count        
-                    for self.post in self.ids.singlePost.children:            
-                        self.post.ids.reclout.icon = 'repeat-variant'
-                        self.post.reclout = str(int(self.post.reclout) + 1)                        
-
+                    #update the icon and reclout count
+                    reactions.ids.reclout.icon = 'repeat-variant'
+                    reactions.reclout = str(int(reactions.reclout) + 1)                        
+                            
     def unfollow(self, posterPublicKey):
-        global loggedIn
-        if loggedIn != True:
-            toast('You must be logged in to diamond a post')
-        else:
-            settings=unpickle_settings()
-            SEED_HEX = settings['seedHex']
-            PUBLIC_KEY = settings['publicKey']
-            desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-            print(desoSocial.follow(posterPublicKey, isFollow=False).json())
-            print('unfollow', posterPublicKey)
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+
+
     
     def follow(self, posterPublicKey):
         pass
@@ -534,7 +527,7 @@ class SinglePostScreen(MDScreen):
         self.nftmodal = MDDialog(
             title=nftTitle,
             type="custom",
-            content_cls=NFTContent(nftImage = str(nftImageURL), numNftCopiesForSale = numNftCopiesForSale, numNftCopies = numNftCopies),
+            content_cls=NFTContent(nftImage = nftImageURL, numNftCopiesForSale = numNftCopiesForSale, numNftCopies = numNftCopies),
             
             buttons=[
                 MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.nftmodal.dismiss()),
@@ -610,6 +603,7 @@ class SinglePostScreen(MDScreen):
             #add the header to the layout
             layout.add_widget(header)
             layout.height += header.height
+
             #get the post body and find any links
             body=str(post['Body'])
             lineCount = 1
@@ -688,124 +682,6 @@ class SinglePostScreen(MDScreen):
                     layout.ids.nftButtonBox.add_widget(nftButton)
                     layout.height += nftButton.height
             
-            #if the post is a reclout add the reclout layout
-            if post['RepostedPostEntryResponse'] != None:
-                recloutLayout = RecloutLayout(orientation = 'horizontal')
-                leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
-                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
-                
-                #make the header
-                #layout for the post header
-                header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
-                #one line avatar list item
-                repostUsername = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username']
-                repostAvatar = getCachedProfilePicUrl(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'])
-                olali = OneLineAvatarListItem(text=repostUsername, divider = None, _no_ripple_effect = True)
-                ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ])          
-                #add the avatar to the list item
-                olali.add_widget(ilw)
-                #add the three dots to the header
-                #add data to dots menu 
-                if post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'] in following:
-                    data = self.change_3dots_data(following=True)
-                else:
-                    data = self.change_3dots_data(following=False)
-                three_dots = MDIconButton(icon='dots-vertical')
-                three_dots.bind(on_press=lambda *x: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
-                
-                #add the one line avatar list item to the header
-                header.add_widget(olali)
-                header.add_widget(three_dots)
-                #add the header to the right layout
-                rightLayout.add_widget(header)
-                rightLayout.height += header.height
-                    
-                #get the reclout post body and find any links
-                body=str(post['RecloutedPostEntryResponse']['Body'])
-                repostLineCount = body.count('\n')
-                repostPostLength = len(body)
-                recloutHeight = 0
-                urls = re.findall(r'(https?://[^\s]+)', body)
-                #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
-                repostPreviewHeight = 0
-                previewImages = []
-                for url in urls:
-                    beforeUrl = body.split(url,1)[0]
-                    if beforeUrl != '':
-                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                        rightLayout.add_widget(bodyLabel)
-                        rightLayout.height += bodyLabel.height * 1.5
-                    body = body.split(url,1)[1] 
-                    #find the image for the link
-                    repostPreviewHeight += 300
-                    try:
-                        preview = link_preview(url)
-                    except:
-                        preview = None
-                    if preview:
-                        
-                        if preview.image:
-                            previewImages.append(preview.image)
-                            preview_image = MDCard(size_hint_y = None, radius = 18,)
-                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
-                            preview_image.add_widget(fitimage)
-                    
-                            preview_image.height = 300
-                            preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                            rightLayout.add_widget(preview_image)  
-                            rightLayout.height += preview_image.height
-                    else:
-                        urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
-                        rightLayout.add_widget(urlLabel)
-                        rightLayout.height += urlLabel.height
-                        repostPreviewHeight += 25
-                #add any remaining body to the layout
-                if body != '':
-                    bodyLabel = BodyLabel(text=body)
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                    #add the body card to the layout
-                    rightLayout.add_widget(bodyLabel)
-                    rightLayout.height += bodyLabel.height * 1.5
-                #create a card for the post Image
-                postImage = ''
-                repostImageHeight = 0
-                if post['RecloutedPostEntryResponse']['ImageURLs']:                 
-                    if post['RecloutedPostEntryResponse']['ImageURLs'][0] in previewImages:
-                        repostImageHeight = 0
-                    else:
-                        repostImageHeight = 0
-                        #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
-                        for image in post['RecloutedPostEntryResponse']['ImageURLs']:
-                            card = MDCard(size_hint_y = None, radius = 18)
-                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                            card.add_widget(fitimage)
-                            #swiper.add_widget(swiperItem)
-                            card.height += fitimage.height
-                            card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                            
-                            rightLayout.add_widget(card)
-                            rightLayout.height += card.height
-                #check if repost is nft, if so add a button to the right layout
-                if post['RepostedPostEntryResponse']['IsNFT']:
-                    #bind a mdiconbutton to the right layout to open the nft modal                    
-                    image = ''
-                    if post['RepostedPostEntryResponse']['ImageURLs']:
-                        image = post['RepostedPostEntryResponse']['ImageURLs'][0]
-                    nftButton = MDRectangleFlatIconButton(icon='nfc-variant', width="420", text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5})
-                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=image,
-                        numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
-                        self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
-                    rightLayout.add_widget(nftButton)
-                    rightLayout.height += nftButton.height
-                
-                recloutLayout.add_widget(leftLayout)
-                recloutLayout.add_widget(rightLayout)
-                recloutLayout.height += rightLayout.height
-            
-                #add the reclout layout to the timeline
-                layout.add_widget(recloutLayout)
-                layout.height += recloutLayout.height
             
             #declare the icons
             recloutIcon = 'repeat'
@@ -859,7 +735,7 @@ class SinglePostScreen(MDScreen):
             layout.height += reactions.height
 
             #create a box layout to make a comment
-            commentLayout = MDBoxLayout(orientation='horizontal', adaptive_height=True, spacing=30)
+            newCommentLayout = MDBoxLayout(orientation='horizontal', adaptive_height=True, spacing=30)
             
             #add the users avatar to the comment layout
             profile = unpickle_profile()
@@ -867,20 +743,201 @@ class SinglePostScreen(MDScreen):
             circle=CircularAvatarImage(
             avatar=deso.User().getProfilePicURL(
             profile['Profile']['PublicKeyBase58Check']))   
-            commentLayout.add_widget(circle)
+            newCommentLayout.add_widget(circle)
 
             #add a label to the comment layout
             commentLabel = CommentLabel(text='Make a Comment', valign='center')  
             commentLabel.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
-            commentLayout.add_widget(commentLabel)
+            newCommentLayout.add_widget(commentLabel)
 
             #add a reply button to the comment layout
             replyButton = MDFillRoundFlatButton(text='Reply', valign='center', pos_hint={'center_x': 0.45, 'center_y': 0.5})
             replyButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
-            commentLayout.add_widget(replyButton)
+            newCommentLayout.add_widget(replyButton)
+            print('just added comment layout of this post^^^^^^^^^^^^^^^^^^^^^^^', post)
 
             #add the comment layout to layout
+            layout.add_widget(newCommentLayout)
+
+            #iterate through the comments in the post if there are any
+            if post['Comments']:
+                for comment in post['Comments']:
+
+                    #create a post comments layout
+                    commentLayout = MDBoxLayout(orientation='vertical', adaptive_height=True, spacing=30)
+                    
+                    header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
+                    #one line avatar list item
+                    username=str(post["ProfileEntryResponse"]['Username'])
+                    avatar = getCachedProfilePicUrl(post['ProfileEntryResponse']['PublicKeyBase58Check'])
+                    olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
+                    ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
+                    #add the avatar to the list item
+                    olali.add_widget(ilw)
+                    
+                    #add the three dots to the header
+                    #add data to dots menu 
+                    if post['PosterPublicKeyBase58Check'] in following:
+                        data = self.change_3dots_data(following=True)
+                    else:
+                        data = self.change_3dots_data(following=False)
+                    three_dots = MDIconButton(icon='dots-vertical')
+                    three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+                    
+                    #add the one line avatar list item to the header
+                    header.add_widget(olali)
+                    header.add_widget(three_dots)
+                    
+                    #add the header to the comment layout
+                    commentLayout.add_widget(header)
+                    commentLayout.height += header.height
+
+
+                    #get the post body and find any links
+                    body=str(comment['Body'])
+                    lineCount = 1
+                    lineCount += body.count('\n')
+                    postLength = len(body)
+                    recloutHeight = 0
+
+                    urls = re.findall(r'(https?://[^\s]+)', body)
+                    #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                    previewHeight = 0
+                    for url in urls:
+                        beforeUrl = body.split(url,1)[0]
+
+                        if beforeUrl !='':
+                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                            bodyLabel.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                            commentLayout.add_widget(bodyLabel)
+                            commentLayout.height += bodyLabel.height
+
+                        body = body.split(url,1)[1] 
+                        
+                        try:
+                            preview = link_preview(url)
+                        except:
+                            preview = None
+                        if preview:
+                            
+                            if preview.image:
+
+                                preview_image = MDCard(size_hint_y = None, radius=18)
+                                fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
+                                preview_image.add_widget(fitimage)
+                                preview_image.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                                preview_image.height = 300
+                                commentLayout.add_widget(preview_image)    
+                                commentLayout.height += preview_image.height
+                        else:
+                            urlLabel = MDLabel(text=url, halign =  "center" )
+                            commentLayout.add_widget(urlLabel)
+                            commentLayout.height += urlLabel.height
+                            previewHeight -= 250
+                    #add any remaining body to the layout
+                    if body != '':
+                        bodyLabel = BodyLabel(text=body, padding= [20,20])
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                        #add the body card to the layout
+                        commentLayout.add_widget(bodyLabel)
+                        commentLayout.height += bodyLabel.height
+                    
+                    #create a card for the post Image
+                    postImage = ''
+                    imageHeight = 0
+                    if comment['ImageURLs']:                 
+                        
+                        #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
+                        for image in comment['ImageURLs']:
+                            card = MDCard(size_hint_y = None, radius=18)
+                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
+                            card.add_widget(fitimage)
+                            #swiper.add_widget(swiperItem)
+                        #imageHeight = 300
+                            card.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                            #swiperBox.add_widget(swiper)
+                            card.height = 300
+                            commentLayout.add_widget(card)
+                            commentLayout.height += card.height 
+                    if comment['VideoURLs']:
+
+
+                        postVideo = comment['VideoURLs'][0]
+                        player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
+                        player.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                        commentLayout.add_widget(player)
+                        commentLayout.height += player.height
+
+                    #check if post is nft
+                        if comment['IsNFT']:
+
+                            #bind a mdiconbutton to the postcard to open the nft modal
+                            nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, None))
+                            nftButton.bind(on_press=lambda widget, postHashHex=comment['PostHashHex'], nftImageURL=comment['ImageURLs'][0],
+                                numNftCopies = str(comment['NumNFTCopies']), nftTitle=str(comment['Body']), numNftCopiesForSale = str(comment['NumNFTCopiesForSale']): 
+                                self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
+                            commentLayout.ids.nftButtonBox.add_widget(nftButton)
+                            commentLayout.height += nftButton.height
+
+                    #declare the icons
+                    recloutIcon = 'repeat'
+                    diamondIcon = 'diamond-outline'
+                    likeIcon = 'heart-outline'
+
+                    #get the number of reactions
+                    comments=str(comment['CommentCount'])
+                    likes=str(comment['LikeCount'])
+                    diamonds=str(comment['DiamondCount'])
+                    reclout=str(comment['RepostCount'])
+                    reclouted = False
+                    diamonded = False
+                    liked = False
+
+                    if comment['PostEntryReaderState']:
+                        recloutedByReader = comment['PostEntryReaderState']['RepostedByReader']
+                        if recloutedByReader == True:
+                            recloutIcon = 'repeat-variant'
+                            reclouted = True
+                        
+                        diamondedByReader = comment['PostEntryReaderState']['DiamondLevelBestowed']
+                        if diamondedByReader != 0:
+                            diamondIcon = 'diamond'
+                            diamonded = True
+                        
+                        likedByReader = comment['PostEntryReaderState']['LikedByReader']
+                        if likedByReader == True:
+                            likeIcon = 'heart'
+                            liked = True
+
+                    #add the reactions to the layout
+                    reactions = Reactions(
+                        comments=comments,
+                        likes=likes,
+                        diamonds=diamonds,
+                        reclout=reclout,
+                        reclouted=reclouted,
+                        diamonded=diamonded,
+                        liked=liked,
+                    )
+                    #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
+                    reactions.ids.like.icon = likeIcon
+                    reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.like(postHashHex, liked, reactions))
+                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex))
+                    reactions.ids.reclout.icon = recloutIcon
+                    reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=comment['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
+                    reactions.ids.diamond.icon = diamondIcon
+                    reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=comment['PostHashHex']: self.diamond(postHashHex, liked, reactions))
+                    
+                    
+                    #add the reactions to the layout
+                    commentLayout.add_widget(reactions)
+                    commentLayout.height += reactions.height
+
+            #add the post comments layout to the layout
             layout.add_widget(commentLayout)
+            
+
+
             
             
             #add the layout to the timeline
