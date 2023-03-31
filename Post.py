@@ -289,7 +289,11 @@ class SinglePostScreen(MDScreen):
         global loggedIn
         loggedIn = False
         self.manager.current = 'login'
+	#changes to the single read post screen
+    def open_post(self, postHashHex):
+        pickle_post(postHashHex)
 
+        self.manager.current = 'single_post'
     
             
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
@@ -768,8 +772,8 @@ class SinglePostScreen(MDScreen):
                     
                     header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
                     #one line avatar list item
-                    username=str(post["ProfileEntryResponse"]['Username'])
-                    avatar = getCachedProfilePicUrl(post['ProfileEntryResponse']['PublicKeyBase58Check'])
+                    username=str(comment["ProfileEntryResponse"]['Username'])
+                    avatar = getCachedProfilePicUrl(comment['ProfileEntryResponse']['PublicKeyBase58Check'])
                     olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
                     ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
                     #add the avatar to the list item
@@ -932,9 +936,7 @@ class SinglePostScreen(MDScreen):
                     #add the reactions to the layout
                     commentLayout.add_widget(reactions)
                     commentLayout.height += reactions.height
-
-            #add the post comments layout to the layout
-            layout.add_widget(commentLayout)
+                    layout.add_widget(commentLayout)
             
 
 
