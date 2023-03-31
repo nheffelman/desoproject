@@ -347,6 +347,7 @@ class HomePageReadOnlyScreen(MDScreen):
     follow_unfollow = StringProperty("")
     
     def on_enter(self):
+        
         profile = unpickle_profile()
 
 
@@ -354,9 +355,10 @@ class HomePageReadOnlyScreen(MDScreen):
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
-       
-        self.list_stories()
-        self.list_posts()
+        if not self.ids.timeline.children:
+        	
+        	self.list_stories()
+        	self.list_posts()
 
 
 
