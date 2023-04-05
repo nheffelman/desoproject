@@ -32,6 +32,7 @@ from kivymd.uix.list import OneLineAvatarListItem
 import os
 import re
 from functools import lru_cache, wraps
+from kivy.uix.widget import Widget
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
@@ -180,6 +181,9 @@ class Reactions(MDBoxLayout):
 class RecloutLayout(MDBoxLayout):
 	pass           
 
+class LineEllipse3(Widget):
+    points = ListProperty()
+
 class BodyLabel(ButtonBehavior, MDLabel):
     pass
 
@@ -289,11 +293,223 @@ class SinglePostScreen(MDScreen):
         global loggedIn
         loggedIn = False
         self.manager.current = 'login'
-	#changes to the single read post screen
-    def open_post(self, postHashHex):
-        pickle_post(postHashHex)
 
-        self.manager.current = 'single_post'
+	#expands comments to display sub comments
+    def expand_comment(self, postHashHex, commentLayout):
+        profile = unpickle_profile()
+        userposts, following  = self.get_posts()
+        desopost = deso.Posts()
+        desopost.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+        post = desopost.getSinglePost(postHashHex=postHashHex).json()
+
+        if 'error' in post:
+            toast('An error occured getting this post')
+        else:
+            print(post, 'post')
+            post = post['PostFound']
+            nftImage = ''
+            if post['IsNFT']:
+                pass
+        
+        #iterate through the comments in the post if there are any
+            if post['Comments']:
+                for comment in post['Comments']:
+
+                    #create a post comments layout
+                    subCommentLayout = MDBoxLayout(orientation='vertical', adaptive_height=True, spacing=30)
+                    
+                    header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
+                    #one line avatar list item
+                    username=str(comment["ProfileEntryResponse"]['Username'])
+                    avatar = getCachedProfilePicUrl(comment['ProfileEntryResponse']['PublicKeyBase58Check'])
+                    olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
+                    ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
+                    #add the avatar to the list item
+                    olali.add_widget(ilw)
+                    
+                    #add the three dots to the header
+                    #add data to dots menu 
+                    if post['PosterPublicKeyBase58Check'] in following:
+                        data = self.change_3dots_data(following=True)
+                    else:
+                        data = self.change_3dots_data(following=False)
+                    three_dots = MDIconButton(icon='dots-vertical')
+                    three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+                    
+                    #add the one line avatar list item to the header
+                    header.add_widget(olali)
+                    header.add_widget(three_dots)
+                    
+                    #add the header to the comment layout
+                    subCommentLayout.add_widget(header)
+                    subCommentLayout.height += header.height
+
+
+                    #get the post body and find any links
+                    body=str(comment['Body'])
+                    lineCount = 1
+                    lineCount += body.count('\n')
+                    postLength = len(body)
+                    recloutHeight = 0
+
+                    urls = re.findall(r'(https?://[^\s]+)', body)
+                    #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                    previewHeight = 0
+                    for url in urls:
+                        beforeUrl = body.split(url,1)[0]
+
+                        if beforeUrl !='':
+                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                            bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
+                            subCommentLayout.add_widget(bodyLabel)
+                            subCommentLayout.height += bodyLabel.height
+
+                        body = body.split(url,1)[1] 
+                        
+                        try:
+                            preview = link_preview(url)
+                        except:
+                            preview = None
+                        if preview:
+                            
+                            if preview.image:
+
+                                preview_image = MDCard(size_hint_y = None, radius=18)
+                                fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
+                                preview_image.add_widget(fitimage)
+                                preview_image.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
+                                preview_image.height = 300
+                                subCommentLayout.add_widget(preview_image)    
+                                subCommentLayout.height += preview_image.height
+                        else:
+                            urlLabel = MDLabel(text=url, halign =  "center" )
+                            subCommentLayout.add_widget(urlLabel)
+                            subCommentLayout.height += urlLabel.height
+                            previewHeight -= 250
+                    #add any remaining body to the layout
+                    if body != '':
+                        bodyLabel = BodyLabel(text=body, padding= [20,20])
+                        bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
+                        #add the body card to the layout
+                        subCommentLayout.add_widget(bodyLabel)
+                        subCommentLayout.height += bodyLabel.height
+                    
+                    #create a card for the post Image
+                    postImage = ''
+                    imageHeight = 0
+                    if comment['ImageURLs']:                 
+                        
+                        #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
+                        for image in comment['ImageURLs']:
+                            card = MDCard(size_hint_y = None, radius=18)
+                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
+                            card.add_widget(fitimage)
+                            #swiper.add_widget(swiperItem)
+                        #imageHeight = 300
+                            card.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
+                            #swiperBox.add_widget(swiper)
+                            card.height = 300
+                            subCommentLayout.add_widget(card)
+                            subCommentLayout.height += card.height 
+                    if comment['VideoURLs']:
+
+
+                        postVideo = comment['VideoURLs'][0]
+                        player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
+                        player.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
+                        subCommentLayout.add_widget(player)
+                        subCommentLayout.height += player.height
+
+                    #check if post is nft
+                        if comment['IsNFT']:
+
+                            #bind a mdiconbutton to the postcard to open the nft modal
+                            nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, None))
+                            nftButton.bind(on_press=lambda widget, postHashHex=comment['PostHashHex'], nftImageURL=comment['ImageURLs'][0],
+                                numNftCopies = str(comment['NumNFTCopies']), nftTitle=str(comment['Body']), numNftCopiesForSale = str(comment['NumNFTCopiesForSale']): 
+                                self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
+                            subCommentLayout.ids.nftButtonBox.add_widget(nftButton)
+                            subCommentLayout.height += nftButton.height
+
+                    #declare the icons
+                    recloutIcon = 'repeat'
+                    diamondIcon = 'diamond-outline'
+                    likeIcon = 'heart-outline'
+
+                    #get the number of reactions
+                    comments=str(comment['CommentCount'])
+                    likes=str(comment['LikeCount'])
+                    diamonds=str(comment['DiamondCount'])
+                    reclout=str(comment['RepostCount'])
+                    reclouted = False
+                    diamonded = False
+                    liked = False
+
+                    if comment['PostEntryReaderState']:
+                        recloutedByReader = comment['PostEntryReaderState']['RepostedByReader']
+                        if recloutedByReader == True:
+                            recloutIcon = 'repeat-variant'
+                            reclouted = True
+                        
+                        diamondedByReader = comment['PostEntryReaderState']['DiamondLevelBestowed']
+                        if diamondedByReader != 0:
+                            diamondIcon = 'diamond'
+                            diamonded = True
+                        
+                        likedByReader = comment['PostEntryReaderState']['LikedByReader']
+                        if likedByReader == True:
+                            likeIcon = 'heart'
+                            liked = True
+
+                    #add the reactions to the layout
+                    reactions = Reactions(
+                        comments=comments,
+                        likes=likes,
+                        diamonds=diamonds,
+                        reclout=reclout,
+                        reclouted=reclouted,
+                        diamonded=diamonded,
+                        liked=liked,
+                    )
+                    #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
+                    reactions.ids.like.icon = likeIcon
+                    reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.like(postHashHex, liked, reactions))
+                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex))
+                    reactions.ids.reclout.icon = recloutIcon
+                    reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=comment['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
+                    reactions.ids.diamond.icon = diamondIcon
+                    reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=comment['PostHashHex']: self.diamond(postHashHex, liked, reactions))
+                    
+                    
+                    #add the reactions to the layout
+                    subCommentLayout.add_widget(reactions)
+                    subCommentLayout.height += reactions.height
+
+                    #create a layouts to hold the subcomment
+                    emptyLayout = MDBoxLayout(orientation = 'horizontal', adaptive_height = True)
+                    leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .15, size_hint_y = None)
+                    rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .85, adaptive_height = True, spacing = 25)
+
+                    #add a vertical line to the left layout
+                    leftLayout.add_widget(LineEllipse3(points=[leftLayout.width/2, leftLayout.height, leftLayout.width/2, 50, leftLayout.width, 50 ] ))
+
+                    emptyLayout.add_widget(leftLayout)
+                    rightLayout.add_widget(subCommentLayout)
+                    rightLayout.height += subCommentLayout.height
+
+                    emptyLayout.add_widget(rightLayout)
+                    emptyLayout.height += subCommentLayout.height
+
+                    commentLayout.add_widget(emptyLayout)
+                    commentLayout.height += subCommentLayout.height
+
+                    #commentLayout.add_widget(subCommentLayout)
+
+
+        #sign = MDLabel(text='sign is here')
+        #commentLayout.add_widget(sign)
+        #toast('Opening post')
+        
     
             
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
@@ -621,7 +837,7 @@ class SinglePostScreen(MDScreen):
                 beforeUrl = body.split(url,1)[0]
                 if beforeUrl !='':
                     bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    #bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
                 body = body.split(url,1)[1] 
@@ -636,7 +852,7 @@ class SinglePostScreen(MDScreen):
                         preview_image = MDCard(size_hint_y = None, radius=18)
                         fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
                         preview_image.add_widget(fitimage)
-                        preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        #preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         preview_image.height = 300
                         layout.add_widget(preview_image)    
                         layout.height += preview_image.height
@@ -648,7 +864,7 @@ class SinglePostScreen(MDScreen):
             #add any remaining body to the layout
             if body != '':
                 bodyLabel = BodyLabel(text=body, padding= [20,20])
-                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                #bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 #add the body card to the layout
                 layout.add_widget(bodyLabel)
                 layout.height += bodyLabel.height
@@ -665,7 +881,7 @@ class SinglePostScreen(MDScreen):
                     card.add_widget(fitimage)
                     #swiper.add_widget(swiperItem)
                 #imageHeight = 300
-                    card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    #card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     #swiperBox.add_widget(swiper)
                     card.height = 300
                     layout.add_widget(card)
@@ -673,7 +889,7 @@ class SinglePostScreen(MDScreen):
             if post['VideoURLs']:
                 postVideo = post['VideoURLs'][0]
                 player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
-                player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                #player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 layout.add_widget(player)
                 layout.height += player.height
             #check if post is nft
@@ -812,7 +1028,7 @@ class SinglePostScreen(MDScreen):
 
                         if beforeUrl !='':
                             bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
-                            bodyLabel.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                            bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                             commentLayout.add_widget(bodyLabel)
                             commentLayout.height += bodyLabel.height
 
@@ -829,7 +1045,7 @@ class SinglePostScreen(MDScreen):
                                 preview_image = MDCard(size_hint_y = None, radius=18)
                                 fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
                                 preview_image.add_widget(fitimage)
-                                preview_image.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                                preview_image.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
                                 preview_image.height = 300
                                 commentLayout.add_widget(preview_image)    
                                 commentLayout.height += preview_image.height
@@ -841,7 +1057,7 @@ class SinglePostScreen(MDScreen):
                     #add any remaining body to the layout
                     if body != '':
                         bodyLabel = BodyLabel(text=body, padding= [20,20])
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                        bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                         #add the body card to the layout
                         commentLayout.add_widget(bodyLabel)
                         commentLayout.height += bodyLabel.height
@@ -858,7 +1074,7 @@ class SinglePostScreen(MDScreen):
                             card.add_widget(fitimage)
                             #swiper.add_widget(swiperItem)
                         #imageHeight = 300
-                            card.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                            card.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                             #swiperBox.add_widget(swiper)
                             card.height = 300
                             commentLayout.add_widget(card)
@@ -868,7 +1084,7 @@ class SinglePostScreen(MDScreen):
 
                         postVideo = comment['VideoURLs'][0]
                         player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
-                        player.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.open_post(postHashHex))
+                        player.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                         commentLayout.add_widget(player)
                         commentLayout.height += player.height
 
