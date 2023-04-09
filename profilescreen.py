@@ -1,3 +1,5 @@
+# profile screen for the app
+
 from linkpreview import link_preview
 from kivy.clock import Clock
 from kivymd.app import MDApp
@@ -20,7 +22,7 @@ from kivymd.uix.card import (
 )
 from kivymd.uix.list import MDList, OneLineListItem, OneLineAvatarIconListItem, ImageLeftWidget, IconRightWidget
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFillRoundFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -32,36 +34,60 @@ from kivymd.uix.list import OneLineAvatarListItem
 import os
 import re
 from functools import lru_cache, wraps
-from Post import SinglePostScreen
-from profilescreen import ProfileScreen
+from kivy.uix.widget import Widget
+
+from kivymd.app import MDApp
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.uix.videoplayer import VideoPlayer
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.fitimage import FitImage
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivymd.theming import ThemeManager
+from kivymd.uix.textfield import MDTextField
+from kivymd.toast import toast
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.card import MDCard
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.bottomsheet import MDListBottomSheet
+import deso
+from deso import Identity
+from kivy.properties import StringProperty, ListProperty
+import pickle
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.list import OneLineAvatarListItem
+import os
 
 global currentPost 
 global loggedIn
 global user
 global publicKey 
 global scrollIndex   
-loggedIn = False
 user = ""
 publicKey = ""
-scrollIndex = 0
 
-#pickles the current settings
+
+# pickles the current settings
 def pickle_settings(settings):
     with open('temp/settings.pickle', 'wb') as handle:
         pickle.dump(settings, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-#unpickles the current settings
+# unpickles the current settings
 def unpickle_settings():
     if os.path.exists('temp/settings.pickle'):
         with open('temp/settings.pickle', 'rb') as handle:
             settings = pickle.load(handle)
 
     else:
-        settings = {}  
+        settings = {}
     return settings
 
-#unpickles the current post
+# unpickles the current post
+
+
 def unpickle_post():
     if os.path.exists('temp/post.pickle'):
         with open('temp/post.pickle', 'rb') as handle:
@@ -70,13 +96,15 @@ def unpickle_post():
     else:
         post = {}
     return post
-#pickles posts
+# pickles posts
+
+
 def pickle_posts(posts):
     with open('temp/posts.pickle', 'wb') as handle:
         pickle.dump(posts, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-#unpickles posts
+# unpickles posts
 def unpickle_posts():
     if os.path.exists('temp/posts.pickle'):
         with open('temp/posts.pickle', 'rb') as handle:
@@ -85,9 +113,11 @@ def unpickle_posts():
     else:
         posts = {}
     return posts
-#pickles the current post
+# pickles the current post
+
+
 def pickle_post(post):
-    
+
     with open('temp/post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -103,31 +133,37 @@ def unpickle_profile():
     return profile
 
 # pickles the user's profile
+
+
 def pickle_profile(profile):
     if not os.path.exists('temp/settings.pickle'):
         os.makedirs('temp')
     with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        
-#simple custom caching function 
+
+# simple custom caching function
 def cached(func):
     func.cache = {}
+
     @wraps(func)
     def wrapper(*args):
         try:
             return func.cache[args]
         except KeyError:
             func.cache[args] = result = func(*args)
-            return result   
+            return result
     return wrapper
-   
+
+
 @cached
 def getCachedProfilePicUrl(key):
-	avatar=deso.User().getProfilePicURL(key)
+	avatar = deso.User().getProfilePicURL(key)
 	return avatar
-	
-#pickles cache
+
+# pickles cache
+
+
 def unpickle_profilePicUrl():
     if os.path.exists('temp/profilePicUrl.pickle'):
         with open('temp/profilePicUrl.pickle', 'rb') as handle:
@@ -136,8 +172,10 @@ def unpickle_profilePicUrl():
     else:
         getCachedProfilePicUrl.cache = {}
     return
- 
-#pickle profile pics cache
+
+# pickle profile pics cache
+
+
 def pickle_profilePicUrl(cache):
     if not os.path.exists('temp/'):
         os.makedirs('temp/')
@@ -145,24 +183,33 @@ def pickle_profilePicUrl(cache):
         pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
         toast("profile pic url pickled")
 
-#on start up load càched profile pic urls   
+
+# on start up load càched profile pic urls
 unpickle_profilePicUrl()
 
+
 class RecloutLayout(MDBoxLayout):
-	pass           
+	pass
+
 
 class BodyLabel(ButtonBehavior, MDLabel):
     pass
 
-#class for custom comment dialog content
+# class for custom comment dialog content
+
+
 class CommentContent(MDBoxLayout):
     comment = StringProperty()
 
-#class for custom dialog content
+# class for custom dialog content
+
+
 class Content(MDBoxLayout):
     quote = StringProperty()
 
-#class for custom nft dialog content
+# class for custom nft dialog content
+
+
 class NFTContent(MDBoxLayout):
     bid = StringProperty()
     nftImage = StringProperty()
@@ -177,6 +224,8 @@ class Item(OneLineAvatarListItem):
     source = StringProperty()
 
 # class for the avatar circle
+
+
 class CircularAvatarImage(MDCard):
     avatar = StringProperty()
     name = StringProperty()
@@ -187,12 +236,14 @@ class CircularAvatarImage(MDCard):
 class StoryCreator(MDCard):
     avatar = StringProperty()
 
+
 class PostLayout(MDBoxLayout):
-    
+
     postHashHex = StringProperty()
 
+
 class Reactions(MDBoxLayout):
-    
+
     liked = BooleanProperty()
     likes = StringProperty()
     comments = StringProperty()
@@ -201,168 +252,40 @@ class Reactions(MDBoxLayout):
     diamonds = StringProperty()
     reclouted = BooleanProperty()
     reclout = StringProperty()
-    
-# class for the post card
-class PostCard(MDBoxLayout):
-    def on_post_click(self, postHashHex):
-        pickle_post(postHashHex)
-        self.sm.current = 'single_post'
-
-    profile_pic = StringProperty()
-    avatar = StringProperty()
-    username = StringProperty()
-    post = StringProperty()
-    caption = StringProperty()
-    likes = StringProperty()
-    comments = StringProperty()
-    posted_ago = StringProperty()
-    body = StringProperty()
-    readmore = StringProperty()
-    diamonds = StringProperty()
-    reclout = StringProperty()
-    postHashHex = StringProperty()
-    posted_ago = StringProperty()
-    video = StringProperty()
-    
-
-#class for the repost card
-class RePostCard(MDBoxLayout):
-    def on_post_click(self, postHashHex):
-        pickle_post(postHashHex)
-        self.sm.current = 'single_post'
-    profile_pic = StringProperty()
-    repostAvatar = StringProperty()
-    repostUsername = StringProperty()
-    repostBody = StringProperty()
-    postHashHex = StringProperty()
-    avatar =StringProperty()
-    username = StringProperty()
-    body = StringProperty()
-    likes = StringProperty()
-    diamonds = StringProperty()
-    reclout = StringProperty()
-    comments = StringProperty()
-    repostPostHashHex = StringProperty()
-    repostPost= StringProperty()
-    repostVideo = StringProperty()
 
 
-    
-# Create the signup screen
-class SignupScreen(MDScreen):
-    pass
 
-# Create the login screen
-class LoginScreen(MDScreen):
-    pass
-
-#create the login with seed phrase screen
-class SeedLoginScreen(MDScreen):
-    seedPhrase = StringProperty("")
-    userName = StringProperty("")
-
-    def textInput(self, widget):
-        self.seedPhrase = widget.text
-        
-    def nameInput(self, widget):
-        self.userName = widget.text
-
-    def onClick(self):
-        self.textInput(self.ids.seedphrase)
-        self.nameInput(self.ids.userName)
-        seedphrase = self.seedPhrase
-        if len(seedphrase.split()) != 12:
-            toast("Seed phrase must have 12 words")
-            return
-        #try to get seed hex from seed phrase catch error if seed phrase is invalid
-        try:        
-            SEED_HEX = Identity.getSeedHexFromSeedPhrase(seedphrase)
-        except:
-            toast("Invalid seed phrase")
-            return
-        #get user profile and pickle it
-        desoUser = deso.User()
-        profile = desoUser.getSingleProfile(username=self.userName).json()
-
-        if 'error' in profile:
-            toast(profile['error'])
-        #if no error in profile get user identity and make a derived key for signing transactions    
-        else:
-            settings = {}
-            desoIdentity = deso.Identity(publicKey=profile['Profile']['PublicKeyBase58Check'], seedHex=SEED_HEX)
-            pickle_profile(profile)
-            global user
-            global loggedIn
-            global publicKey
-            loggedIn = True
-            user=self.userName
-            publicKey=profile['Profile']['PublicKeyBase58Check']
-            
-            settings['user'] = self.userName
-            settings['loggedIn'] = True
-            settings['seedHex'] = SEED_HEX
-            settings['publicKey'] = publicKey
-            
-
-            pickle_settings(settings)
-
-            self.manager.current = 'homepage_read_only'
-
-class UserNameLoginScreen(MDScreen):
-    userName = StringProperty("")
-
-    def textInput(self, widget):
-        self.userName = widget.text
-
-    def onClick(self):
-        self.textInput(self.ids.username)
-        desoUser = deso.User()
-        profile = desoUser.getSingleProfile(username=self.userName).json()
-        if 'error' in profile:
-            toast(profile['error'])
-        else:
-            pickle_profile(profile)
-            global user
-            global loggedIn
-            loggedIn = False
-            user=self.userName
-            settings = {}
-            settings['user'] = self.userName
-            settings['loggedIn'] = False
-            pickle_settings(settings)
-            self.manager.current = 'homepage_read_only'
-            
-        self.current = 'homepage_read_only'
-
-# Create the homepage read only screen
-class HomePageReadOnlyScreen(MDScreen):
+#profile screen class
+class ProfileScreen(MDScreen):
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Orange"
 
-    profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
+    # 'https://avatars.githubusercontent.com/u/89080192?v=4'
+    profile_picture = StringProperty("")
     username = StringProperty("")
     desoprice = StringProperty("")
     avatar = StringProperty("")
     dialog = None
     follow_unfollow = StringProperty("")
-    
+
     def on_enter(self):
-        
+
         profile = unpickle_profile()
+        global loggedIn
+        settings = unpickle_settings()
+        if 'loggedIn' in settings:
+            loggedIn = settings['loggedIn']
 
-
-        username=profile['Profile']['Username']
+        username = profile['Profile']['Username']
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
         if not self.ids.timeline.children:
-        	
-        	self.list_stories()
-        	self.list_posts()
-
-
-
+            
+            self.list_posts()
+            
+    
     def logout(self):
         settings = {}
         
@@ -536,6 +459,20 @@ class HomePageReadOnlyScreen(MDScreen):
 
         if 'error' in quoteclout_response:
             return False
+    def slideout_profile_pressed(self):
+        settings = unpickle_settings()
+        if 'publicKey' in settings:
+            settings['profileKey'] = settings['publicKey']
+            pickle_settings(settings)
+            self.manager.current = 'profile'
+        else:
+            toast('You must be logged in to view your profile')
+        
+    def profile_pressed(self, profileKey):
+        setting = unpickle_settings()
+        setting['profileKey'] = profileKey
+        pickle_settings(setting)
+        self.manager.current = 'profile'
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reclouted, reactions):
@@ -635,22 +572,6 @@ class HomePageReadOnlyScreen(MDScreen):
     def buy_nft(self, postHashHex):
         pass
 
-    def slideout_profile_pressed(self):
-        settings = unpickle_settings()
-        if 'publicKey' in settings:
-            settings['profileKey'] = settings['publicKey']
-            pickle_settings(settings)
-            self.manager.current = 'profile'
-        else:
-            toast('You must be logged in to view your profile')
-        
-
-    def profile_pressed(self, profileKey):
-        setting = unpickle_settings()
-        setting['profileKey'] = profileKey
-        pickle_settings(setting)
-        self.manager.current = 'profile'
-
     def trending_pressed(self):
         settings = unpickle_settings()
         settings['trending'] = True
@@ -669,34 +590,7 @@ class HomePageReadOnlyScreen(MDScreen):
         self.ids.timeline.clear_widgets()
         self.list_posts()
 
-    def list_stories(self):
-        
-        profile = unpickle_profile()
-        desoMetadata = deso.Metadata()
-        # getDiamondLevelMap takes optional inDesoNanos argument which is by default True.
-        price = desoMetadata.getExchangeRate().json()
-        # toast(str(price))
-        dollars = price['USDCentsPerDeSoExchangeRate']/100
-
-        self.desoprice = str(dollars)
-        # load 10 posts for the user or 10 posts for the stateless user
-        posts = deso.Posts()
-        if profile:
-
-            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-            userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
-        else:
-            posts.reaerPublicKey = None
-            userposts = deso.Posts().getPostsStateless(numToFetch=10)
-        
-        
-        for post in userposts.json()['PostsFound']:
-            circle=CircularAvatarImage(
-                avatar=getCachedProfilePicUrl(post['PosterPublicKeyBase58Check']),
-                #name=post['ProfileEntryResponse']['Username'],
-                )
-            circle.bind(on_press=lambda widget, userid=post['ProfileEntryResponse']['PublicKeyBase58Check']: self.storie_switcher(userid))
-            self.ids.stories.add_widget(circle)
+    
 
     #monitors the scrollview and calls refresh when it reaches the bottom
     def touch_up_value(self, *args):
@@ -723,7 +617,8 @@ class HomePageReadOnlyScreen(MDScreen):
     def get_posts(self):
         profile = unpickle_profile()
         settings = unpickle_settings()
-        cached_posts = unpickle_posts()
+        
+        #cached_posts = unpickle_posts()
 
         #get the users following list
         following = []
@@ -733,54 +628,21 @@ class HomePageReadOnlyScreen(MDScreen):
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
                         following.append(publicKey)         
         
-        #check to see if there are any posts in the cache
-        if 'posts' in cached_posts:
-
-            userposts = []
-            reversed = cached_posts['posts']
-            reversed.reverse()
-            userposts = []
-
-            for i in range(9):
-
-                if reversed != []:
-                    userposts.append(reversed.pop())
-            if len(reversed) > 0:
-                reversed.reverse()
-                cached_posts['posts'] = reversed
-                pickle_posts(cached_posts)
-            else:
-                cached_posts = {}
-                pickle_posts(cached_posts)
-
-
+      
+        posts = deso.Posts()
+        #if trending feed true or if theres no profile get trending posts
+        if 'profileKey' in settings:
+            posts.readerPublicKey = settings['profileKey']
+            userposts = posts.getPostsForPublicKey(numToFetch=10, publicKey=settings['profileKey'])
+        
+        #if theres no profile key tell user there is something wrong                         
         else:
-            # load 100 posts for the user or 100 posts for the stateless user
-            posts = deso.Posts()
-            #if trending feed true or if theres no profile get trending posts
-            if 'trending' in settings:
-                if settings['trending'] == True:
-                    self.ids.trending.md_bg_color = "blue"
-                    posts.readerPublicKey = None
-                    userposts = posts.getPostsStateless(numToFetch=100)
-                    
-                else:
-                    self.ids.following.md_bg_color = "blue"        
-                    if profile:
-                        posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                        userposts = posts.getPostsStateless(numToFetch=100, getPostsForFollowFeed=True)
-            
-            #if theres no profile get trending posts                         
-            else:
-                posts.readerPublicKey = None
-                userposts = posts.getPostsStateless(numToFetch=100)
-            userposts=userposts.json()['PostsFound']
-            #cache the posts
-            cached_posts = {}
-            cached_posts['posts'] = userposts[9:]
-            pickle_posts(cached_posts)
+            toast('Something went wrong, please try again')
 
-            userposts = userposts[:9]
+        
+        userposts=userposts.json()['Posts']
+        
+        userposts = userposts[:9]
         return userposts,following
 
     def list_posts(self):
@@ -799,15 +661,18 @@ class HomePageReadOnlyScreen(MDScreen):
             #layout for the post header
             header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
             #one line avatar list item
-            username=str(post["ProfileEntryResponse"]['Username'])
-            avatar = getCachedProfilePicUrl(post['ProfileEntryResponse']['PublicKeyBase58Check'])
+
+            user = deso.User()
+            userProfile = user.getSingleProfile(publicKey=post['PosterPublicKeyBase58Check'])
+            userProfile = userProfile.json()
+            
+            username=str(userProfile['Profile']['Username'])
+            avatar = getCachedProfilePicUrl(post['PosterPublicKeyBase58Check'])
             #avatar=deso.User().getProfilePicURL(
                     #post['ProfileEntryResponse']['PublicKeyBase58Check'])
 
             olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
-            ilw = ImageLeftWidget(source=avatar, radius = [20, ])         
-            ilw.bind(on_press=lambda widget, profileKey = post['ProfileEntryResponse']['PublicKeyBase58Check']: self.profile_pressed(profileKey))
-                                 
+            ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
             #add the avatar to the list item
             olali.add_widget(ilw)
             
@@ -916,6 +781,7 @@ class HomePageReadOnlyScreen(MDScreen):
             
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] != None:
+                toast('reclout')
 
                 recloutLayout = RecloutLayout(orientation = 'horizontal')
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
@@ -1105,273 +971,3 @@ class HomePageReadOnlyScreen(MDScreen):
             self.ids.timeline.add_widget(layout)
             
         pickle_profilePicUrl(getCachedProfilePicUrl.cache)
-                
-        
-        
-        
-  #class that allows user to create a post add a video and image and child posts to the post and post to the blockchain
-class CreatePostScreen(MDScreen):
-    userName = StringProperty("")
-    postHashHex = StringProperty("")
-    postBody = StringProperty("")
-    postImage = ListProperty([])
-    postVideo = ListProperty([])
-    mediaType = StringProperty("")
-
-    def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            Window.bind(on_keyboard=self.events)
-            self.manager_open = False
-            self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager,
-                preview= True,
-                select_path=self.select_path
-            )
-    def file_manager_open(self):
-        self.file_manager.show(os.path.expanduser("~"))  # output manager to the screen
-        
-        self.manager_open = True
-
-    def select_path(self, path: str):
-        '''
-        It will be called when you click on the file name
-        or the catalog selection button.
-
-        :param path: path to the selected directory or file;
-        '''
-        if self.mediaType == 'video':
-            self.postVideo.append(path)
-            video = VideoPlayer(source=path, state='pause', options={'allow_stretch': True})
-            video.on_image_overlay_play = 'assets/preview.png'
-            self.ids.previewBox.add_widget(video)
-        if self.mediaType == 'image':
-            self.postImage.append(path)
-            img = FitImage(source=path)
-            self.ids.previewBox.add_widget(img)
-        self.mediaType = ''
-        self.exit_manager()
-        toast(path)
-        
-
-    def exit_manager(self, *args):
-        '''Called when the user reaches the root of the directory tree.'''
-
-        self.manager_open = False
-        self.file_manager.close()
-
-    def events(self, instance, keyboard, keycode, text, modifiers):
-        '''Called when buttons are pressed on the mobile device.'''
-
-        if keyboard in (1001, 27):
-            if self.manager_open:
-                self.file_manager.back()
-        return True
-
-    def on_enter(self):
-        settings = unpickle_settings()
-        if settings['loggedIn'] != True:
-            self.manager.current = 'login'
-        else:
-            profile = unpickle_profile()
-
-            
-            username = profile['Profile']['Username']
-            circle=CircularAvatarImage(
-                avatar=deso.User().getProfilePicURL(
-                    profile['Profile']['PublicKeyBase58Check']))   
-            Box = MDBoxLayout()
-            Box.add_widget(circle)
-            label = MDLabel(text=username, halign='left', theme_text_color='Primary')
-            Box.add_widget(label)
-            self.ids.userBox.add_widget(Box)
-
-    #function to add a video to the post
-    def select_video(self):
-        self.mediaType = "video"
-        self.file_manager.show(os.path.expanduser("~"))
-        self.manager_open = True
-    
-    #function to add an image to the post
-    def select_image(self):
-        self.mediaType = "image"
-        self.file_manager.show(os.path.expanduser("~"))  # output manager to the screen
-        self.manager_open = True
-
-    #function to create a post, get all text, images, gifs, and videos and post to the blockchain
-    def post(self):
-        
-        toast(text=self.ids.postBox.text)
-        postBody = self.ids.postBox.text
-       # postImage = self.ids.postImage.source
-       # postVideo = self.ids.postVideo.source
-        settings=unpickle_settings()
-
-        if settings['loggedIn'] == True:
-            #upload images to images.bitclout.com
-            imageURLs = []
-            for imagePath in self.postImage:
-                SEED_HEX = settings['seedHex']
-                PUBLIC_KEY = settings['publicKey']
-                desoMedia = deso.Media(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                imageFileList = [('file', ('screenshot.jpg', open(imagePath, "rb"), 'image/png'))]
-                responseURL = desoMedia.uploadImage(imageFileList)
-
-                imageURLs.append(responseURL.json()['ImageURL'])
-            SEED_HEX = settings['seedHex']
-            PUBLIC_KEY = settings['publicKey']
-            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-            post_response = desoSocial.submitPost(body=postBody, imageURLs=imageURLs ).json()
-
-            self.clearPostWidgets()
-            self.manager.current = 'homepage_read_only'
-        else:
-            self.manager.current = 'login'
-
-    def clearPostWidgets(self):
-        self.ids.previewBox.clear_widgets()
-        self.ids.postBox.text = ''
-        self.ids.userBox.clear_widgets()
-        self.postImage = []
-        self.postVideo = []
-        self.postBody = ''
-        self.mediaType = ''
-
-class NotificationsScreen(MDScreen):
-    #toast test
-    def toast(self, transactionType):
-        toast(transactionType)
-    #topappbar callback
-    def callback(self, instance):
-        if str(instance.icon)=='arrow-left':
-            self.ids.notificationsList.clear_widgets()
-            self.manager.current = 'homepage_read_only'
-    def on_enter(self):
-        settings = unpickle_settings()
-        desoUser = deso.User()
-        if settings['publicKey'] != True:
-            publicKey = settings['publicKey']
-            notifications = desoUser.getNotifications(publicKey, numToFetch=10).json()
-        if not 'error' in notifications:
-            for notification in notifications['Notifications']:
-
-                transactionType = notification['Metadata']['TxnType']
-                txnType = {
-                    'LIKE': 'liked your post', 
-                    'REPOST': 'reposted your post',
-                    'FOLLOW': 'followed you',
-                    'CREATOR_COIN': 'sent you some creator coin',
-                    'SUBMIT_POST': 'replied to your post',
-                    'HODL': 'hodled you',
-                    'SEND': 'sent you some DESO',
-                    'ACCEPT': 'accepted your follow request',
-                    'REJECT': 'rejected your follow request',
-                    'BLOCK': 'blocked you',
-                    'UNBLOCK': 'unblocked you',
-                    'MINT': 'minted some creator coin',
-                    'BURN': 'burned some creator coin',
-                    'EXCHANGE': 'exchanged some DESO',
-                    'CREATE_NFT': 'created an NFT',
-                    'UPDATE_NFT': 'updated an NFT',
-                    'BASIC_TRANSFER': 'sent you a diamond',
-                    'DAO_COIN_TRANSFER': 'sent you some DAO coin',
-                    'DAO_COIN_LIMIT_ORDER': 'bought some DAO coin',
-                }
-                txnIcon = {
-                    'LIKE': 'thumb-up',
-                    'REPOST': 'repeat',
-                    'FOLLOW': 'account-plus',
-                    'CREATOR_COIN': 'coin',
-                    'SUBMIT_POST': 'comment-text',
-                    'HODL': 'hand-heart',
-                    'SEND': 'send',
-                    'ACCEPT': 'check',
-                    'REJECT': 'close',
-                    'BLOCK': 'block-helper',
-                    'UNBLOCK': 'block-helper',
-                    'MINT': 'plus-circle-multiple',
-                    'BURN': 'minus-circle-multiple',
-                    'EXCHANGE': 'swap-horizontal',
-                    'CREATE_NFT': 'image',
-                    'UPDATE_NFT': 'image',
-                    'BASIC_TRANSFER': 'diamond',
-                    'DAO_COIN_TRANSFER': 'hand-coin',
-                    'DAO_COIN_LIMIT_ORDER': 'hand-coin',
-
-                }
-                transactorPublicKey = notification['Metadata']['TransactorPublicKeyBase58Check']
-                desoUser = deso.User()
-                transactorProfile = desoUser.getSingleProfile(publicKey=transactorPublicKey).json()
-
-
-                transactorUsername = transactorProfile['Profile']['Username']
-                transactorPic = transactorProfile['Profile']['ExtraData']['LargeProfilePicURL']
-                if not transactorPic:
-                    transactorPic = 'https://bitclout.com/assets/img/default_profile_pic.png'
-
-                notificationCard = OneLineAvatarIconListItem(
-                    ImageLeftWidget(
-                        source=transactorPic
-                    ),
-                    IconRightWidget(
-                        icon=txnIcon[transactionType]
-                    ),
-                    text= transactorUsername + ' ' + txnType[transactionType],
-                    on_press = lambda x, transactionType=transactionType, notification=notification: self.transactionCallback(transactionType, notification)
-                    
-                )
-                self.ids.notificationsList.add_widget(notificationCard)
-    
-    def transactionCallback(self, transactionType, notification):
-
-
-        if transactionType == 'LIKE':
-            postHashHex = notification['Metadata']['LikeTxindexMetadata']['PostHashHex']
-            pickle_post(postHashHex)
-            self.manager.current = 'single_post'
-        elif transactionType == 'SUBMIT_POST':
-            postHashHex = notification['Metadata']['SubmitPostTxindexMetadata']['PostHashBeingModifiedHex']
-            pickle_post(postHashHex)
-            self.manager.current = 'single_post'    
-        elif transactionType == 'BASIC_TRANSFER':
-            postHashHex = notification['Metadata']['BasicTransferTxindexMetadata']['PostHashHex']
-            pickle_post(postHashHex)
-            self.manager.current = 'single_post'
-
-# Create the main app
-class MainApp(MDApp):
-
-    def build(self):
-        
-        # Set the theme
-        self.theme_cls.theme_style = "Light"
-        
-        # Create the screen manager
-        sm = ScreenManager()
-        Builder.load_file('signup.kv')# Add the screens to the screen manager
-        sm.add_widget(LoginScreen(name='login'))
-        sm.add_widget(SignupScreen(name='signup'))
-        sm.add_widget(UserNameLoginScreen(name='username_login'))
-        sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
-        sm.add_widget(NotificationsScreen(name='notifications'))
-        sm.add_widget(SinglePostScreen(name='single_post'))
-        sm.add_widget(ProfileScreen(name='profile')),
-        sm.add_widget(SeedLoginScreen(name='seed_login'))
-        sm.add_widget(CreatePostScreen(name='create_post'))
-
-        
-        #check to see if logged in and go to homepage
-        settings=unpickle_settings()
-
-        if settings:
-            global loggedIn
-            loggedIn = True
-            sm.current = 'homepage_read_only'
-
-        return sm
-    
-
-
-
-# Run the app
-if __name__ == '__main__':
-    MainApp().run()

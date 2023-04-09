@@ -405,12 +405,179 @@
                 DrawerClickableItem:
                     icon: "account"
                     text: "Profile"
+                    on_press: root.slideout_profile_pressed()
                     
 
                 DrawerClickableItem:
                     icon: "send"
                     right_text: "+99"
-                    text: "Outbox"
+                    text: "Chat"
+                    text_right_color: "#4a4939"
+
+                MDNavigationDrawerDivider:
+
+                MDNavigationDrawerLabel:
+                    text: "Labels"
+
+                DrawerClickableItem:
+                    icon: "home"
+                    text: "Home"
+
+                DrawerClickableItem:
+                    icon: "close"
+                    text: "Log out"
+                    on_press: root.ids.timeline.clear_widgets()
+                    on_press: root.logout()
+
+<ProfileScreen>:
+
+    name: 'profile'
+    orientation: 'vertical'
+    
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        anchor: 'top'
+                        id: appbar
+                        size_hint: (1, .2)
+                        MDIconButton:
+                            icon: 'arrow-left'
+                            on_press: root.manager.current = 'homepage_read_only'
+
+                        MDBoxLayout:
+                            size_hint: (.2, 1)
+                            CircularAvatarImage:
+                                avatar: root.profile_picture
+                                size: '50dp', '50dp'
+                                on_press  : nav_drawer.set_state("open")
+                                halign: 'center'
+
+                        MDBoxLayout:
+                            pos_hint: {'center_y': 1}
+                            size_hint: (.3, 1)
+                            
+                            MDRectangleFlatButton:
+                                id: trending
+                                text_color: "black"
+                                line_color: "blue"
+                                on_press: root.trending_pressed()
+                                text: 'Trending'
+
+                        MDBoxLayout: 
+                            pos_hint: {'center_y': 1}
+                            size_hint: (.3, 1)
+                            
+                            MDRectangleFlatButton:
+                                id: following
+                                text_color: "black"
+                                line_color: "blue"
+                                text: 'Following'
+                                on_press: root.following_pressed()
+                                
+                                
+                        
+                        MDBoxLayout:
+                            size_hint: (.2, 1)
+                            MDLabel:
+                                #halign: 'center'
+                                id: desoprice
+                                text: root.desoprice
+                            
+                    MDBoxLayout:
+                        ScrollView:
+                            bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            on_touch_up: root.touch_up_value(self)
+
+                            MDBoxLayout:
+                                adaptive_height: True
+                                orientation: 'vertical'
+                                id: mainLayout
+
+                                # Stories
+                                ScrollView:
+                                    size_hint_y: None
+                                    height: 110
+                                    bar_width: 0
+                                    MDBoxLayout:
+                                        adaptive_width: True
+                                        spacing: 5
+                                        padding: 5
+                                        MDBoxLayout:
+                                            adaptive_width: True
+                                            padding: 5
+                                            spacing: 5
+                                            id: stories
+
+                                
+
+                                MDBoxLayout:
+                                    orientation: 'vertical'
+                                    adaptive_height: True
+                                    spacing: '50'
+                                    id: timeline
+
+                                
+
+                    MDBoxLayout:
+                        adaptive_height: True
+                        size_hint: (1, .1)
+                        anchor: 'bottom'
+                        id: bottombar
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'home'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'magnify'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'plus-box-outline'
+                                on_press: root.manager.current = 'create_post'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                on_press: root.manager.current = 'notifications'
+                                icon: 'alert-circle-outline'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'message-text-outline'
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+
+            MDNavigationDrawerMenu:
+
+                MDNavigationDrawerHeader:
+                    title: "Account Info"
+                    title_color: "#4a4939"
+                    text: root.username
+                    spacing: "4dp"
+                    padding: "12dp", 0, 0, "56dp"
+
+                DrawerClickableItem:
+                    id: profile
+                    icon: "account"
+                    text: "Profile"
+                    on_press: root.slideout_profile_pressed()
+                    
+
+                DrawerClickableItem:
+                    icon: "send"
+                    right_text: "+99"
+                    text: "Chat"
                     text_right_color: "#4a4939"
 
                 MDNavigationDrawerDivider:
@@ -528,46 +695,10 @@
                 orientation: 'vertical'
                 #scroll_timeout: 200
                 MDList:
-                    id: notificationsList
+                    id: notificationsList      
         
-        
 
-<PostScreen>:
-    name: 'post'
-    orientation: 'vertical'
-    
-    MDNavigationLayout:
-        MDScreenManager:
 
-            MDScreen:
-                MDBoxLayout:
-                    orientation: 'vertical'
-                    
-                    # App Bar
-                    MDBoxLayout:
-                        adaptive_height: True 
-                        anchor: 'top'
-                        id: appbar
-                        size_hint: (1, .2)
-
-                        CircularAvatarImage:
-                            avatar: root.profile_picture
-                            size: '50dp', '50dp'
-                            on_press  : nav_drawer.set_state("open")
-                    
-                        MDLabel:
-                            id: username
-                            text: 'Desoliscious'
-                            halign: 'center'
-                            valign: 'top'
-                            font_size: 35
-                            font_name: 'assets/Instafont.otf'
-                        MDLabel:
-                            id: desoprice
-                            text: root.desoprice
-                        
-                            
-                    
 
 <Circle@MDCard>
     size_hint: None, None
@@ -613,139 +744,7 @@
             text_color: 0,0,0,  
     
     
-<SingleRePostCard>    
-    orientation: 'vertical'
-    adaptive_height: True
-    height: self.minimum_height
-    spacing: 30
-    elevation: 0
-    padding: 5  
 
-
-    MDBoxLayout:
-        
-        adaptive_height: True
-        orientation: 'vertical'
-        spacing: 10
-
-        MDBoxLayout:
-            padding: 2            
-            adaptive_height: True            
-
-            OneLineAvatarListItem:
-                text: f'[b][size=24]{root.username}[/size][/b]'
-                divider: None
-                _no_ripple_effect: True
-
-                ImageLeftWidget:
-                    source: root.avatar
-                    radius: [20, 20,20,20]
-            MDIconButton:
-                icon: 'dots-vertical'
-                id: dots
-
-        MDBoxLayout:            
-            adaptive_height: True
-            orientation: 'vertical'
-
-
-            MDCard:
-                id: bodyCard
-                MDLabel:
-                    adaptive_height: True
-                    text: root.body[:288]         
-
-    MDBoxLayout:
-        padding: 2
-        spacing: 10
-        
-        adaptive_height: True
-        orientation: 'horizontal'
-        
-        MDBoxLayout:
-            adaptive_height: True
-            orientation: 'vertical'
-            size_hint_x: .2
-        
-        MDBoxLayout:
-            adaptive_height: True
-            orientation: 'vertical'         
-            size_hint_x: .8
-            spacing: 50
-
-            OneLineAvatarListItem:
-                text: f'[b][size=24]{root.repostUsername}[/size][/b]'
-                divider: None
-                _no_ripple_effect: True
-                
-                ImageLeftWidget:
-                    source: root.repostAvatar
-                    radius: [20, 0]
-        
-            
-            MDLabel:
-                adaptive_height: True
-                text: root.repostBody[:288]
-                    
-
-            MDBoxLayout:
-                spacing: 10
-                adaptive_height: True
-                id: mediaBox            
-
-            MDBoxLayout:
-                adaptive_height: True
-                spacint: 10
-                pos_hint: {'center_x': .5}
-                id: nftButtonBox
-
-
-    # Reactions
-    MDBoxLayout:
-        padding: 20,20,20,20
-        spacings: 2
-        size_hint_y: None
-        size_hint_x: 1
-        height: 100
-
-        MDIconButton:
-            id: like
-            icon: "heart-outline"
-                        
-        MyLabel:
-            id: likeNumber
-            valign: 'top'
-            font_size: 16
-            text: f'{root.likes}'
-            bold: True
-
-        MDIconButton:
-            id: comment
-            icon: 'message-outline'
-            
-		MyLabel:
-            font_size: 16
-			text: f'{root.comments}'
-			
-		MDIconButton:
-            id: reclout
-			icon: 'repeat'
-
-		MyLabel:
-            font_size: 16
-			text: f'{root.reclout}'
-			
-        MDIconButton:
-            id: diamond
-            icon: 'diamond-outline'
-            
-        MyLabel: 
-            font_size: 16
-			text: f'{root.diamonds}'
-			bold: True
-
-
-    MDSeparator:
 
 <RecloutLayout@MDBoxLayout>
 	#md_bg_color: 0,0,1,1
@@ -756,230 +755,8 @@
     adaptive_height: True
     font_name: "assets/NotoEmoji-Medium.ttf"
    
-<SinglePostCard>    
-    orientation: 'vertical'
-    size_hint_y: None
-    #height: "630dp"  #started at 420dp
-    #adaptive_height: True
-    height: self.minimum_height
-    spacing: 60
-    elevation: 0
-    padding: 5  
 
-    MDBoxLayout:
-        padding: 2
-        adaptive_height: True
-
-    MDBoxLayout:
-        padding: 2
-        adaptive_height: True
-
-        OneLineAvatarListItem:
-            text: f'[b][size=24]{root.username}[/size][/b]'
-            divider: None
-            _no_ripple_effect: True
-
-            ImageLeftWidget:
-                source: root.avatar
-                radius: [20, ]
-        MDIconButton:
-            icon: 'dots-vertical'
-            id: dots
-            
-    
-    MDCard:
-        id: bCard
-        adaptive_height: True
-
-        MDLabel:
-            adaptive_height: True
-            padding: [2,2]
-            text: root.body[:288] # + root.readmore
-        
-    MDBoxLayout:
-        spacing: 100
-        size_hint: 1, None
-        id: mediaBox
-    
-    MDBoxLayout:
-        id: nftButtonBox
-        
-    # Reactions
-    MDBoxLayout:
-        
-        size_hint: 1, None
-        padding: 5, 0, 0, 0
-        spacings: 2
-        adaptive_height: True
-
-        MDIconButton:
-            id: like
-            icon: "heart-outline"
-                        
-        MyLabel:
-            id: likeNumber
-            valign: 'top'
-            font_size: 10
-            text: f'{root.likes}'
-            bold: True
-
-        MDIconButton:
-            id: comment
-            icon: 'message-outline'
-            
-		MyLabel:
-            font_size: 10
-			text: f'{root.comments}'
-			
-		MDIconButton:
-            id: reclout
-			icon: 'repeat'
-
-		MyLabel:
-            font_size: 10
-			text: f'{root.reclout}'
-			
-        MDIconButton:
-            id: diamond
-            icon: 'diamond-outline'
-            
-        MyLabel: 
-            font_size: 10
-			text: f'{root.diamonds}'
-			bold: True
-
-     
-
-    MDSeparator:
                
-<RePostCard>    
-    orientation: 'vertical'
-    adaptive_height: True
-    height: self.minimum_height
-    spacing: 50
-    elevation: 0
-    padding: 5  
-
-
-    MDBoxLayout:
-        
-        adaptive_height: True
-        orientation: 'vertical'
-        spacing: 10
-
-        MDBoxLayout:
-            padding: 2            
-            adaptive_height: True            
-
-            OneLineAvatarListItem:
-                text: f'[b][size=24]{root.username}[/size][/b]'
-                divider: None
-                _no_ripple_effect: True
-
-                ImageLeftWidget:
-                    source: root.avatar
-                    radius: [20, 20,20,20]
-            MDIconButton:
-                icon: 'dots-vertical'
-                id: dots
-
-        MDBoxLayout:
-            spacing: 10
-            size_hint: 1, None
-            id: bodyBox    
-
-    MDBoxLayout:
-        padding: 2
-        spacing: 10
-        
-        adaptive_height: True
-        orientation: 'horizontal'
-        
-        MDBoxLayout:
-            adaptive_height: True
-            orientation: 'vertical'
-            size_hint_x: .2
-        
-        MDBoxLayout:
-            adaptive_height: True
-            orientation: 'vertical'         
-            size_hint_x: .8
-            spacing: 50
-
-            OneLineAvatarListItem:
-                text: f'[b][size=24]{root.repostUsername}[/size][/b]'
-                divider: None
-                _no_ripple_effect: True
-                
-                ImageLeftWidget:
-                    source: root.repostAvatar
-                    radius: [20, 0]
-        
-            
-            MDBoxLayout:
-                spacing: 10
-                size_hint: 1, None
-                id: repostBodyBox    
-
-                    
-
-            MDBoxLayout:
-                spacing: 10
-                adaptive_height: True
-                id: mediaBox            
-
-            MDBoxLayout:
-                adaptive_height: True
-                spacint: 10
-                pos_hint: {'center_x': .5}
-                id: nftButtonBox
-
-
-    # Reactions
-    MDBoxLayout:
-        padding: 5, 0, 0, 0
-        spacings: 2
-        adaptive_height: True
-        size_hint_x: 1
-
-        MDIconButton:
-            id: like
-            icon: "heart-outline"
-                        
-        MyLabel:
-            id: likeNumber
-            valign: 'top'
-            font_size: 10
-            text: f'{root.likes}'
-            bold: True
-
-        MDIconButton:
-            id: comment
-            icon: 'message-outline'
-            
-		MyLabel:
-            font_size: 10
-			text: f'{root.comments}'
-			
-		MDIconButton:
-            id: reclout
-			icon: 'repeat'
-
-		MyLabel:
-            font_size: 10
-			text: f'{root.reclout}'
-			
-        MDIconButton:
-            id: diamond
-            icon: 'diamond-outline'
-            
-        MyLabel: 
-            font_size: 10
-			text: f'{root.diamonds}'
-			bold: True
-
-
-    MDSeparator:
 
 <PostLayout>
     id: postLayout
