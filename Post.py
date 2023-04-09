@@ -136,7 +136,7 @@ def pickle_profilePicUrl(cache):
         os.makedirs('temp/')
     with open('temp/profilePicUrl.pickle', 'wb') as handle:
         pickle.dump(cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        toast("profile pic url pickled")
+        
 
 #simple custom caching function 
 def cached(func):
@@ -406,7 +406,7 @@ class SinglePostScreen(MDScreen):
                             card.add_widget(fitimage)
                             #swiper.add_widget(swiperItem)
                         #imageHeight = 300
-                            card.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
+                            bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                             #swiperBox.add_widget(swiper)
                             card.height = 300
                             subCommentLayout.add_widget(card)
@@ -416,7 +416,7 @@ class SinglePostScreen(MDScreen):
 
                         postVideo = comment['VideoURLs'][0]
                         player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
-                        player.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
+                        bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                         subCommentLayout.add_widget(player)
                         subCommentLayout.height += player.height
 
@@ -487,23 +487,35 @@ class SinglePostScreen(MDScreen):
 
                     #create a layouts to hold the subcomment
                     emptyLayout = MDBoxLayout(orientation = 'horizontal', adaptive_height = True)
-                    leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .15, size_hint_y = None)
+                    leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .15, adaptive_height = True)
+                    
+
                     rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .85, adaptive_height = True, spacing = 25)
 
-                    #add a vertical line to the left layout
-                    leftLayout.add_widget(LineEllipse3(points=[leftLayout.width/2, leftLayout.height, leftLayout.width/2, 50, leftLayout.width, 50 ] ))
+                    #leftLayout.height += subCommentLayout.height
 
+                    
                     emptyLayout.add_widget(leftLayout)
                     rightLayout.add_widget(subCommentLayout)
                     rightLayout.height += subCommentLayout.height
 
                     emptyLayout.add_widget(rightLayout)
+                    leftLayout.height += subCommentLayout.height
                     emptyLayout.height += subCommentLayout.height
+
+                    line = LineEllipse3()
+                    line.points = [                    
+                        leftLayout.width/2, leftLayout.height,
+                        leftLayout.width/2, 50,                    
+                        leftLayout.width, 50,
+                        ]
+                    leftLayout.add_widget(line)
+                    
 
                     commentLayout.add_widget(emptyLayout)
                     commentLayout.height += subCommentLayout.height
 
-                    #commentLayout.add_widget(subCommentLayout)
+                    
 
 
         #sign = MDLabel(text='sign is here')
@@ -725,6 +737,13 @@ class SinglePostScreen(MDScreen):
             "Cancel": "cancel",
             }
         return data
+    
+    #goto profile page for logged in user
+    def profile_pressed(self):
+        profile = unpickle_profile
+        if 'publicKey' in profile:
+            self.manager.current = 'profile'
+
 
     def toast_3dots(self, data, posterPublicKey):
         
@@ -790,9 +809,7 @@ class SinglePostScreen(MDScreen):
             print(post, 'post')
             post = post['PostFound']
             nftImage = ''
-            if post['IsNFT']:
-                pass
-            
+                        
             #layout for the post
             layout = PostLayout(orientation='vertical', size_hint_x = 1, adaptive_height = True, postHashHex=str(post['PostHashHex']),)
             #layout for the post header
@@ -886,23 +903,149 @@ class SinglePostScreen(MDScreen):
                     card.height = 300
                     layout.add_widget(card)
                     layout.height += card.height 
+
             if post['VideoURLs']:
                 postVideo = post['VideoURLs'][0]
                 player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
                 #player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                 layout.add_widget(player)
-                layout.height += player.height
-            #check if post is nft
-                if post['IsNFT']:
-                    #bind a mdiconbutton to the postcard to open the nft modal
-                    nftButton = MDFillRoundFlatIconButton(icon='nfc-variant', text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5}, size_hint=(0.8, None))
-                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=post['ImageURLs'][0],
+                layout.height += player.height            
+            
+            
+            #check if post is a reclout
+            #if the post is a reclout add the reclout layout
+            if post['RepostedPostEntryResponse'] == None:
+                toast('no reclout')
+            else:
+                toast('reclout')
+                recloutLayout = RecloutLayout(orientation = 'horizontal')
+                leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
+                rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
+                
+                #make the header
+                #layout for the post header
+                header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
+                #one line avatar list item
+                repostUsername = post['RepostedPostEntryResponse']['ProfileEntryResponse']['Username']
+                repostAvatar = getCachedProfilePicUrl(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'])
+
+                olali = OneLineAvatarListItem(text=repostUsername, divider = None, _no_ripple_effect = True)
+                ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ])          
+                #add the avatar to the list item
+                olali.add_widget(ilw)
+                #add the three dots to the header
+                #add data to dots menu 
+                if post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'] in following:
+                    data = self.change_3dots_data(following=True)
+                else:
+                    data = self.change_3dots_data(following=False)
+                three_dots = MDIconButton(icon='dots-vertical')
+                three_dots.bind(on_press=lambda *x: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
+                
+                #add the one line avatar list item to the header
+                header.add_widget(olali)
+                header.add_widget(three_dots)
+                #add the header to the right layout
+                rightLayout.add_widget(header)
+                rightLayout.height += header.height
+                    
+                #get the reclout post body and find any links
+                body=str(post['RecloutedPostEntryResponse']['Body'])
+                repostLineCount = body.count('\n')
+                repostPostLength = len(body)
+                recloutHeight = 0
+
+                urls = re.findall(r'(https?://[^\s]+)', body)
+                #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                repostPreviewHeight = 0
+                previewImages = []
+                for url in urls:
+                    beforeUrl = body.split(url,1)[0]
+
+                    if beforeUrl != '':
+                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        rightLayout.add_widget(bodyLabel)
+                        rightLayout.height += bodyLabel.height * 1.5
+                    body = body.split(url,1)[1] 
+                    #find the image for the link
+                    repostPreviewHeight += 300
+                    try:
+                        preview = link_preview(url)
+                    except:
+                        preview = None
+                    if preview:
+                        
+                        if preview.image:
+                            previewImages.append(preview.image)
+
+                            preview_image = MDCard(size_hint_y = None, radius = 18,)
+                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
+                            preview_image.add_widget(fitimage)
+                      
+                            preview_image.height = 300
+                            preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            rightLayout.add_widget(preview_image)  
+                            rightLayout.height += preview_image.height
+                    else:
+                        urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
+                        rightLayout.add_widget(urlLabel)
+                        rightLayout.height += urlLabel.height
+                        repostPreviewHeight += 25
+                #add any remaining body to the layout
+                if body != '':
+                    bodyLabel = BodyLabel(text=body)
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    #add the body card to the layout
+                    rightLayout.add_widget(bodyLabel)
+                    rightLayout.height += bodyLabel.height * 1.5
+
+                #create a card for the post Image
+                postImage = ''
+                repostImageHeight = 0
+
+                if post['RecloutedPostEntryResponse']['ImageURLs']:                 
+                    if post['RecloutedPostEntryResponse']['ImageURLs'][0] in previewImages:
+                        repostImageHeight = 0
+
+                    else:
+                        repostImageHeight = 0
+                        #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
+                        for image in post['RecloutedPostEntryResponse']['ImageURLs']:
+
+                            card = MDCard(size_hint_y = None, radius = 18)
+                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
+                            card.add_widget(fitimage)
+                            #swiper.add_widget(swiperItem)
+                            card.height += fitimage.height
+                            card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            
+                            rightLayout.add_widget(card)
+                            rightLayout.height += card.height
+
+                #check if repost is nft, if so add a button to the right layout
+                if post['RepostedPostEntryResponse']['IsNFT']:
+
+                    #bind a mdiconbutton to the right layout to open the nft modal                    
+                    image = ''
+                    if post['RepostedPostEntryResponse']['ImageURLs']:
+                        image = post['RepostedPostEntryResponse']['ImageURLs'][0]
+                    nftButton = MDRectangleFlatIconButton(icon='nfc-variant', width="420", text='NFT', pos_hint={'center_x': 0.45, 'center_y': 0.5})
+                    nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=image,
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
-                    layout.ids.nftButtonBox.add_widget(nftButton)
-                    layout.height += nftButton.height
-            
-            
+                    rightLayout.add_widget(nftButton)
+                    rightLayout.height += nftButton.height
+
+                recloutLayout.add_widget(leftLayout)
+                recloutLayout.add_widget(rightLayout)
+                recloutLayout.height += rightLayout.height
+
+               
+                #add the reclout layout to the timeline
+                layout.add_widget(recloutLayout)
+                layout.height += recloutLayout.height
+                
             #declare the icons
             recloutIcon = 'repeat'
             diamondIcon = 'diamond-outline'
@@ -1098,6 +1241,8 @@ class SinglePostScreen(MDScreen):
                                 self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
                             commentLayout.ids.nftButtonBox.add_widget(nftButton)
                             commentLayout.height += nftButton.height
+
+                    
 
                     #declare the icons
                     recloutIcon = 'repeat'
