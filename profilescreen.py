@@ -322,13 +322,15 @@ class ProfileScreen(MDScreen):
 
             if settings['loggedIn'] == True:
                               
-                if liked == True:
+                if reactions.liked == True:
                     reactions.ids.like.icon = 'heart-outline'
                     reactions.ids.likes.text = str(int(reactions.ids.likes.text) - 1)
                     reactions.liked = False
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                    response = desoSocial.like(postHashHex=postHashHex, isLike=False)
+                    print(response.json())
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -337,10 +339,12 @@ class ProfileScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                    response = desoSocial.like(postHashHex=postHashHex, isLike=True)
+                    print(response.json())
 
 
-    #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
-    def comment(self, postHashHex):
+    #when a user presses comment, opens a dialog box to allow user to comment on a post
+    def comment(self, postHashHex, reactions):
         global loggedIn
         if loggedIn != True:
             toast('You must be logged in to comment a post')
@@ -352,6 +356,7 @@ class ProfileScreen(MDScreen):
                 self.dialog = None
                 if not self.dialog:
                     self.dialog = MDDialog(
+                        auto_dismiss=False,
                         pos_hint={"center_x": 0.5, "center_y": .8},
                         size_hint=(0.8, 0.6),
                         title="Comment",
@@ -362,32 +367,30 @@ class ProfileScreen(MDScreen):
                                 text="CANCEL", on_release=lambda widget: self.dialog.dismiss()
                             ),
                             MDRoundFlatButton(
-                                text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex)
+                                text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex, reactions)
                             )],
                         
     
                     )
                     self.dialog.open()
 
-    def postComment(self, postHashHex):
-        for self.post in self.ids.timeline.children:
+    #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
+    def postComment(self, postHashHex, reactions):    
 
-            if self.post.postHashHex == postHashHex:
-                settings=unpickle_settings()
-                SEED_HEX = settings['seedHex']
-                PUBLIC_KEY = settings['publicKey']
-                desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-
-                comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-                self.dialog.dismiss()
-                self.dialog = None
-
-                if 'error' in comment_response:
-                    return False
-                self.post.comments = str(int(self.post.comments) + 1)
-            else: 
-                print('no posthashhex match')
-
+            
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+        print(comment_response)
+        self.dialog.dismiss()
+        self.dialog = None
+        if 'error' in comment_response:
+            return False
+        else:
+            reactions.comments = str(int(reactions.comments) + 1)
+            
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
     def diamond(self, postHashHex, diamonded, reactions):
@@ -406,15 +409,18 @@ class ProfileScreen(MDScreen):
                 if post['PostFound']['PosterPublicKeyBase58Check']:
                     SEED_HEX = settings['seedHex']
                     receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
-                    desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-
-                    toast('You have successfully diamonded this post')
-                    reactions.ids.diamond.icon = 'diamond'
-                    reactions.diamonds = str(int(reactions.diamonds) + 1)
-                    reactions.diamonded = True
-                else: 
-                            toast('You cannot diamond your own post')
-
+                    if receiverPublicKey != PUBLIC_KEY:
+                        if reactions.diamonded == False:
+                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                            response = desoSocial.diamond(postHashHex=postHashHex, receiverPublicKey=receiverPublicKey)
+                            print(response.json())
+                            reactions.ids.diamond.icon = 'diamond'
+                            reactions.diamonds = str(int(reactions.diamonds) + 1)
+                            reactions.diamonded = True
+                        else:
+                            toast('You have already diamonded this post')
+                    else: 
+                        toast('You cannot diamond your own post')
                 
     #use a MDDIalog to ask user if they want to repost or quote post
     def clout_or_quoteclout_dialog(self, postHashHex, reclouted, reactions):
@@ -955,7 +961,7 @@ class ProfileScreen(MDScreen):
             #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
             reactions.ids.like.icon = likeIcon
             reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=post['PostHashHex']: self.like(postHashHex, liked, reactions))
-            reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=post['PostHashHex']: self.comment(postHashHex))
+            reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, postHashHex=post['PostHashHex']: self.comment(postHashHex, reactions))
             reactions.ids.reclout.icon = recloutIcon
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
             reactions.ids.diamond.icon = diamondIcon
