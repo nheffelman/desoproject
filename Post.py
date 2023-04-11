@@ -43,7 +43,7 @@ from kivymd.uix.fitimage import FitImage
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
-from kivymd.toast import toast
+
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
@@ -69,14 +69,13 @@ loggedIn = False
 def pickle_settings(settings):
     with open('temp/settings.pickle', 'wb') as handle:
         pickle.dump(settings, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("settings pickled")
-
+        
 #unpickles the current settings
 def unpickle_settings():
     if os.path.exists('temp/settings.pickle'):
         with open('temp/settings.pickle', 'rb') as handle:
             settings = pickle.load(handle)
-            print("settings unpickled")
+            
     else:
         settings = {}  
     return settings
@@ -85,20 +84,19 @@ def unpickle_settings():
 def unpickle_post():
     with open('temp/post.pickle', 'rb') as handle:
         post = pickle.load(handle)
-        print("post unpickled")
+        
     return post
 #pickles the current post
 def pickle_post(post):
     
     with open('temp/post.pickle', 'wb') as handle:
         pickle.dump(post, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("post pickled")
-
+        
 # unpickles the user's profile
 def unpickle_profile():
     with open('temp/profile.pickle', 'rb') as handle:
         profile = pickle.load(handle)
-        #print("profile unpickled")
+        
     return profile
 
 # pickles the user's profile
@@ -107,8 +105,7 @@ def pickle_profile(profile):
         os.makedirs('temp')
     with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        #print("profile pickled")
-
+        
 #pickles posts
 def pickle_posts(posts):
     with open('temp/posts.pickle', 'wb') as handle:
@@ -271,9 +268,7 @@ class SinglePostScreen(MDScreen):
     follow_unfollow = StringProperty("")
     
     def on_enter(self):
-        profile = unpickle_profile()
-        print(profile)
-        print(profile['Profile']['Username'])
+        profile = unpickle_profile()        
         settings = unpickle_settings()
         global loggedIn
         loggedIn = settings['loggedIn']
@@ -294,6 +289,16 @@ class SinglePostScreen(MDScreen):
         loggedIn = False
         self.manager.current = 'login'
 
+    def change_post(self, postHashHex):
+        pickle_post(postHashHex)
+        self.ids.singlePost.clear_widgets()
+        self.list_post()
+
+    def open_post(self, postHashHex):
+        pickle_post(postHashHex)
+
+        self.manager.current = 'single_post'
+
 	#expands comments to display sub comments
     def expand_comment(self, postHashHex, commentLayout):
         profile = unpickle_profile()
@@ -304,8 +309,7 @@ class SinglePostScreen(MDScreen):
 
         if 'error' in post:
             toast('An error occured getting this post')
-        else:
-            print(post, 'post')
+        else:            
             post = post['PostFound']
             nftImage = ''
             if post['IsNFT']:
@@ -474,7 +478,7 @@ class SinglePostScreen(MDScreen):
                     #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
                     reactions.ids.like.icon = likeIcon
                     reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.like(postHashHex, liked, reactions))
-                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex))
+                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex, reactions))
                     reactions.ids.reclout.icon = recloutIcon
                     reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=comment['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
                     reactions.ids.diamond.icon = diamondIcon
@@ -515,12 +519,6 @@ class SinglePostScreen(MDScreen):
                     commentLayout.add_widget(emptyLayout)
                     commentLayout.height += subCommentLayout.height
 
-                    
-
-
-        #sign = MDLabel(text='sign is here')
-        #commentLayout.add_widget(sign)
-        #toast('Opening post')
         
     
             
@@ -534,13 +532,15 @@ class SinglePostScreen(MDScreen):
 
             if settings['loggedIn'] == True:
                               
-                if liked == True:
+                if reactions.liked == True:
                     reactions.ids.like.icon = 'heart-outline'
                     reactions.ids.likes.text = str(int(reactions.ids.likes.text) - 1)
                     reactions.liked = False
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                    response = desoSocial.like(postHashHex=postHashHex, isLike=False)
+                    print(response.json())
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -549,10 +549,12 @@ class SinglePostScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                    response = desoSocial.like(postHashHex=postHashHex, isLike=True)
+                    print(response.json())
 
 
-    #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
-    def comment(self, postHashHex):
+    #when a user presses comment, opens a dialog box to allow user to comment on a post
+    def comment(self, postHashHex, reactions):
         global loggedIn
         if loggedIn != True:
             toast('You must be logged in to comment a post')
@@ -564,6 +566,7 @@ class SinglePostScreen(MDScreen):
                 self.dialog = None
                 if not self.dialog:
                     self.dialog = MDDialog(
+                        auto_dismiss=False,
                         pos_hint={"center_x": 0.5, "center_y": .8},
                         size_hint=(0.8, 0.6),
                         title="Comment",
@@ -574,31 +577,29 @@ class SinglePostScreen(MDScreen):
                                 text="CANCEL", on_release=lambda widget: self.dialog.dismiss()
                             ),
                             MDRoundFlatButton(
-                                text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex)
+                                text="COMMENT", on_release= lambda widget, postHashHex=postHashHex: self.postComment(postHashHex, reactions)
                             )],
                         
     
                     )
                     self.dialog.open()
 
-    def postComment(self, postHashHex):
-        for self.post in self.ids.timeline.children:
+    #comment a post function allows user to comment a post, updates the comment count, and sends a comment to the blockchain
+    def postComment(self, postHashHex, reactions):    
 
-            if self.post.postHashHex == postHashHex:
-                settings=unpickle_settings()
-                SEED_HEX = settings['seedHex']
-                PUBLIC_KEY = settings['publicKey']
-                desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-
-                comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-                self.dialog.dismiss()
-                self.dialog = None
-
-                if 'error' in comment_response:
-                    return False
-                self.post.comments = str(int(self.post.comments) + 1)
-            else: 
-                print('no posthashhex match')
+            
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+        print(comment_response)
+        self.dialog.dismiss()
+        self.dialog = None
+        if 'error' in comment_response:
+            return False
+        else:
+            reactions.comments = str(int(reactions.comments) + 1)
 
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -618,16 +619,19 @@ class SinglePostScreen(MDScreen):
                 if post['PostFound']['PosterPublicKeyBase58Check']:
                     SEED_HEX = settings['seedHex']
                     receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
-                    desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                    if receiverPublicKey != PUBLIC_KEY:
+                        if reactions.diamonded == False:
+                            desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+                            response = desoSocial.diamond(postHashHex=postHashHex, receiverPublicKey=receiverPublicKey)
+                            print(response.json())
+                            reactions.ids.diamond.icon = 'diamond'
+                            reactions.diamonds = str(int(reactions.diamonds) + 1)
+                            reactions.diamonded = True
+                        else:
+                            toast('You have already diamonded this post')
+                    else: 
+                        toast('You cannot diamond your own post')
 
-                    toast('You have successfully diamonded this post')
-                    reactions.ids.diamond.icon = 'diamond'
-                    reactions.diamonds = str(int(reactions.diamonds) + 1)
-                    reactions.diamonded = True
-                else: 
-                            toast('You cannot diamond your own post')
-
-                
     #use a MDDIalog to ask user if they want to repost or quote post
     def clout_or_quoteclout_dialog(self, postHashHex, reclouted, reactions):
         if not self.dialog:
@@ -805,8 +809,7 @@ class SinglePostScreen(MDScreen):
 
         if 'error' in post:
             toast('An error occured getting this post')
-        else:
-            print(post, 'post')
+        else:            
             post = post['PostFound']
             nftImage = ''
                         
@@ -820,7 +823,8 @@ class SinglePostScreen(MDScreen):
             #avatar=deso.User().getProfilePicURL(
                     #post['ProfileEntryResponse']['PublicKeyBase58Check'])
             olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
-            ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
+            ilw = ImageLeftWidget(source=avatar, radius = [20, ])       
+            ilw.bind(on_press=lambda widget, profileKey = post['ProfileEntryResponse']['PublicKeyBase58Check']: self.profile_pressed(profileKey))                       
             #add the avatar to the list item
             olali.add_widget(ilw)
             
@@ -915,9 +919,8 @@ class SinglePostScreen(MDScreen):
             #check if post is a reclout
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] == None:
-                toast('no reclout')
-            else:
-                toast('reclout')
+                print('not a reclout')
+            else:                
                 recloutLayout = RecloutLayout(orientation = 'horizontal')
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
                 rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
@@ -930,7 +933,9 @@ class SinglePostScreen(MDScreen):
                 repostAvatar = getCachedProfilePicUrl(post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check'])
 
                 olali = OneLineAvatarListItem(text=repostUsername, divider = None, _no_ripple_effect = True)
-                ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ])          
+                ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ]) 
+                ilw.bind(on_press=lambda profileKey = post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']: self.profile_pressed(profileKey))
+
                 #add the avatar to the list item
                 olali.add_widget(ilw)
                 #add the three dots to the header
@@ -964,7 +969,7 @@ class SinglePostScreen(MDScreen):
 
                     if beforeUrl != '':
                         bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
                         rightLayout.add_widget(bodyLabel)
                         rightLayout.height += bodyLabel.height * 1.5
                     body = body.split(url,1)[1] 
@@ -984,7 +989,7 @@ class SinglePostScreen(MDScreen):
                             preview_image.add_widget(fitimage)
                       
                             preview_image.height = 300
-                            preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            preview_image.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
                             rightLayout.add_widget(preview_image)  
                             rightLayout.height += preview_image.height
                     else:
@@ -995,7 +1000,7 @@ class SinglePostScreen(MDScreen):
                 #add any remaining body to the layout
                 if body != '':
                     bodyLabel = BodyLabel(text=body)
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
                     #add the body card to the layout
                     rightLayout.add_widget(bodyLabel)
                     rightLayout.height += bodyLabel.height * 1.5
@@ -1018,7 +1023,7 @@ class SinglePostScreen(MDScreen):
                             card.add_widget(fitimage)
                             #swiper.add_widget(swiperItem)
                             card.height += fitimage.height
-                            card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            card.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
                             
                             rightLayout.add_widget(card)
                             rightLayout.height += card.height
@@ -1045,7 +1050,7 @@ class SinglePostScreen(MDScreen):
                 #add the reclout layout to the timeline
                 layout.add_widget(recloutLayout)
                 layout.height += recloutLayout.height
-                
+
             #declare the icons
             recloutIcon = 'repeat'
             diamondIcon = 'diamond-outline'
@@ -1086,7 +1091,7 @@ class SinglePostScreen(MDScreen):
             #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
             reactions.ids.like.icon = likeIcon
             reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=post['PostHashHex']: self.like(postHashHex, liked, reactions))
-            reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=post['PostHashHex']: self.comment(postHashHex))
+            reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=post['PostHashHex']: self.comment(postHashHex, reactions))
             reactions.ids.reclout.icon = recloutIcon
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
             reactions.ids.diamond.icon = diamondIcon
@@ -1117,8 +1122,7 @@ class SinglePostScreen(MDScreen):
             replyButton = MDFillRoundFlatButton(text='Reply', valign='center', pos_hint={'center_x': 0.45, 'center_y': 0.5})
             replyButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
             newCommentLayout.add_widget(replyButton)
-            print('just added comment layout of this post^^^^^^^^^^^^^^^^^^^^^^^', post)
-
+            
             #add the comment layout to layout
             layout.add_widget(newCommentLayout)
 
@@ -1134,7 +1138,8 @@ class SinglePostScreen(MDScreen):
                     username=str(comment["ProfileEntryResponse"]['Username'])
                     avatar = getCachedProfilePicUrl(comment['ProfileEntryResponse']['PublicKeyBase58Check'])
                     olali = OneLineAvatarListItem(text=username, divider = None, _no_ripple_effect = True)
-                    ilw = ImageLeftWidget(source=avatar, radius = [20, ])                              
+                    ilw = ImageLeftWidget(source=avatar, radius = [20, ]) 
+                    ilw.bind(on_press=lambda widget, profileKey = comment['ProfileEntryResponse']['PublicKeyBase58Check']: self.profile_pressed(profileKey))                             
                     #add the avatar to the list item
                     olali.add_widget(ilw)
                     
@@ -1287,7 +1292,7 @@ class SinglePostScreen(MDScreen):
                     #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
                     reactions.ids.like.icon = likeIcon
                     reactions.ids.like.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.like(postHashHex, liked, reactions))
-                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex))
+                    reactions.ids.comment.bind(on_press=lambda widget, reactions=reactions, liked=liked, postHashHex=comment['PostHashHex']: self.comment(postHashHex, reactions))
                     reactions.ids.reclout.icon = recloutIcon
                     reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=comment['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
                     reactions.ids.diamond.icon = diamondIcon
