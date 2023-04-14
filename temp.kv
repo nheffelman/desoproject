@@ -1,0 +1,56 @@
+MDBoxLayout:
+                        adaptive_height: True
+                        id: primary_details
+                        orientation: 'vertical'
+                        spacing: '10'
+                        size_hint: (1, .1)
+
+                        MDBoxLayout:
+                            adaptive_height: True
+                            id: primary_details
+                            orientation: 'horizontal'
+                            spacing: '10'
+                            size_hint: (1, .1)
+
+                            MDIconLabel:
+                                id: location
+                                #icon: "map-marker"
+                                text: "Depths of Hell"
+                                font_size: 20
+                                text_color: "gray"
+
+                            MDLabel:
+                                id: website
+                                #icon: "web"
+                                text: "desomirror.com"
+                                font_size: 20
+                                text_color: "gray"
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            adaptive_height: True
+                            spacing: '10'
+
+                                MDLabel:
+                                    id: birthblock
+                                    text: "BirthBlock: 12/12/12"
+
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        id: following_details
+                        orientation: 'horizontal'
+                        spacing: '10'
+                        size_hint: (1, .1)
+
+                        MDLabel:
+                            id: followers
+                            text: "Followers: 100"
+                            font_size: 20
+                            text_color: "black"
+
+                        MDLabel:
+                            id: following
+                            text: "Following: 100"
+                            font_size: 20
+                            text_color: "black"
+                    
