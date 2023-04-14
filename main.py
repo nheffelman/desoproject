@@ -852,9 +852,7 @@ class HomePageReadOnlyScreen(MDScreen):
             body=str(post['Body'])
             lineCount = 1
             lineCount += body.count('\n')
-            postLength = len(body)
-            recloutHeight = 0
-
+            
             urls = re.findall(r'(https?://[^\s]+)', body)
             #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
             previewHeight = 0

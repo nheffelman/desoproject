@@ -743,10 +743,11 @@ class SinglePostScreen(MDScreen):
         return data
     
     #goto profile page for logged in user
-    def profile_pressed(self):
-        profile = unpickle_profile
-        if 'publicKey' in profile:
-            self.manager.current = 'profile'
+    def profile_pressed(self, profileKey):
+        settings = unpickle_settings()
+        settings['profileKey'] = profileKey
+        pickle_settings(settings)
+        self.manager.current = 'profile'
 
 
     def toast_3dots(self, data, posterPublicKey):
