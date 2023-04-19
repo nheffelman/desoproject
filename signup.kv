@@ -458,14 +458,14 @@
                             orientation: 'vertical'  
 
                             MDLabel:
-                                id: profilename                                
-                                text: 'kendra'                          
+                                id: profileName                                
+                                text: root.profileName                     
                                 font_size: 20
                                 font_name: 'assets/Instafont.otf'
                             MDLabel:
-                                id: cloutnumber
+                                id: cloutNumber
                                 font_size: 12
-                                text: '1230 Posts'
+                                text: root.cloutNumber
 
                       
                             
@@ -493,8 +493,8 @@
                                         orientation: 'vertical'
 
                                         FitImage:
-                                            id: large_picture
-                                            source: 'assets/flag.jpeg'
+                                            id: largePicture
+                                            source: root.largePicture
                                             size_hint: (1, .23)
                                             pos_hint: {'center_y': 1}
                                             allow_stretch: True
@@ -507,7 +507,7 @@
                                         
                                         CircularAvatarImage:
                                             #padding: 50
-                                            avatar: root.profile_picture
+                                            avatar: root.avatar
                                             size: '50dp', '50dp'
                                             on_press  : nav_drawer.set_state("open")
 
@@ -523,7 +523,6 @@
 
                                         MDRoundFlatButton:
                                             text: 'Follow'
-                                            text_color: "black"
                                             font_size: "18sp"
                                     
                                     MDBoxLayout:
@@ -534,9 +533,9 @@
                                         
                                         MDLabel:
                                             id: description
-                                            text_size: [None,None]
+                                            adaptive_height: True
                                             pos_hint: {"center_x": .5, "center_y": .5}
-                                            text: "I'm a description \n like this one \n i have big words and stuff "
+                                            text: root.description
                                             font_size: 20
                                             text_color: "black"
 
@@ -551,17 +550,7 @@
                                             id: primary_details
                                             orientation: 'horizontal'
                                             
-                                            MDIcon:
-                                                icon: "map-marker" 
-                                                font_size: 20     
-                                                pos_hint: {"center_x": .5, "center_y": .5}
-
-                                            MDLabel:
-                                                id: location
-                                                text: "Depths of Hell"
-                                                font_size: 20
-                                                text_color: "grey"
-                                                pos_hint: {"center_x": .5, "center_y": .5}
+                                            
                                             
                                             MDIcon:
                                                 icon: "web" 
@@ -570,7 +559,7 @@
 
                                             MDLabel:
                                                 id: website
-                                                text: "desomirror.com"
+                                                text: root.website
                                                 font_size: 20
                                                 text_color: "blue"
                                                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -586,7 +575,7 @@
                                                 pos_hint: {"center_x": .5, "center_y": .5}
                                             MDLabel:
                                                 id: birthblock
-                                                text: "BirthBlock: 12/12/12"
+                                                text: root.birthblock
 
                                         MDBoxLayout:
                                             adaptive_height: True 
@@ -608,8 +597,8 @@
                                                     pos_hint: {"center_x": .5, "center_y": .5}
 
                                                 MDLabel: 
-                                                    id: followers
-                                                    text: "100"
+                                                    id: followersNumber
+                                                    text: str(root.followersNumber)
                                                     font_size: 20
                                                     pos_hint: {"center_x": .5, "center_y": .5}
 
@@ -632,8 +621,8 @@
                                                     pos_hint: {"center_x": .5, "center_y": .5}
 
                                                 MDLabel: 
-                                                    id: following
-                                                    text: "10k"
+                                                    id: followingNumber
+                                                    text: str(root.followingNumber)
                                                     font_size: 20    
                                                     pos_hint: {"center_x": .5, "center_y": .5}  
 
@@ -650,14 +639,15 @@
                                                 pos_hint: {"center_x": .5, "center_y": .5}
 
                                                 MDLabel:
+                                                    icon: "bitcoin"
                                                     text: "Coin Price"
                                                     font_size: 14
                                                     text_color: "black"
                                                     pos_hint: {"center_x": .5, "center_y": .5}
 
                                                 MDLabel: 
-                                                    id: coinprice
-                                                    text: "$12.90"
+                                                    id: coinPriceNumber
+                                                    text: root.coinPriceNumber
                                                     font_size: 20    
                                                     pos_hint: {"center_x": .5, "center_y": .5}                            
 
@@ -705,7 +695,7 @@
                 MDNavigationDrawerHeader:
                     title: "Account Info"
                     title_color: "#4a4939"
-                    text: root.username
+                    text: root.profileName
                     spacing: "4dp"
                     padding: "12dp", 0, 0, "56dp"
 

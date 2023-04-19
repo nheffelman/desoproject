@@ -27,7 +27,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
 from deso import Identity
-from kivy.properties import StringProperty, ListProperty, BooleanProperty, ObjectProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty, ObjectProperty, NumericProperty
 import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
@@ -262,10 +262,22 @@ class ProfileScreen(MDScreen):
         self.theme_cls.primary_palette = "Orange"
 
     # 'https://avatars.githubusercontent.com/u/89080192?v=4'
-    profile_picture = StringProperty("")
-    username = StringProperty("")
-    desoprice = StringProperty("")
+
+    profileName = StringProperty("")
+    cloutNumber = StringProperty("")
+    largePicture = StringProperty("")
     avatar = StringProperty("")
+    description = StringProperty("")
+    website = StringProperty("")
+    birthblock = StringProperty("")
+    followers = StringProperty("")
+    followersNumber = NumericProperty()
+    following = StringProperty("")
+    followingNumber = NumericProperty()
+    coinPrice = StringProperty("")
+    coinPriceNumber = StringProperty("")
+
+
     dialog = None
     follow_unfollow = StringProperty("")
 
@@ -277,12 +289,15 @@ class ProfileScreen(MDScreen):
         if 'loggedIn' in settings:
             loggedIn = settings['loggedIn']
 
-        username = profile['Profile']['Username']
+
+        
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
-        if not self.ids.timeline.children:
-            
+        if not self.ids.timeline.children:            
+            self.list_posts()
+        else: 
+            self.ids.timeline.clear_widgets()
             self.list_posts()
             
     
@@ -636,10 +651,12 @@ class ProfileScreen(MDScreen):
         
       
         posts = deso.Posts()
+        user = deso.User()
         #if trending feed true or if theres no profile get trending posts
         if 'profileKey' in settings:
             posts.readerPublicKey = settings['profileKey']
             userposts = posts.getPostsForPublicKey(numToFetch=10, publicKey=settings['profileKey'])
+            singleProfile = user.getSingleProfile(publicKey=settings['profileKey']).json()
         
         #if theres no profile key tell user there is something wrong                         
         else:
@@ -649,12 +666,41 @@ class ProfileScreen(MDScreen):
         userposts=userposts.json()['Posts']
         
         userposts = userposts[:9]
-        return userposts,following
+        return singleProfile, userposts,following
 
     def list_posts(self):
                
-        userposts, following = self.get_posts()
-        
+        singleProfile, userposts, following = self.get_posts()
+
+        #add all the single profile info to the profile page
+        print(singleProfile)
+        if 'Profile' in singleProfile:
+            self.profileName = singleProfile['Profile']['Username']
+            if 'LargeProfilePicURL' in singleProfile['Profile']:
+                self.largePicture = singleProfile['Profile']['LargeProfilePicURL']
+            else:
+                self.largePicture = 'https://i.imgur.com/0k1X9qF.png'
+            self.avatar = getCachedProfilePicUrl(singleProfile['Profile']['PublicKeyBase58Check'])
+            self.description = singleProfile['Profile']['Description']
+            print(self.ids.description.text_size, 'text size')
+
+            self.ids.description.texture_update()
+            self.ids.description.text_size = self.ids.description.texture_size
+            
+            
+            if 'WebsiteURL' in singleProfile['Profile']:
+                self.website = singleProfile['Profile']['WebsiteURL']
+            desoUser = deso.User()
+            followers = desoUser.getFollowsStateless(numToFetch=1, getFollowing = False, username = self.profileName).json()
+            if 'NumFollowers' in followers:
+                self.followersNumber = followers['NumFollowers']
+            following = desoUser.getFollowsStateless(numToFetch=1, getFollowing = True, username = self.profileName).json()
+            if 'NumFollowers' in following:
+                self.followingNumber = following['NumFollowers']
+            if 'CoinPriceDeSoNanos' in singleProfile['Profile']:
+                self.coinPrice = '$' + str(singleProfile['Profile']['CoinPriceDeSoNanos'] / 1000000000)
+            
+            
         for post in userposts:
 
             #If this is a repost of another post, get the original post and extra body text

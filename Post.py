@@ -935,7 +935,7 @@ class SinglePostScreen(MDScreen):
 
                 olali = OneLineAvatarListItem(text=repostUsername, divider = None, _no_ripple_effect = True)
                 ilw = ImageLeftWidget(source=repostAvatar, radius = [20, ]) 
-                ilw.bind(on_press=lambda profileKey = post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']: self.profile_pressed(profileKey))
+                ilw.bind(on_press=lambda widget, profileKey = post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']: self.profile_pressed(profileKey))
 
                 #add the avatar to the list item
                 olali.add_widget(ilw)
