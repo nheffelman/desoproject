@@ -104,7 +104,8 @@ def unpickle_profile():
 
 # pickles the user's profile
 def pickle_profile(profile):
-    if not os.path.exists('temp/settings.pickle'):
+
+    if not os.path.exists('temp/'):
         os.makedirs('temp')
     with open('temp/profile.pickle', 'wb') as handle:
         pickle.dump(profile, handle, protocol=pickle.HIGHEST_PROTOCOL)
