@@ -488,9 +488,19 @@
                                     spacing: '15'
                                     
                                     MDBoxLayout:
+                                        id: largePictureBox
+                                       
                                         size_hint_y: None
                                         height: "125dp"
                                         orientation: 'vertical'
+                                        MDLabel:
+                                        	halign: "center"
+                                        	theme_text_color: "Custom"
+                                        	text_color: "white"
+                                        	text: 'Desoliscious'
+                                        	font_name: 'assets/Instafont.otf'
+                                        	font_size: 30
+                                        	valign: 'center'                                     
 
                                         FitImage:
                                             id: largePicture
@@ -522,8 +532,11 @@
                                             icon: 'bell-plus-outline'
 
                                         MDRoundFlatButton:
+                                            id: followButton
                                             text: 'Follow'
                                             font_size: "18sp"
+                                            theme_text_color: "Custom"
+                                        	text_color: "black"
                                     
                                     MDBoxLayout:
                                         adaptive_height: True 
@@ -639,7 +652,6 @@
                                                 pos_hint: {"center_x": .5, "center_y": .5}
 
                                                 MDLabel:
-                                                    icon: "bitcoin"
                                                     text: "Coin Price"
                                                     font_size: 14
                                                     text_color: "black"

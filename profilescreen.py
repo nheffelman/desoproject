@@ -35,7 +35,7 @@ import os
 import re
 from functools import lru_cache, wraps
 from kivy.uix.widget import Widget
-
+import json
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -525,17 +525,28 @@ class ProfileScreen(MDScreen):
                     #update the icon and reclout count
                     reactions.ids.reclout.icon = 'repeat-variant'
                     reactions.reclout = str(int(reactions.reclout) + 1)                        
-                            
-    def unfollow(self, posterPublicKey):
+    def followHandler(self, isFollowing, posterPublicKey):
+        if isFollowing == True:
+            self.unfollow(posterPublicKey)
+        else:
+            self.follow(posterPublicKey)       
+
+    def unfollow(self, whoToUnfollow):
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
+        response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
+        print(response)
+    
+    def follow(self, whoToFollow):
         settings=unpickle_settings()
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        response = desoSocial.follow(whoToFollow, isFollow=True).json() 
+        print(response)
 
-
-    
-    def follow(self, posterPublicKey):
-        pass
     def callback_for_menu_items(self, *args):
         toast(args[0])
         if args[0] == "Follow":
@@ -611,6 +622,8 @@ class ProfileScreen(MDScreen):
         self.ids.timeline.clear_widgets()
         self.list_posts()
 
+
+
     
 
     #monitors the scrollview and calls refresh when it reaches the bottom
@@ -673,19 +686,33 @@ class ProfileScreen(MDScreen):
         singleProfile, userposts, following = self.get_posts()
 
         #add all the single profile info to the profile page
-        print(singleProfile)
+        print(json.dumps(singleProfile, indent=2))
+        
         if 'Profile' in singleProfile:
             self.profileName = singleProfile['Profile']['Username']
             if 'LargeProfilePicURL' in singleProfile['Profile']:
                 self.largePicture = singleProfile['Profile']['LargeProfilePicURL']
             else:
-                self.largePicture = 'https://i.imgur.com/0k1X9qF.png'
+                
+                self.ids.largePictureBox.md_bg_color = 'black'
             self.avatar = getCachedProfilePicUrl(singleProfile['Profile']['PublicKeyBase58Check'])
             self.description = singleProfile['Profile']['Description']
             print(self.ids.description.text_size, 'text size')
+            #indicate follow button state for profile
+            if singleProfile['Profile']['PublicKeyBase58Check'] in following:
+                data = self.change_3dots_data(following=True)
+                self.ids.followButton.text = 'Following'
+                isFollowing = True
+            else:
+                data = self.change_3dots_data(following=False)
+                self.ids.followButton.text = 'Follow'
+                isFollowing = False
+            self.ids.followButton.bind(on_press=lambda *x: self.followHandler(isFollowing, singleProfile['Profile']['PublicKeyBase58Check']))
 
-            self.ids.description.texture_update()
-            self.ids.description.text_size = self.ids.description.texture_size
+
+
+            #self.ids.description.texture_update()
+            #self.ids.description.text_size = self.ids.description.texture_size
             
             
             if 'WebsiteURL' in singleProfile['Profile']:
@@ -698,7 +725,7 @@ class ProfileScreen(MDScreen):
             if 'NumFollowers' in following:
                 self.followingNumber = following['NumFollowers']
             if 'CoinPriceDeSoNanos' in singleProfile['Profile']:
-                self.coinPrice = '$' + str(singleProfile['Profile']['CoinPriceDeSoNanos'] / 1000000000)
+                self.ids.coinPriceNumber.text = '$' + str(singleProfile['Profile']['CoinPriceDeSoNanos'] / 1000000000)
             
             
         for post in userposts:
@@ -833,8 +860,7 @@ class ProfileScreen(MDScreen):
             
             #if the post is a reclout add the reclout layout
             if post['RepostedPostEntryResponse'] != None:
-                toast('reclout')
-
+                
                 recloutLayout = RecloutLayout(orientation = 'horizontal')
                 leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
                 rightLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .8, adaptive_height = True, spacing = 25)
