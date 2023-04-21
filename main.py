@@ -10,6 +10,7 @@ from kivymd.uix.fitimage import FitImage
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.widget import MDWidget
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.image import AsyncImage
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
@@ -378,6 +379,24 @@ class HomePageReadOnlyScreen(MDScreen):
 
         self.manager.current = 'single_post'
 
+    def home(self):
+        settings = unpickle_settings()
+        profile = unpickle_profile()
+        #change profile and user back to logged in user
+        if 'loggedIn' in settings:
+            if settings['loggedIn'] == True:
+                if 'publicKey' in settings:
+                    profile = deso.User().getSingleProfile(publicKey=settings['publicKey']).json()
+                    pickle_profile(profile)
+                    global loggedIn
+                    loggedIn = True
+                    self.ids.stories.clear_widgets()
+                    self.ids.timeline.clear_widgets()
+                    self.list_stories()
+                    self.list_posts()
+                    self.manager.current = 'homepage_read_only'
+
+
     def storie_switcher(self, publicKey):
         desoUser = deso.User()
         profile = desoUser.getSingleProfile(publicKey=publicKey).json()
@@ -743,8 +762,10 @@ class HomePageReadOnlyScreen(MDScreen):
 
     def get_posts(self):
         profile = unpickle_profile()
+        print(profile)
         settings = unpickle_settings()
         cached_posts = unpickle_posts()
+        
 
         #get the users following list
         following = []
@@ -754,54 +775,60 @@ class HomePageReadOnlyScreen(MDScreen):
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
                         following.append(publicKey)         
         
-        #check to see if there are any posts in the cache
-        if 'posts' in cached_posts:
+        #if cached posts is for the same public key as the current profile
+        if 'publicKey' in cached_posts:
+            if cached_posts['publicKey'] == profile['Profile']['PublicKeyBase58Check']:
+                #check to see if there are any posts in the cache
+                if 'posts' in cached_posts:
 
-            userposts = []
-            reversed = cached_posts['posts']
-            reversed.reverse()
-            userposts = []
+                    userposts = []
+                    reversed = cached_posts['posts']
+                    reversed.reverse()
+                    userposts = []
 
-            for i in range(9):
+                    for i in range(9):
 
-                if reversed != []:
-                    userposts.append(reversed.pop())
-            if len(reversed) > 0:
-                reversed.reverse()
-                cached_posts['posts'] = reversed
-                pickle_posts(cached_posts)
+                        if reversed != []:
+                            userposts.append(reversed.pop())
+                    if len(reversed) > 0:
+                        reversed.reverse()
+                        cached_posts['posts'] = reversed
+                        pickle_posts(cached_posts)
+                    else:
+                        cached_posts = {}
+                        cached_posts['publicKey'] = profile['Profile']['PublicKeyBase58Check']
+                        pickle_posts(cached_posts)
+
+
             else:
-                cached_posts = {}
-                pickle_posts(cached_posts)
-
-
-        else:
-            # load 100 posts for the user or 100 posts for the stateless user
-            posts = deso.Posts()
-            #if trending feed true or if theres no profile get trending posts
-            if 'trending' in settings:
-                if settings['trending'] == True:
-                    self.ids.trending.md_bg_color = "blue"
+                # load 100 posts for the user or 100 posts for the stateless user
+                posts = deso.Posts()
+                #if trending feed true or if theres no profile get trending posts
+                if 'trending' in settings:
+                    if settings['trending'] == True:
+                        self.ids.trending.md_bg_color = "blue"
+                        posts.readerPublicKey = None
+                        userposts = posts.getPostsStateless(numToFetch=100)
+                        
+                    else:
+                        self.ids.following.md_bg_color = "blue"        
+                        if profile:
+                            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
+                            userposts = posts.getPostsStateless(numToFetch=100, getPostsForFollowFeed=True)
+                            
+                
+                #if theres no profile get trending posts                         
+                else:
                     posts.readerPublicKey = None
                     userposts = posts.getPostsStateless(numToFetch=100)
-                    
-                else:
-                    self.ids.following.md_bg_color = "blue"        
-                    if profile:
-                        posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                        userposts = posts.getPostsStateless(numToFetch=100, getPostsForFollowFeed=True)
-            
-            #if theres no profile get trending posts                         
-            else:
-                posts.readerPublicKey = None
-                userposts = posts.getPostsStateless(numToFetch=100)
-            userposts=userposts.json()['PostsFound']
-            #cache the posts
-            cached_posts = {}
-            cached_posts['posts'] = userposts[9:]
-            pickle_posts(cached_posts)
+                userposts=userposts.json()['PostsFound']
+                #cache the posts
+                cached_posts = {}
+                cached_posts['posts'] = userposts[9:]
+                cached_posts['publicKey'] = profile['Profile']['PublicKeyBase58Check']
+                pickle_posts(cached_posts)
 
-            userposts = userposts[:9]
+                userposts = userposts[:9]
         return userposts,following
 
     def list_posts(self):
@@ -876,9 +903,9 @@ class HomePageReadOnlyScreen(MDScreen):
                     
                     if preview.image:
 
-                        preview_image = MDCard(size_hint_y = None, radius=18)
-                        fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
-                        preview_image.add_widget(fitimage)
+                        preview_image = MDBoxLayout(adaptive_height=True)
+                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                        preview_image.add_widget(aImage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         preview_image.height = 300
                         layout.add_widget(preview_image)    
@@ -903,9 +930,9 @@ class HomePageReadOnlyScreen(MDScreen):
                 
                 #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    card = MDCard(size_hint_y = None, radius=18)
-                    fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                    card.add_widget(fitimage)
+                    card = MDBoxLayout(adaptive_height=True)
+                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                    card.add_widget(aImage)
                     #swiper.add_widget(swiperItem)
                 #imageHeight = 300
                     card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -998,9 +1025,9 @@ class HomePageReadOnlyScreen(MDScreen):
                         if preview.image:
                             previewImages.append(preview.image)
 
-                            preview_image = MDCard(size_hint_y = None, radius = 18,)
-                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
-                            preview_image.add_widget(fitimage)
+                            preview_image = MDBoxLayout(adaptive_height=True)
+                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                            preview_image.add_widget(aImage)
                       
                             preview_image.height = 300
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -1032,11 +1059,11 @@ class HomePageReadOnlyScreen(MDScreen):
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            card = MDCard(size_hint_y = None, radius = 18)
-                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                            card.add_widget(fitimage)
+                            card = MDBoxLayout(adaptive_height = True)
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                            card.add_widget(aImage)
                             #swiper.add_widget(swiperItem)
-                            card.height += fitimage.height
+                            card.height += aImage.height
                             card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             
                             rightLayout.add_widget(card)
