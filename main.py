@@ -1113,7 +1113,7 @@ class HomePageReadOnlyScreen(MDScreen):
                             card = MDBoxLayout(adaptive_height = True)
                             aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
                             card.add_widget(aImage)
-                            #swiper.add_widget(swiperItem)
+                            
                             card.height += aImage.height
                             card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             
@@ -1402,7 +1402,7 @@ class NotificationsScreen(MDScreen):
 
 
                 transactorUsername = transactorProfile['Profile']['Username']
-                transactorPic = transactorProfile['Profile']['ExtraData']['LargeProfilePicURL']
+                transactorPic = getCachedProfilePicUrl(transactorPublicKey)
                 if not transactorPic:
                     transactorPic = 'https://bitclout.com/assets/img/default_profile_pic.png'
 
