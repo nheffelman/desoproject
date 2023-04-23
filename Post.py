@@ -13,6 +13,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
+from kivy.uix.image import AsyncImage
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.card import (
@@ -871,11 +872,11 @@ class SinglePostScreen(MDScreen):
                 if preview:
                     
                     if preview.image:
-                        preview_image = MDCard(size_hint_y = None, radius=18)
-                        fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
-                        preview_image.add_widget(fitimage)
-                        #preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                        preview_image.height = 300
+                        preview_image = MDBoxLayout(adaptive_height=True)
+                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                        preview_image.add_widget(aImage)
+                        preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        
                         layout.add_widget(preview_image)    
                         layout.height += preview_image.height
                 else:
@@ -898,14 +899,10 @@ class SinglePostScreen(MDScreen):
                 
                 #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    card = MDCard(size_hint_y = None, radius=18)
-                    fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                    card.add_widget(fitimage)
-                    #swiper.add_widget(swiperItem)
-                #imageHeight = 300
-                    #card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                    #swiperBox.add_widget(swiper)
-                    card.height = 300
+                    card = MDBoxLayout(adaptive_height=True)
+                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                    card.add_widget(aImage)
+                    
                     layout.add_widget(card)
                     layout.height += card.height 
 
@@ -984,15 +981,12 @@ class SinglePostScreen(MDScreen):
                         
                         if preview.image:
                             previewImages.append(preview.image)
-
-                            preview_image = MDCard(size_hint_y = None, radius = 18,)
-                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
-                            preview_image.add_widget(fitimage)
-                      
-                            preview_image.height = 300
-                            preview_image.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
-                            rightLayout.add_widget(preview_image)  
-                            rightLayout.height += preview_image.height
+                            preview_image = MDBoxLayout(adaptive_height=True)
+                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                            preview_image.add_widget(aImage)
+                            preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        
+                            
                     else:
                         urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
                         rightLayout.add_widget(urlLabel)
@@ -1019,11 +1013,10 @@ class SinglePostScreen(MDScreen):
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            card = MDCard(size_hint_y = None, radius = 18)
-                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                            card.add_widget(fitimage)
-                            #swiper.add_widget(swiperItem)
-                            card.height += fitimage.height
+                            card = MDBoxLayout(adaptive_height=True)
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                            card.add_widget(aImage)
+                            
                             card.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
                             
                             rightLayout.add_widget(card)
@@ -1116,12 +1109,12 @@ class SinglePostScreen(MDScreen):
 
             #add a label to the comment layout
             commentLabel = CommentLabel(text='Make a Comment', valign='center')  
-            commentLabel.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
+            commentLabel.bind(on_press=lambda widget, reactions, postHashHex=post['PostHashHex']: self.comment(postHashHex))
             newCommentLayout.add_widget(commentLabel)
 
             #add a reply button to the comment layout
             replyButton = MDFillRoundFlatButton(text='Reply', valign='center', pos_hint={'center_x': 0.45, 'center_y': 0.5})
-            replyButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex))
+            replyButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.comment(postHashHex, reactions))
             newCommentLayout.add_widget(replyButton)
             
             #add the comment layout to layout

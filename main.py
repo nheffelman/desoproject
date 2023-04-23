@@ -958,7 +958,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
                         preview_image.add_widget(aImage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                        preview_image.height = 300
+                        
                         layout.add_widget(preview_image)    
                         layout.height += preview_image.height
                 else:
@@ -984,11 +984,10 @@ class HomePageReadOnlyScreen(MDScreen):
                     card = MDBoxLayout(adaptive_height=True)
                     aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
                     card.add_widget(aImage)
-                    #swiper.add_widget(swiperItem)
-                #imageHeight = 300
+                    
                     card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     #swiperBox.add_widget(swiper)
-                    card.height = 300
+                    
                     layout.add_widget(card)
                     layout.height += card.height 
             if post['VideoURLs']:
@@ -1080,7 +1079,7 @@ class HomePageReadOnlyScreen(MDScreen):
                             aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
                             preview_image.add_widget(aImage)
                       
-                            preview_image.height = 300
+                            
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             rightLayout.add_widget(preview_image)  
                             rightLayout.height += preview_image.height
