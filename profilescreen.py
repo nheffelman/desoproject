@@ -11,6 +11,7 @@ from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.fitimage import FitImage
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.widget import MDWidget
+from kivy.uix.image import AsyncImage
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemeManager
 from kivymd.uix.textfield import MDTextField
@@ -801,9 +802,9 @@ class ProfileScreen(MDScreen):
                     
                     if preview.image:
 
-                        preview_image = MDCard(size_hint_y = None, radius=18)
-                        fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
-                        preview_image.add_widget(fitimage)
+                        preview_image = MDBoxLayout(adaptive_height=True)
+                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                        preview_image.add_widget(aImage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         preview_image.height = 300
                         layout.add_widget(preview_image)    
@@ -828,11 +829,11 @@ class ProfileScreen(MDScreen):
                 
                 #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    card = MDCard(size_hint_y = None, radius=18)
-                    fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                    card.add_widget(fitimage)
-                    #swiper.add_widget(swiperItem)
-                #imageHeight = 300
+                    card = MDBoxLayout(adaptive_height = True)
+                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                    card.add_widget(aImage)
+                    
+                    card.height += aImage.height
                     card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     #swiperBox.add_widget(swiper)
                     card.height = 300
@@ -922,9 +923,9 @@ class ProfileScreen(MDScreen):
                         if preview.image:
                             previewImages.append(preview.image)
 
-                            preview_image = MDCard(size_hint_y = None, radius = 18,)
-                            fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18))
-                            preview_image.add_widget(fitimage)
+                            preview_image = MDBoxLayout(adaptive_height=True)
+                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                            preview_image.add_widget(aImage)
                       
                             preview_image.height = 300
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -956,11 +957,11 @@ class ProfileScreen(MDScreen):
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            card = MDCard(size_hint_y = None, radius = 18)
-                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                            card.add_widget(fitimage)
-                            #swiper.add_widget(swiperItem)
-                            card.height += fitimage.height
+                            card = MDBoxLayout(adaptive_height = True)
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                            card.add_widget(aImage)
+                            
+                            card.height += aImage.height
                             card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             
                             rightLayout.add_widget(card)
