@@ -352,6 +352,14 @@ class HomePageReadOnlyScreen(MDScreen):
     def on_enter(self):
         
         profile = unpickle_profile()
+        settings = unpickle_settings()
+        if 'trending' in settings:
+            if settings['trending'] == True:
+                self.ids.trending.md_bg_color = "blue"
+        else: 
+            settings['trending'] = False
+            self.ids.following.md_bg_color = "blue"
+        pickle_settings(settings)
 
 
         username=profile['Profile']['Username']
@@ -392,6 +400,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     loggedIn = True
                     self.ids.stories.clear_widgets()
                     self.ids.timeline.clear_widgets()
+                    self.profile_picture = getCachedProfilePicUrl(settings['publicKey'])
                     self.list_stories()
                     self.list_posts()
                     self.manager.current = 'homepage_read_only'
@@ -404,6 +413,7 @@ class HomePageReadOnlyScreen(MDScreen):
             toast(profile['error'])
         else:
             pickle_profile(profile)
+        self.profile_picture = str(getCachedProfilePicUrl(publicKey))
         self.ids.stories.clear_widgets()
         self.ids.timeline.clear_widgets()
         self.list_stories()
@@ -773,62 +783,103 @@ class HomePageReadOnlyScreen(MDScreen):
             desoUser = deso.User()
             followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
-                        following.append(publicKey)         
-        
-        #if cached posts is for the same public key as the current profile
-        if 'publicKey' in cached_posts:
-            if cached_posts['publicKey'] == profile['Profile']['PublicKeyBase58Check']:
-                #check to see if there are any posts in the cache
-                if 'posts' in cached_posts:
+                        following.append(publicKey)      
 
-                    userposts = []
-                    reversed = cached_posts['posts']
-                    reversed.reverse()
-                    userposts = []
+        profileKey = None
+        userKey = None
+        viewerKey = None
 
-                    for i in range(9):
+        #get the current viewers public key            
+        profileKey = profile['Profile']['PublicKeyBase58Check']
+        print('profilekey is ' + profileKey)
 
-                        if reversed != []:
-                            userposts.append(reversed.pop())
-                    if len(reversed) > 0:
-                        reversed.reverse()
-                        cached_posts['posts'] = reversed
-                        pickle_posts(cached_posts)
-                    else:
-                        cached_posts = {}
-                        cached_posts['publicKey'] = profile['Profile']['PublicKeyBase58Check']
-                        pickle_posts(cached_posts)
+        #get the current users public key
+        if 'publicKey' in settings:
+            userKey = settings['publicKey']   
+            print('userkey is ' + userKey)
 
-
+        #if user is viewing his own feed
+        if profileKey != None and userKey != None and profileKey == userKey:
+            #check to see if trending is selected
+            print('checking if trending is selected or following')
+            if 'trending' in settings:
+                print('settings trending = ', settings['trending'])
+                if settings['trending'] == True:
+                    self.ids.trending.md_bg_color = "blue"
+                    viewerKey = 'trending'
+                    print('trending is selected')
+                else: 
+                    #following is selected, get the following list for the chosen viewer
+                    self.ids.following.md_bg_color = "blue" 
+                    viewerKey = userKey 
+                    print('following is selected for userkey')
             else:
-                # load 100 posts for the user or 100 posts for the stateless user
-                posts = deso.Posts()
-                #if trending feed true or if theres no profile get trending posts
-                if 'trending' in settings:
-                    if settings['trending'] == True:
-                        self.ids.trending.md_bg_color = "blue"
-                        posts.readerPublicKey = None
-                        userposts = posts.getPostsStateless(numToFetch=100)
-                        
-                    else:
-                        self.ids.following.md_bg_color = "blue"        
-                        if profile:
-                            posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-                            userposts = posts.getPostsStateless(numToFetch=100, getPostsForFollowFeed=True)
-                            
-                
-                #if theres no profile get trending posts                         
-                else:
-                    posts.readerPublicKey = None
-                    userposts = posts.getPostsStateless(numToFetch=100)
-                userposts=userposts.json()['PostsFound']
-                #cache the posts
-                cached_posts = {}
-                cached_posts['posts'] = userposts[9:]
-                cached_posts['publicKey'] = profile['Profile']['PublicKeyBase58Check']
+                #following is selected, get the following list for the chosen viewer
+                self.ids.following.md_bg_color = "blue" 
+                viewerKey = userKey 
+                print('following is selected for userkey')
+
+        #if user is viewing someone elses feed or is not logged in
+        else: 
+            #get the public key of the profile being viewed or  select trending if no profile is selected
+            if profileKey:                
+                viewerKey = profileKey
+                print('user is viewing someone elses feed')
+            else:
+                viewerKey = 'trending'
+                print('user is not logged in')
+
+        #check to see if there are any cached posts
+        if viewerKey in cached_posts:
+            print('cached posts found')
+            userposts = []
+            reversed = cached_posts[viewerKey]
+            reversed.reverse()
+            #iterate through the cached posts and add them to the userposts list
+            for i in range(9):
+                if reversed != []:
+                    userposts.append(reversed.pop())
+            #if there are more posts in the cache then reverse the list and save it to the cache
+            if len(reversed) > 0:
+                reversed.reverse()
+                cached_posts[viewerKey] = reversed
+                pickle_posts(cached_posts)
+            #else remove the viewer key from the cache
+            else:
+                del cached_posts[viewerKey]
                 pickle_posts(cached_posts)
 
+        #if there are no cached posts
+        else:
+            print('no cached posts found')
+            #if the viewer key is trending
+            if viewerKey == 'trending':
+                print('trending')
+                #get trending posts for the stateless user
+                posts = deso.Posts()
+                posts.readerPublicKey = None
+                userposts = posts.getHotFeed(responseLimit=100).json()['HotFeedPage']
+                print(userposts)
+                
+                #save the posts to the cache
+                cached_posts[viewerKey] = userposts[9:]
+                pickle_posts(cached_posts)
+                #get the first 9 posts
                 userposts = userposts[:9]
+            #if the viewer key is a public key
+            else:
+                print('following')
+                #get the posts for the viewer key
+                posts = deso.Posts()
+                posts.readerPublicKey = viewerKey
+                userposts = posts.getPostsStateless(getPostsForFollowFeed=True, numToFetch=100).json()['PostsFound']
+                #save the posts to the cache
+                cached_posts[viewerKey] = userposts[9:]
+                pickle_posts(cached_posts)
+                #get the first 9 posts
+                userposts = userposts[:9]
+                      
+            
         return userposts,following
 
     def list_posts(self):
@@ -957,7 +1008,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     nftButton.bind(on_press=lambda widget, postHashHex=post['PostHashHex'], nftImageURL=post['ImageURLs'][0],
                         numNftCopies = str(post['NumNFTCopies']), nftTitle=str(post['Body']), numNftCopiesForSale = str(post['NumNFTCopiesForSale']): 
                         self.open_nft_modal(postHashHex, nftImageURL, numNftCopies, numNftCopiesForSale, nftTitle))
-                    layout.ids.nftButtonBox.add_widget(nftButton)
+                    layout.add_widget(nftButton)
                     layout.height += nftButton.height
             
             #if the post is a reclout add the reclout layout
