@@ -708,16 +708,22 @@ class SinglePostScreen(MDScreen):
                     reactions.ids.reclout.icon = 'repeat-variant'
                     reactions.reclout = str(int(reactions.reclout) + 1)                        
                             
-    def unfollow(self, posterPublicKey):
+    def unfollow(self, whoToUnfollow):
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
+        response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
+        print(response)
+    
+    def follow(self, whoToFollow):
         settings=unpickle_settings()
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
+        response = desoSocial.follow(whoToFollow, isFollow=True).json() 
+        print(response)
 
-
-    
-    def follow(self, posterPublicKey):
-        pass
     def callback_for_menu_items(self, *args):
         toast(args[0])
         if args[0] == "Follow":
@@ -837,7 +843,7 @@ class SinglePostScreen(MDScreen):
             else:
                 data = self.change_3dots_data(following=False)
             three_dots = MDIconButton(icon='dots-vertical')
-            three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+            three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
@@ -943,7 +949,7 @@ class SinglePostScreen(MDScreen):
                 else:
                     data = self.change_3dots_data(following=False)
                 three_dots = MDIconButton(icon='dots-vertical')
-                three_dots.bind(on_press=lambda *x: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
+                three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 
                 #add the one line avatar list item to the header
                 header.add_widget(olali)

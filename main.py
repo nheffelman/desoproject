@@ -612,16 +612,22 @@ class HomePageReadOnlyScreen(MDScreen):
                     reactions.ids.reclout.icon = 'repeat-variant'
                     reactions.reclout = str(int(reactions.reclout) + 1)                        
                             
-    def unfollow(self, posterPublicKey):
+    def unfollow(self, whoToUnfollow):
+        settings=unpickle_settings()
+        SEED_HEX = settings['seedHex']
+        PUBLIC_KEY = settings['publicKey']
+        desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
+        response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
+        print(response)
+    
+    def follow(self, whoToFollow):
         settings=unpickle_settings()
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-
-
-    
-    def follow(self, posterPublicKey):
-        pass
+        response = desoSocial.follow(whoToFollow, isFollow=True).json() 
+        print(response)
+        
     def callback_for_menu_items(self, *args):
         toast(args[0])
         if args[0] == "Follow":
@@ -917,7 +923,8 @@ class HomePageReadOnlyScreen(MDScreen):
             else:
                 data = self.change_3dots_data(following=False)
             three_dots = MDIconButton(icon='dots-vertical')
-            three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+            
+            three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
@@ -955,7 +962,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     if preview.image:
 
                         preview_image = MDBoxLayout(adaptive_height=True)
-                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                         preview_image.add_widget(aImage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         
@@ -1036,7 +1043,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 else:
                     data = self.change_3dots_data(following=False)
                 three_dots = MDIconButton(icon='dots-vertical')
-                three_dots.bind(on_press=lambda *x: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
+                three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 
                 #add the one line avatar list item to the header
                 header.add_widget(olali)
@@ -1076,7 +1083,7 @@ class HomePageReadOnlyScreen(MDScreen):
                             previewImages.append(preview.image)
 
                             preview_image = MDBoxLayout(adaptive_height=True)
-                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                             preview_image.add_widget(aImage)
                       
                             
@@ -1110,7 +1117,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
                             card = MDBoxLayout(adaptive_height = True)
-                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                             card.add_widget(aImage)
                             
                             card.height += aImage.height

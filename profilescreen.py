@@ -661,7 +661,7 @@ class ProfileScreen(MDScreen):
             desoUser = deso.User()
             followingResponse = desoUser.getFollowsStateless(publicKey = settings['publicKey']).json()
             for publicKey in followingResponse['PublicKeyToProfileEntry']:
-                        following.append(publicKey)         
+                following.append(publicKey)         
         
       
         posts = deso.Posts()
@@ -763,7 +763,7 @@ class ProfileScreen(MDScreen):
             else:
                 data = self.change_3dots_data(following=False)
             three_dots = MDIconButton(icon='dots-vertical')
-            three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+            three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
@@ -884,7 +884,7 @@ class ProfileScreen(MDScreen):
                 else:
                     data = self.change_3dots_data(following=False)
                 three_dots = MDIconButton(icon='dots-vertical')
-                three_dots.bind(on_press=lambda *x: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
+                three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
                 
                 #add the one line avatar list item to the header
                 header.add_widget(olali)
