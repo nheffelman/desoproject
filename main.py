@@ -961,10 +961,15 @@ class HomePageReadOnlyScreen(MDScreen):
                     
                     if preview.image:
 
-                        preview_image = MDBoxLayout(adaptive_height=True)
+                        preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
                         aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                         preview_image.add_widget(aImage)
                         preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+
+                        if preview.title:
+                            title = MDLabel(text=preview.title, halign =  "center", font_style = 'H6')
+                            preview_image.add_widget(title)
+                            
                         
                         layout.add_widget(preview_image)    
                         layout.height += preview_image.height
@@ -988,8 +993,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 
                 #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    card = MDBoxLayout(adaptive_height=True)
-                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                    card = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                     card.add_widget(aImage)
                     
                     card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -1082,9 +1087,14 @@ class HomePageReadOnlyScreen(MDScreen):
                         if preview.image:
                             previewImages.append(preview.image)
 
-                            preview_image = MDBoxLayout(adaptive_height=True)
+                            preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
                             aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                             preview_image.add_widget(aImage)
+                            preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+
+                            if preview.title:
+                                title = MDLabel(text=preview.title, halign =  "center", font_style = 'H6')
+                                preview_image.add_widget(title)
                       
                             
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
@@ -1116,7 +1126,7 @@ class HomePageReadOnlyScreen(MDScreen):
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            card = MDBoxLayout(adaptive_height = True)
+                            card = MDCard(size_hint_y=None, height=450, radius=[18,0])
                             aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                             card.add_widget(aImage)
                             
