@@ -1,4 +1,5 @@
 from linkpreview import link_preview
+import webbrowser
 from kivy.clock import Clock
 from kivymd.app import MDApp
 from kivy.core.window import Window
@@ -196,6 +197,12 @@ class CommentContent(MDBoxLayout):
 #class for custom dialog content
 class Content(MDBoxLayout):
     quote = StringProperty()
+
+#class for custom dialog content for links
+class LinkContent(MDBoxLayout):
+    image = StringProperty()
+    title = StringProperty()
+    url = StringProperty()
 
 #class for custom nft dialog content
 class NFTContent(MDBoxLayout):
@@ -772,7 +779,27 @@ class SinglePostScreen(MDScreen):
                 
         bottom_sheet_menu.open()
 
-            
+    #function to open a link in the browser but first opens a modal to confirm the user wants to leave the app
+
+    def open_link(self, url, title, image):     
+        
+        self.linkModal = MDDialog(
+            title='Leave app and open link in browser?',
+            type="custom",
+            content_cls=LinkContent(title=title, image=image),
+            buttons=[
+                MDRoundFlatButton(text="CANCEL", on_release=lambda widget: self.linkModal.dismiss()),
+                MDRoundFlatButton(text="OPEN", on_release=lambda widget, url=url: self.open_browser(url)),
+            ],
+        )
+        self.linkModal.open()
+
+    #function to open browser with url
+    def open_browser(self, url):
+        webbrowser.open(url)
+        self.linkModal.dismiss()
+
+
     #function for nft modal
     def open_nft_modal(self, postHashHex, nftImageURL, numNftCopiesForSale, numNftCopies, nftTitle):
         self.nftmodal = MDDialog(
@@ -878,12 +905,17 @@ class SinglePostScreen(MDScreen):
                 if preview:
                     
                     if preview.image:
-                        preview_image = MDBoxLayout(adaptive_height=True)
-                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                        preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                        aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                         preview_image.add_widget(aImage)
-                        preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                
+                        if preview.title:
+                            title = CommentLabel(text=preview.title, halign =  "center", font_style = 'H6')  
+                            title.bind(on_press= lambda widget, url=url, title=preview.title, image=preview.image: self.open_link(url,title,image))                   
+                            preview_image.add_widget(title)
                         
                         layout.add_widget(preview_image)    
+
                         layout.height += preview_image.height
                 else:
                     urlLabel = MDLabel(text=url, halign =  "center" )
@@ -905,8 +937,8 @@ class SinglePostScreen(MDScreen):
                 
                 #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                 for image in post['ImageURLs']:
-                    card = MDBoxLayout(adaptive_height=True)
-                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                    card = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                    aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                     card.add_widget(aImage)
                     
                     layout.add_widget(card)
@@ -987,11 +1019,20 @@ class SinglePostScreen(MDScreen):
                         
                         if preview.image:
                             previewImages.append(preview.image)
-                            preview_image = MDBoxLayout(adaptive_height=True)
-                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=False)
+                            preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
                             preview_image.add_widget(aImage)
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
-                        
+
+                            if preview.title:
+                                title = CommentLabel(text=preview.title, halign =  "center", font_style = 'H6')  
+                                title.bind(on_press= lambda widget, url=url, title=preview.title, image=preview.image: self.open_link(url,title,image))                   
+                                preview_image.add_widget(title)
+                                rightLayout.add_widget(preview_image)
+                            else:
+
+                                preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                                rightLayout.add_widget(preview_image)
                             
                     else:
                         urlLabel = MDLabel(text=url, halign =  "center", theme_text_color = "Custom" , text_color = (0, 0, 1, 1) )
@@ -1019,8 +1060,8 @@ class SinglePostScreen(MDScreen):
                         #swiper = MDSwiper(swipe_on_scroll = False, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in post['RecloutedPostEntryResponse']['ImageURLs']:
 
-                            card = MDBoxLayout(adaptive_height=True)
-                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=False)
+                            card = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                             card.add_widget(aImage)
                             
                             card.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex))
@@ -1190,9 +1231,14 @@ class SinglePostScreen(MDScreen):
                             
                             if preview.image:
 
-                                preview_image = MDCard(size_hint_y = None, radius=18)
-                                fitimage = FitImage(size_hint_y = None ,source=preview.image, height = 300, radius=(18, 18,18, 18),)
-                                preview_image.add_widget(fitimage)
+                                preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                                aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
+                                preview_image.add_widget(aImage)
+                        
+                                if preview.title:
+                                    title = CommentLabel(text=preview.title, halign =  "center", font_style = 'H6')  
+                                    title.bind(on_press= lambda widget, url=url, title=preview.title, image=preview.image: self.open_link(url,title,image))                   
+                                    preview_image.add_widget(title)
                                 preview_image.bind(on_press= lambda widget, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex))
                                 preview_image.height = 300
                                 commentLayout.add_widget(preview_image)    
@@ -1217,9 +1263,9 @@ class SinglePostScreen(MDScreen):
                         
                         #swiper = MDSwiper(swipe_on_scroll = True, size_hint_y = None, height = 300, radius=(18, 18,18, 18), ) 
                         for image in comment['ImageURLs']:
-                            card = MDCard(size_hint_y = None, radius=18)
-                            fitimage = FitImage(size_hint_y = None, source=image, height = 300, radius=(18, 18,18, 18),)
-                            card.add_widget(fitimage)
+                            card = MDCard(size_hint_y=None, height=450, radius=[18,0])
+                            aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
+                            card.add_widget(aImage)
                             #swiper.add_widget(swiperItem)
                         #imageHeight = 300
                             card.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
