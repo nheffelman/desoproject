@@ -376,6 +376,7 @@
                             size_hint: (2, 1)
                             MDIconButton:
                                 icon: 'magnify'
+                                on_press: root.manager.current = 'search'
                         MDBoxLayout:
                             size_hint: (2, 1)
                             MDIconButton:
@@ -741,6 +742,175 @@
                     on_press: root.ids.timeline.clear_widgets()
                     on_press: root.logout()
 
+<SearchScreen>:
+
+    name: 'search'
+    orientation: 'vertical'
+    
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'                    
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        id: titlebar
+                        orientation: 'horizontal'
+                        spacing: '10'
+                        size_hint: (1, .08)
+                        MDIconButton:
+                            icon: 'arrow-left'
+                            on_press: root.manager.current = 'homepage_read_only'
+                            padding: 50
+
+                        MDBoxLayout:                            
+                            orientation: 'vertical'  
+                            id: searchBoxLayout
+                            size_hint: (.8, 1)
+
+                            MDTextField:
+                                hint_text: "Desoliscious"
+                                mode: "round"
+                                helper_text: "Search Deso"
+                                on_text_validate: root.search()
+                                id: searchField
+
+                                MDIconButton:
+                                    icon: "magnify"
+                                    pos_hint: {"center_x": .05, "center_y": .5}
+                                    theme_text_color: "Hint"
+                        Widget:
+                            size_hint: (.1, 1)
+                            id: searchBoxRight
+                                    
+                                                        
+
+                      
+                            
+                    MDBoxLayout:
+                        ScrollView:
+                            bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            on_touch_up: root.touch_up_value(self)
+
+                            MDBoxLayout:
+                                adaptive_height: True
+                                orientation: 'vertical'
+                                id: mainLayout
+
+                                MDBoxLayout:
+                                    adaptive_height: True
+                                    id: searchLayout
+                                    orientation: 'vertical'
+                                    spacing: '15'
+
+                                    MDTabs:
+                                        id: tabs
+                                        on_tab_switch: root.on_tab_switch(*args)
+
+                                        Tab:
+                                            icon: 'account'
+                                            text: 'People'
+                                            id: peopleTab
+                                            
+                                        Tab:
+                                            icon: 'pound'
+                                            text: 'Hashtags'
+                                            id: hashtagsTab
+
+                                       
+
+                                            
+                                    
+                                            
+
+                                    
+
+                                MDBoxLayout:
+                                    orientation: 'vertical'
+                                    adaptive_height: True
+                                    spacing: '50'
+                                    id: timeline
+
+                                
+
+                    MDBoxLayout:
+                        adaptive_height: True
+                        size_hint: (1, .1)
+                        anchor: 'bottom'
+                        id: bottombar
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'home'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'magnify'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'plus-box-outline'
+                                on_press: root.manager.current = 'create_post'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                on_press: root.manager.current = 'notifications'
+                                icon: 'alert-circle-outline'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'message-text-outline'
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+
+            MDNavigationDrawerMenu:
+
+                MDNavigationDrawerHeader:
+                    title: "Account Info"
+                    title_color: "#4a4939"
+                    text: root.profileName
+                    spacing: "4dp"
+                    padding: "12dp", 0, 0, "56dp"
+
+                DrawerClickableItem:
+                    id: profile
+                    icon: "account"
+                    text: "Profile"
+                    on_press: root.slideout_profile_pressed()
+                    
+
+                DrawerClickableItem:
+                    icon: "send"
+                    right_text: "+99"
+                    text: "Chat"
+                    text_right_color: "#4a4939"
+
+                MDNavigationDrawerDivider:
+
+                MDNavigationDrawerLabel:
+                    text: "Labels"
+
+                DrawerClickableItem:
+                    icon: "home"
+                    text: "Home"
+
+                DrawerClickableItem:
+                    icon: "close"
+                    text: "Log out"
+                    on_press: root.ids.timeline.clear_widgets()
+                    on_press: root.logout()
+
+
+<Tab>
+    
+        
+
 <CreatePostScreen>:
     name: 'create_post'
     orientation: 'vertical'
@@ -907,6 +1077,14 @@
 
 <PostLayout>
     id: postLayout
+    orientation: 'vertical'
+    size_hint: 1, None
+        
+    MDBoxLayout:
+        id: nftButtonBox
+        adaptive_height: True
+        orientation: 'horizontal'
+
 
 # fun result with low segments!
 <LineEllipse3>:

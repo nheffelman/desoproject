@@ -35,6 +35,7 @@ import re
 from functools import lru_cache, wraps
 from Post import SinglePostScreen
 from profilescreen import ProfileScreen
+from searchscreen import SearchScreen
 
 global currentPost 
 global loggedIn
@@ -1329,12 +1330,15 @@ class CreatePostScreen(MDScreen):
                 desoMedia = deso.Media(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                 imageFileList = [('file', ('screenshot.jpg', open(imagePath, "rb"), 'image/png'))]
                 responseURL = desoMedia.uploadImage(imageFileList)
+                print(responseURL.json()['ImageURL'], 'image url')
+                
 
                 imageURLs.append(responseURL.json()['ImageURL'])
             SEED_HEX = settings['seedHex']
             PUBLIC_KEY = settings['publicKey']
             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
             post_response = desoSocial.submitPost(body=postBody, imageURLs=imageURLs ).json()
+            print(post_response)
 
             self.clearPostWidgets()
             self.manager.current = 'homepage_read_only'
@@ -1451,6 +1455,8 @@ class NotificationsScreen(MDScreen):
             pickle_post(postHashHex)
             self.manager.current = 'single_post'
 
+
+
 # Create the main app
 class MainApp(MDApp):
 
@@ -1470,6 +1476,7 @@ class MainApp(MDApp):
         sm.add_widget(SinglePostScreen(name='single_post'))
         sm.add_widget(ProfileScreen(name='profile')),
         sm.add_widget(SeedLoginScreen(name='seed_login'))
+        sm.add_widget(SearchScreen(name='search'))
         sm.add_widget(CreatePostScreen(name='create_post'))
 
         
