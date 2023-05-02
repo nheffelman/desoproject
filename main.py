@@ -762,8 +762,14 @@ class HomePageReadOnlyScreen(MDScreen):
             toast('refreshing')
             if self.ids.timeline.children:
                 self.refresh_posts(target_widget=self.ids.timeline.children[-1])
-                        
-
+    
+    #pickles ref and sets the current screen search                   
+    def ref_pressed(self, ref):
+        settings = unpickle_settings()
+        settings['ref'] = ref
+        pickle_settings(settings)
+        self.manager.current = 'search'
+        
     def refresh_posts(self, target_widget=None):
         
         self.ids.timeline.clear_widgets()
@@ -888,7 +894,7 @@ class HomePageReadOnlyScreen(MDScreen):
                       
             
         return userposts,following
-
+    
     def list_posts(self):
                
         userposts, following = self.get_posts()
@@ -935,8 +941,18 @@ class HomePageReadOnlyScreen(MDScreen):
             layout.add_widget(header)
             layout.height += header.height
 
-            #get the post body and find any links
+            #get the post body and find any links or hotlinks
             body=str(post['Body'])
+            newText = []
+            textList = body.split()
+            for i in textList:
+            	if(i.startswith("#")) or (i.startswith("@")):
+            		i = i.replace(i, ('[ref='+i+'][color=0000ff]'+i+'[/color][/ref]'))
+            	newText.append(i)
+            	
+            body = ' '.join(newText)
+	
+
             lineCount = 1
             lineCount += body.count('\n')
             
@@ -947,7 +963,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 beforeUrl = body.split(url,1)[0]
 
                 if beforeUrl !='':
-                    bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                    bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup = True)
                     bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
@@ -981,8 +997,9 @@ class HomePageReadOnlyScreen(MDScreen):
                     previewHeight -= 250
             #add any remaining body to the layout
             if body != '':
-                bodyLabel = BodyLabel(text=body, padding= [20,20])
-                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                bodyLabel = BodyLabel(text=body, padding= [20,20], markup = True)
+                bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                    on_ref_press = lambda widget, ref: self.ref_pressed(ref))
             	#add the body card to the layout
                 layout.add_widget(bodyLabel)
                 layout.height += bodyLabel.height

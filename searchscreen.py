@@ -795,30 +795,51 @@ class SearchScreen(MDScreen):
         if self.ids.timeline.children:
             self.ids.timeline.clear_widgets()
 
-        print('search box field is: ' + self.searchText)
-        if self.searchText == '':
-            query = 'desoliscious'
-        else:
-            query = self.searchText
-
-        print('text', text)
-        if text != None:
-            currentTab = text
-        else:
-            currentTab = 'People'
-        
+        #inisialize the posts list
         posts = []
 
-        print('current tab is: ', currentTab)
-        if currentTab == 'People':
-            print('people is current tab')
-            posts, following = self.get_posts_for_people(query)       
-        elif currentTab == 'Hashtags':
-            print('hashtag is current tab')
-            posts, following = self.get_posts_for_hashtag(query)    
+        settings = unpickle_settings()
+        if 'ref' in settings:
+            print('in ref')
+            ref = settings['ref']
+            query = ref[1:]
+            self.searchText=query
+            print ('query is: ' + query)
+            if ref.startswith('@'):
+                posts, following = self.get_posts_for_people(query)
+                self.ids.tabs.switch_tab('People')
+            elif ref.startswith('#'):
+                posts, following = self.get_posts_for_hashtag(query)
+                self.ids.tabs.switch_tab('Hashtags')
+            #delete ref in settings
+            del settings['ref']
+            pickle_settings(settings)
+            toast('ref is: ' + ref)
+
+        #else user hit search icon and wants to type in a search query
+        else:
+            print('search box field is: ' + self.searchText)
+            if self.searchText == '':
+                query = 'desoliscious'
+            else:
+                query = self.searchText
+
+            print('text', text)
+            if text != None:
+                currentTab = text
+            else:
+                currentTab = 'People'        
+
+            print('current tab is: ', currentTab)
+            if currentTab == 'People':
+                print('people is current tab')
+                posts, following = self.get_posts_for_people(query)       
+            elif currentTab == 'Hashtags':
+                print('hashtag is current tab')
+                posts, following = self.get_posts_for_hashtag(query)    
         
         if not posts:
-            toast('no posts found')
+            print('no posts found')
             return
 
         else:                  
