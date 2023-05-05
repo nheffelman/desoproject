@@ -296,7 +296,8 @@ class SearchScreen(MDScreen):
             loggedIn = settings['loggedIn']
 
 
-        
+        self.iter_list_names = iter(list(self.ids.tabs.get_tab_list()))
+
         self.username = profile['Profile']['Username']
         self.profile_picture = deso.User().getProfilePicURL(
                     profile['Profile']['PublicKeyBase58Check'])
@@ -320,6 +321,19 @@ class SearchScreen(MDScreen):
         pickle_post(postHashHex)
 
         self.manager.current = 'single_post'
+
+    #switches the tab given a name
+    def switch_tab_by_name(self, x):
+        '''Switching the tab by name.'''
+
+        try:
+            x = next(self.iter_list_names)
+            print(f"Switch slide by name, next element to show: [{x}]")
+            self.ids.tabs.switch_tab(x)
+        except StopIteration:
+            # Reset the iterator an begin again.
+            self.iter_list_names = iter(list(self.ids.tabs.get_tab_list()))
+            self.switch_tab_by_name()
 
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
             text = instance_tab.text
@@ -679,7 +693,7 @@ class SearchScreen(MDScreen):
         if 'publicKey' in settings:
             publicKey = settings['publicKey']
         else:
-            publicKey = profile['PublicKeyBase58Check']
+            publicKey = profile['Profile']['PublicKeyBase58Check']
         
 
         #get the users following list
@@ -718,7 +732,7 @@ class SearchScreen(MDScreen):
             #get trending posts for the stateless user
             posts = deso.Posts()
             posts.readerPublicKey = None
-            userposts = posts.getHotFeed(hashtag=query, responseLimit=100).json()
+            userposts = posts.getHotFeed(hashtag=query, responseLimit=200).json()
             if userposts['HotFeedPage'] != None:
                 userposts = userposts['HotFeedPage']       
                 #save the posts to the cache
@@ -739,7 +753,7 @@ class SearchScreen(MDScreen):
         if 'publicKey' in settings:
             publicKey = settings['publicKey']
         else:
-            publicKey = profile['PublicKeyBase58Check']
+            publicKey = profile['Profile']['PublicKeyBase58Check']
         
 
         #get the users following list
@@ -777,7 +791,7 @@ class SearchScreen(MDScreen):
             
             posts = deso.Posts()
             posts.readerPublicKey = None
-            userposts = posts.getHotFeed(taggedUsername=query, responseLimit=1).json()
+            userposts = posts.getHotFeed(taggedUsername=query, responseLimit=200).json()
             print(userposts, 'userposts')
             if userposts['HotFeedPage'] != None:
                 userposts = userposts['HotFeedPage']       
@@ -801,16 +815,17 @@ class SearchScreen(MDScreen):
         settings = unpickle_settings()
         if 'ref' in settings:
             print('in ref')
-            ref = settings['ref']
+            ref = settings['ref'].lower()
+            
             query = ref[1:]
             self.searchText=query
             print ('query is: ' + query)
             if ref.startswith('@'):
                 posts, following = self.get_posts_for_people(query)
-                self.ids.tabs.switch_tab('People')
+                self.switch_tab_by_name('People')
             elif ref.startswith('#'):
                 posts, following = self.get_posts_for_hashtag(query)
-                self.ids.tabs.switch_tab('Hashtags')
+                self.switch_tab_by_name('Hashtags')
             #delete ref in settings
             del settings['ref']
             pickle_settings(settings)
@@ -822,7 +837,7 @@ class SearchScreen(MDScreen):
             if self.searchText == '':
                 query = 'desoliscious'
             else:
-                query = self.searchText
+                query = self.searchText.lower()
 
             print('text', text)
             if text != None:
@@ -917,7 +932,7 @@ class SearchScreen(MDScreen):
                         if preview.image:
 
                             preview_image = MDCard(size_hint_y=None, height=450, radius=[18,0])
-                            aImage = AsyncImage(source=preview.image, allow_stretch=True, keep_ratio=True)
+                            aImage = AsyncImage(source=str(preview.image), allow_stretch=True, keep_ratio=True)
                             preview_image.add_widget(aImage)
                             preview_image.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                             if preview.title:

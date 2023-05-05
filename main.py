@@ -964,7 +964,8 @@ class HomePageReadOnlyScreen(MDScreen):
 
                 if beforeUrl !='':
                     bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup = True)
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                    on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
 
