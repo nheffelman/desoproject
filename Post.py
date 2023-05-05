@@ -1156,7 +1156,7 @@ class SinglePostScreen(MDScreen):
 
             #add a label to the comment layout
             commentLabel = CommentLabel(text='Make a Comment', valign='center')  
-            commentLabel.bind(on_press=lambda widget, reactions, postHashHex=post['PostHashHex']: self.comment(postHashHex))
+            commentLabel.bind(on_press=lambda widget, reactions=reactions, postHashHex=post['PostHashHex']: self.comment(postHashHex, reactions))
             newCommentLayout.add_widget(commentLabel)
 
             #add a reply button to the comment layout
