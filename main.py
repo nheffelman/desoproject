@@ -940,9 +940,10 @@ class HomePageReadOnlyScreen(MDScreen):
             #add the header to the layout
             layout.add_widget(header)
             layout.height += header.height
-
-            #get the post body and find any links or hotlinks
+            
             body=str(post['Body'])
+
+            #get the post body hotlinks            
             newText = []
             textList = body.split()
             for i in textList:
@@ -952,11 +953,8 @@ class HomePageReadOnlyScreen(MDScreen):
             	
             body = ' '.join(newText)
 	
-
-            lineCount = 1
-            lineCount += body.count('\n')
-            
             urls = re.findall(r'(https?://[^\s]+)', body)
+
             #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
             previewHeight = 0
             for url in urls:
@@ -1078,20 +1076,25 @@ class HomePageReadOnlyScreen(MDScreen):
                     
                 #get the reclout post body and find any links
                 body=str(post['RecloutedPostEntryResponse']['Body'])
-                repostLineCount = body.count('\n')
-                repostPostLength = len(body)
-                recloutHeight = 0
-
-                urls = re.findall(r'(https?://[^\s]+)', body)
-                #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                #finds all hot links in the body
+                newText = []
+                textList = body.split()
+                for i in textList:
+                    if(i.startswith("#")) or (i.startswith("@")):
+                        i = i.replace(i, ('[ref='+i+'][color=0000ff]'+i+'[/color][/ref]'))
+                    newText.append(i)            	
+                body = ' '.join(newText)
+                #separate html links from the body text make labels for the text and cards for the links, then add them to the layout
+                urls = re.findall(r'(https?://[^\s]+)', body)                
                 repostPreviewHeight = 0
                 previewImages = []
                 for url in urls:
                     beforeUrl = body.split(url,1)[0]
 
                     if beforeUrl != '':
-                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25], markup=True)
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                       on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         rightLayout.add_widget(bodyLabel)
                         rightLayout.height += bodyLabel.height * 1.5
                     body = body.split(url,1)[1] 
@@ -1126,8 +1129,9 @@ class HomePageReadOnlyScreen(MDScreen):
                         repostPreviewHeight += 25
                 #add any remaining body to the layout
                 if body != '':
-                    bodyLabel = BodyLabel(text=body)
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    bodyLabel = BodyLabel(text=body, markup = True)
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                   on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     #add the body card to the layout
                     rightLayout.add_widget(bodyLabel)
                     rightLayout.height += bodyLabel.height * 1.5

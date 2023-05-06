@@ -653,7 +653,12 @@ class SearchScreen(MDScreen):
         self.list_posts()
 
 
-
+    #pickles ref and sets the current screen search                   
+    def ref_pressed(self, ref):
+        settings = unpickle_settings()
+        settings['ref'] = ref
+        pickle_settings(settings)
+        self.on_enter()
     
 
     #monitors the scrollview and calls refresh when it reaches the bottom
@@ -904,20 +909,27 @@ class SearchScreen(MDScreen):
 
                 #get the post body and find any links
                 body=str(post['Body'])
-                lineCount = 1
-                lineCount += body.count('\n')
-                postLength = len(body)
-                recloutHeight = 0
-
-                urls = re.findall(r'(https?://[^\s]+)', body)
+                
+                #finds all hot links in the body
+                newText = []
+                textList = body.split()
+                for i in textList:
+                    if(i.startswith("#")) or (i.startswith("@")):
+                        i = i.replace(i, ('[ref='+i+'][color=0000ff]'+i+'[/color][/ref]'))
+                    newText.append(i)            	
+                body = ' '.join(newText)
+                
                 #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                urls = re.findall(r'(https?://[^\s]+)', body)
+                
                 previewHeight = 0
                 for url in urls:
                     beforeUrl = body.split(url,1)[0]
 
                     if beforeUrl !='':
-                        bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                       on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         layout.add_widget(bodyLabel)
                         layout.height += bodyLabel.height
 
@@ -948,8 +960,9 @@ class SearchScreen(MDScreen):
                         previewHeight -= 250
                 #add any remaining body to the layout
                 if body != '':
-                    bodyLabel = BodyLabel(text=body, padding= [20,20])
-                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                    bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                   on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     #add the body card to the layout
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
@@ -1031,20 +1044,28 @@ class SearchScreen(MDScreen):
                         
                     #get the reclout post body and find any links
                     body=str(post['RecloutedPostEntryResponse']['Body'])
-                    repostLineCount = body.count('\n')
-                    repostPostLength = len(body)
-                    recloutHeight = 0
-
-                    urls = re.findall(r'(https?://[^\s]+)', body)
+                    
+                    #finds all hot links in the body
+                    newText = []
+                    textList = body.split()
+                    for i in textList:
+                        if(i.startswith("#")) or (i.startswith("@")):
+                            i = i.replace(i, ('[ref='+i+'][color=0000ff]'+i+'[/color][/ref]'))
+                        newText.append(i)            	
+                    body = ' '.join(newText)
+                    
                     #separate the links from the body text make labels for the text and cards for the links, then add them to the layout
+                    urls = re.findall(r'(https?://[^\s]+)', body)
+                    
                     repostPreviewHeight = 0
                     previewImages = []
                     for url in urls:
                         beforeUrl = body.split(url,1)[0]
 
                         if beforeUrl != '':
-                            bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25])
-                            bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                            bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25], markup=True)
+                            bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                           on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                             rightLayout.add_widget(bodyLabel)
                             rightLayout.height += bodyLabel.height * 1.5
                         body = body.split(url,1)[1] 
@@ -1079,8 +1100,9 @@ class SearchScreen(MDScreen):
                             repostPreviewHeight += 25
                     #add any remaining body to the layout
                     if body != '':
-                        bodyLabel = BodyLabel(text=body)
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                        bodyLabel = BodyLabel(text=body, markup=True)
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                       on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         #add the body card to the layout
                         rightLayout.add_widget(bodyLabel)
                         rightLayout.height += bodyLabel.height * 1.5
