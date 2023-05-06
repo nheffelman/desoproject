@@ -310,6 +310,11 @@ class ProfileScreen(MDScreen):
         loggedIn = False
         self.manager.current = 'login'
 
+    def home_pressed(self):
+        home = self.manager.get_screen('homepage_read_only')
+        home.home()
+        self.manager.current = 'homepage_read_only'
+
     #changes to the single read post screen
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -323,10 +328,13 @@ class ProfileScreen(MDScreen):
             toast(profile['error'])
         else:
             pickle_profile(profile)
-        self.ids.stories.clear_widgets()
-        self.ids.timeline.clear_widgets()
-        self.list_stories()
-        self.list_posts()
+        
+        home = self.manager.get_screen('homepage_read_only')
+        home.ids.stories.clear_widgets()
+        home.list_stories()
+        home.ids.timeline.clear_widgets()
+        home.list_posts()
+        self.manager.current = 'homepage_read_only'
         
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
     def like(self, postHashHex, liked, reactions):
@@ -554,20 +562,22 @@ class ProfileScreen(MDScreen):
             self.follow(args[1])
         elif args[0] == "Unfollow":
             self.unfollow(args[1])
-
+        elif args[0] == "View Feed":
+            self.storie_switcher(args[1])
+            
     #function to change 3dots data(self, following)
     def change_3dots_data(self, following):
         if following == True:
             data = {
             "Unfollow": "account-minus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }
         else:
             data = {
             "Follow": "account-plus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }
