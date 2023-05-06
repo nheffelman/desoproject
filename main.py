@@ -635,20 +635,22 @@ class HomePageReadOnlyScreen(MDScreen):
             self.follow(args[1])
         elif args[0] == "Unfollow":
             self.unfollow(args[1])
-
+        elif args[0] == "View Feed":
+            self.storie_switcher(args[1])
+            
     #function to change 3dots data(self, following)
     def change_3dots_data(self, following):
         if following == True:
             data = {
             "Unfollow": "account-minus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }
         else:
             data = {
             "Follow": "account-plus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }

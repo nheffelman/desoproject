@@ -731,30 +731,52 @@ class SinglePostScreen(MDScreen):
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
         print(response)
 
+    def storie_switcher(self, publicKey):
+        desoUser = deso.User()
+        profile = desoUser.getSingleProfile(publicKey=publicKey).json()
+        if 'error' in profile:
+            toast(profile['error'])
+        else:
+            pickle_profile(profile)
+        
+        home = self.manager.get_screen('homepage_read_only')
+        home.ids.stories.clear_widgets()
+        home.list_stories()
+        home.ids.timeline.clear_widgets()
+        home.list_posts()
+        self.manager.current = 'homepage_read_only'
+
     def callback_for_menu_items(self, *args):
         toast(args[0])
         if args[0] == "Follow":
             self.follow(args[1])
         elif args[0] == "Unfollow":
             self.unfollow(args[1])
-
+        elif args[0] == "View Feed":
+            self.storie_switcher(args[1])
+            
     #function to change 3dots data(self, following)
     def change_3dots_data(self, following):
         if following == True:
             data = {
             "Unfollow": "account-minus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }
         else:
             data = {
             "Follow": "account-plus",
-            "Share": "share-variant",
+            "View Feed": "account-eye",
             "Report": "alert-circle",
             "Cancel": "cancel",
             }
         return data
+
+    def home_pressed(self):
+        home = self.manager.get_screen('homepage_read_only')
+        home.home()
+        self.manager.current = 'homepage_read_only'
     
     #goto profile page for logged in user
     def profile_pressed(self, profileKey):
@@ -994,7 +1016,7 @@ class SinglePostScreen(MDScreen):
                 else:
                     data = self.change_3dots_data(following=False)
                 three_dots = MDIconButton(icon='dots-vertical')
-                three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+                three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['RepostedPostEntryResponse']['PosterPublicKeyBase58Check']))
                 
                 #add the one line avatar list item to the header
                 header.add_widget(olali)
