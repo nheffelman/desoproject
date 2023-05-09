@@ -835,6 +835,7 @@ class SearchScreen(MDScreen):
             query = ref[1:]
             self.searchText=query
             print ('query is: ' + query)
+            self.ids.searchField.text = query
             if ref.startswith('@'):
                 posts, following = self.get_posts_for_people(query)
                 self.switch_tab_by_name('People')
@@ -853,7 +854,7 @@ class SearchScreen(MDScreen):
                 query = 'desoliscious'
             else:
                 query = self.searchText.lower()
-
+            
             print('text', text)
             if text != None:
                 currentTab = text
@@ -863,9 +864,11 @@ class SearchScreen(MDScreen):
             print('current tab is: ', currentTab)
             if currentTab == 'People':
                 print('people is current tab')
+                self.ids.searchField.text = '@' + query
                 posts, following = self.get_posts_for_people(query)       
             elif currentTab == 'Hashtags':
                 print('hashtag is current tab')
+                self.ids.searchField.text = '#' + query
                 posts, following = self.get_posts_for_hashtag(query)    
         
         if not posts:

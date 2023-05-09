@@ -21,7 +21,7 @@ from kivymd.uix.card import (
 )
 from kivymd.uix.list import MDList, OneLineListItem, OneLineAvatarIconListItem, ImageLeftWidget, IconRightWidget
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -36,6 +36,7 @@ from functools import lru_cache, wraps
 from Post import SinglePostScreen
 from profilescreen import ProfileScreen
 from searchscreen import SearchScreen
+from transactionsscreen import TransactionsScreen
 
 global currentPost 
 global loggedIn
@@ -62,6 +63,22 @@ def unpickle_settings():
     else:
         settings = {}  
     return settings
+
+#pickles transactions
+def pickle_transactions(transactions):
+    with open('temp/transactions.pickle', 'wb') as handle:
+        pickle.dump(transactions, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+#unpickles transactions
+def unpickle_transactions():
+    if os.path.exists('temp/transactions.pickle'):
+        with open('temp/transactions.pickle', 'rb') as handle:
+            transactions = pickle.load(handle)
+
+    else:
+        transactions = {}  
+    return transactions
 
 #unpickles the current post
 def unpickle_post():
@@ -419,6 +436,45 @@ class HomePageReadOnlyScreen(MDScreen):
         self.ids.timeline.clear_widgets()
         self.list_stories()
         self.list_posts()
+
+    def transactions(self):
+        self.dialog.dismiss(),
+        self.manager.current = 'transactions' 
+
+    def transaction_dialog(self, transaction, settings):
+        transactions = unpickle_transactions()               
+        if 'publicKey' in settings:
+            publicKey = settings['publicKey']
+            if publicKey in transactions:
+                if transaction in transactions[publicKey]:
+                    pass
+                else:
+                    transactions[publicKey].append(transaction)
+            else:
+                transactions[publicKey] = [transaction]
+        pickle_transactions(transactions)
+
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Transaction",
+                text=str(transaction)[:288],
+                type="simple",
+                buttons=[
+                    MDFlatButton(
+                        text="Transactions",
+                        theme_text_color="Custom",
+                        on_release=lambda x: self.transactions(), 
+                    ),
+                    MDFlatButton(
+                        text="Close",
+                        theme_text_color="Custom",
+                        #text_color=self.theme_cls.primary_color,
+                        on_release=lambda x: self.dialog.dismiss(),
+
+                    ),
+                ],
+            )
+        self.dialog.open()
         
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
     def like(self, postHashHex, liked, reactions):
@@ -438,7 +494,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=False)
-                    print(response.json())
+                    self.transaction_dialog(response.json(), settings)
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -448,7 +504,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=True)
-                    print(response.json())
+                    self.transaction_dialog(response.json(), settings)
 
 
     #when a user presses comment, opens a dialog box to allow user to comment on a post
@@ -490,14 +546,15 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-        print(comment_response)
+        
         self.dialog.dismiss()
         self.dialog = None
         if 'error' in comment_response:
+            self.transaction_dialog(comment_response, settings)
             return False
         else:
             reactions.comments = str(int(reactions.comments) + 1)
-            
+            self.transaction_dialog(comment_response, settings)           
 
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -521,10 +578,11 @@ class HomePageReadOnlyScreen(MDScreen):
                         if reactions.diamonded == False:
                             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                             response = desoSocial.diamond(postHashHex=postHashHex, receiverPublicKey=receiverPublicKey)
-                            print(response.json())
+                            
                             reactions.ids.diamond.icon = 'diamond'
                             reactions.diamonds = str(int(reactions.diamonds) + 1)
                             reactions.diamonded = True
+                            self.transaction_dialog(response.json(), settings)
                         else:
                             toast('You have already diamonded this post')
                     else: 
@@ -573,10 +631,12 @@ class HomePageReadOnlyScreen(MDScreen):
         self.dialog = None
         print(quoteclout_response)
         if 'error' in quoteclout_response:
+            self.transaction_dialog(quoteclout_response, settings)
             return False
         else:
             reactions.ids.reclout.icon = 'repeat-variant'
             reactions.reclouted = str(int(reactions.reclouted) + 1)       
+            self.transaction_dialog(quoteclout_response, settings)
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reactions):
@@ -591,10 +651,12 @@ class HomePageReadOnlyScreen(MDScreen):
         print(reclout_response)
 
         if 'error' in reclout_response:
+            self.transaction_dialog(reclout_response, settings)
             return False
         else:
             reactions.ids.reclout.icon = 'repeat-variant'
-            reactions.reclouted = str(int(reactions.reclouted) + 1)       
+            reactions.reclouted = str(int(reactions.reclouted) + 1)    
+            self.transaction_dialog(reclout_response, settings)   
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
@@ -619,7 +681,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
         response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
-        print(response)
+        self.transaction_dialog(response.json(), settings)
     
     def follow(self, whoToFollow):
         settings=unpickle_settings()
@@ -627,7 +689,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
-        print(response)
+        self.transaction_dialog(response.json(), settings)
         
     def callback_for_menu_items(self, *args):
         toast(args[0])
@@ -1497,6 +1559,7 @@ class MainApp(MDApp):
         sm.add_widget(UserNameLoginScreen(name='username_login'))
         sm.add_widget(HomePageReadOnlyScreen(name='homepage_read_only'))
         sm.add_widget(NotificationsScreen(name='notifications'))
+        sm.add_widget(TransactionsScreen(name='transactions'))
         sm.add_widget(SinglePostScreen(name='single_post'))
         sm.add_widget(ProfileScreen(name='profile')),
         sm.add_widget(SeedLoginScreen(name='seed_login'))
