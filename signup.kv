@@ -943,8 +943,43 @@
 
 
 <Tab>
+
+<TransactionsScreen>:
+
+    name: 'transactions'
+    orientation: 'vertical'
     
-        
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'                    
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        id: titlebar
+                        orientation: 'horizontal'
+                        spacing: '10'
+                        size_hint: (1, .08)
+                        MDIconButton:
+                            icon: 'arrow-left'
+                            on_press: root.manager.current = 'homepage_read_only'
+                            padding: 50
+
+                    MDBoxLayout:
+                        ScrollView:
+                            bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            #on_touch_up: root.touch_up_value(self)
+
+                            MDBoxLayout:
+                                adaptive_height: True
+                                orientation: 'vertical'
+                                id: mainLayout
+
 
 <CreatePostScreen>:
     name: 'create_post'

@@ -82,6 +82,22 @@ def unpickle_settings():
         settings = {}  
     return settings
 
+#pickles transactions
+def pickle_transactions(transactions):
+    with open('temp/transactions.pickle', 'wb') as handle:
+        pickle.dump(transactions, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+#unpickles transactions
+def unpickle_transactions():
+    if os.path.exists('temp/transactions.pickle'):
+        with open('temp/transactions.pickle', 'rb') as handle:
+            transactions = pickle.load(handle)
+
+    else:
+        transactions = {}  
+    return transactions
+
 #unpickles the current post
 def unpickle_post():
     with open('temp/post.pickle', 'rb') as handle:
@@ -306,6 +322,24 @@ class SinglePostScreen(MDScreen):
         pickle_post(postHashHex)
 
         self.manager.current = 'single_post'
+
+    def transactions(self):
+        self.dialog.dismiss(),
+        self.manager.current = 'transactions' 
+
+    def transaction_dialog(self, transaction, settings):
+        transactions = unpickle_transactions()               
+        if 'publicKey' in settings:
+            publicKey = settings['publicKey']
+            if publicKey in transactions:
+                if transaction in transactions[publicKey]:
+                    pass
+                else:
+                    transactions[publicKey].append(transaction)
+            else:
+                transactions[publicKey] = [transaction]
+        pickle_transactions(transactions)
+
 
 	#expands comments to display sub comments
     def expand_comment(self, postHashHex, commentLayout):
@@ -548,7 +582,8 @@ class SinglePostScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=False)
-                    print(response.json())
+                    self.transaction_dialog(response.json(), settings)
+                    
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -558,7 +593,7 @@ class SinglePostScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=True)
-                    print(response.json())
+                    self.transaction_dialog(response.json(), settings)
 
 
     #when a user presses comment, opens a dialog box to allow user to comment on a post
@@ -605,9 +640,11 @@ class SinglePostScreen(MDScreen):
         self.dialog.dismiss()
         self.dialog = None
         if 'error' in comment_response:
+            self.transaction_dialog(comment_response, settings)
             return False
         else:
             reactions.comments = str(int(reactions.comments) + 1)
+            self.transaction_dialog(comment_response, settings)
 
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -635,6 +672,7 @@ class SinglePostScreen(MDScreen):
                             reactions.ids.diamond.icon = 'diamond'
                             reactions.diamonds = str(int(reactions.diamonds) + 1)
                             reactions.diamonded = True
+                            self.transaction_dialog(response.json(), settings)
                         else:
                             toast('You have already diamonded this post')
                     else: 
@@ -678,11 +716,14 @@ class SinglePostScreen(MDScreen):
         desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         
         quoteclout_response = desoSocial.quote(postHashHexToQuote=postHashHexToQuote, body=self.dialog.content_cls.ids.quote.text, ).json()
+        
         self.dialog.dismiss()
         self.dialog = None
 
         if 'error' in quoteclout_response:
+            self.transaction_dialog(quoteclout_response, settings)
             return False
+        self.transaction_dialog(quoteclout_response, settings)
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reclouted, reactions):
@@ -696,7 +737,9 @@ class SinglePostScreen(MDScreen):
         reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
 
         if 'error' in reclout_response:
+            self.transaction_dialog(reclout_response, settings)
             return False
+        self.transaction_dialog(reclout_response, settings)
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
