@@ -366,6 +366,7 @@ class HomePageReadOnlyScreen(MDScreen):
     avatar = StringProperty("")
     dialog = None
     follow_unfollow = StringProperty("")
+    transaction_dialog = BooleanProperty(True)
     
     def on_enter(self):
         
@@ -438,10 +439,12 @@ class HomePageReadOnlyScreen(MDScreen):
         self.list_posts()
 
     def transactions(self):
-        self.dialog.dismiss(),
+        if self.dialog:
+            self.dialog.dismiss()
         self.manager.current = 'transactions' 
 
-    def transaction_dialog(self, transaction, settings):
+    #determines to show dialog and saves all transactions to pickle file
+    def transaction_function(self, transaction, settings):
         transactions = unpickle_transactions()               
         if 'publicKey' in settings:
             publicKey = settings['publicKey']
@@ -454,27 +457,39 @@ class HomePageReadOnlyScreen(MDScreen):
                 transactions[publicKey] = [transaction]
         pickle_transactions(transactions)
 
-        if not self.dialog:
-            self.dialog = MDDialog(
-                title="Transaction",
-                text=str(transaction)[:288],
-                type="simple",
-                buttons=[
-                    MDFlatButton(
-                        text="Transactions",
-                        theme_text_color="Custom",
-                        on_release=lambda x: self.transactions(), 
-                    ),
-                    MDFlatButton(
-                        text="Close",
-                        theme_text_color="Custom",
-                        #text_color=self.theme_cls.primary_color,
-                        on_release=lambda x: self.dialog.dismiss(),
+        #check settings to see if transaction dialog is true, show the transaction dialog
+        if 'transaction_dialog' in settings:
+            if settings['transaction_dialog'] == True:
+                self.transaction_dialog = True
+            else:
+                self.transaction_dialog = False
+        else:
+            settings['transaction_dialog'] = True
+            self.transaction_dialog = True
+            pickle_settings(settings)
+        if self.transaction_dialog:
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    title="Transaction",
+                    text=str(transaction)[:288],
+                    type="simple",
+                    buttons=[
+                        MDFlatButton(
+                            text="Transactions",
+                            theme_text_color="Custom",
+                            on_release=lambda x: self.transactions(), 
+                        ),
+                        MDFlatButton(
+                            text="Close",
+                            theme_text_color="Custom",
+                            #text_color=self.theme_cls.primary_color,
+                            on_release=lambda x: self.dialog.dismiss(),
 
-                    ),
-                ],
-            )
-        self.dialog.open()
+                        ),
+                    ],
+                )
+            self.dialog.open()
+        return
         
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
     def like(self, postHashHex, liked, reactions):
@@ -494,7 +509,7 @@ class HomePageReadOnlyScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=False)
-                    self.transaction_dialog(response.json(), settings)
+                    self.transaction_function(response.json(), settings)
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -503,8 +518,9 @@ class HomePageReadOnlyScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                    response = desoSocial.like(postHashHex=postHashHex, isLike=True)
-                    self.transaction_dialog(response.json(), settings)
+                    response = desoSocial.like(postHashHex=postHashHex, isLike=True).json()
+                    
+                    self.transaction_function(response, settings)
 
 
     #when a user presses comment, opens a dialog box to allow user to comment on a post
@@ -550,11 +566,11 @@ class HomePageReadOnlyScreen(MDScreen):
         self.dialog.dismiss()
         self.dialog = None
         if 'error' in comment_response:
-            self.transaction_dialog(comment_response, settings)
+            self.transaction_function(comment_response, settings)
             return False
         else:
             reactions.comments = str(int(reactions.comments) + 1)
-            self.transaction_dialog(comment_response, settings)           
+            self.transaction_function(comment_response, settings)           
 
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -577,12 +593,14 @@ class HomePageReadOnlyScreen(MDScreen):
                     if receiverPublicKey != PUBLIC_KEY:
                         if reactions.diamonded == False:
                             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-                            response = desoSocial.diamond(postHashHex=postHashHex, receiverPublicKey=receiverPublicKey)
+                            response = desoSocial.diamond(postHashHex=postHashHex, receiverPublicKey=receiverPublicKey).json()
                             
                             reactions.ids.diamond.icon = 'diamond'
                             reactions.diamonds = str(int(reactions.diamonds) + 1)
                             reactions.diamonded = True
-                            self.transaction_dialog(response.json(), settings)
+                            
+
+                            self.transaction_function(response, settings)
                         else:
                             toast('You have already diamonded this post')
                     else: 
@@ -629,14 +647,14 @@ class HomePageReadOnlyScreen(MDScreen):
         quoteclout_response = desoSocial.quote(postHashHexToQuote=postHashHexToQuote, body=self.dialog.content_cls.ids.quote.text, ).json()
         self.dialog.dismiss()
         self.dialog = None
-        print(quoteclout_response)
+        
         if 'error' in quoteclout_response:
-            self.transaction_dialog(quoteclout_response, settings)
+            self.transaction_function(quoteclout_response, settings)
             return False
         else:
             reactions.ids.reclout.icon = 'repeat-variant'
             reactions.reclouted = str(int(reactions.reclouted) + 1)       
-            self.transaction_dialog(quoteclout_response, settings)
+            self.transaction_function(quoteclout_response, settings)
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reactions):
@@ -651,12 +669,12 @@ class HomePageReadOnlyScreen(MDScreen):
         print(reclout_response)
 
         if 'error' in reclout_response:
-            self.transaction_dialog(reclout_response, settings)
+            self.transaction_function(reclout_response, settings)
             return False
         else:
             reactions.ids.reclout.icon = 'repeat-variant'
             reactions.reclouted = str(int(reactions.reclouted) + 1)    
-            self.transaction_dialog(reclout_response, settings)   
+            self.transaction_function(reclout_response, settings)   
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
@@ -681,7 +699,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
         response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
-        self.transaction_dialog(response.json(), settings)
+        self.transaction_funtion(response.json(), settings)
     
     def follow(self, whoToFollow):
         settings=unpickle_settings()
@@ -689,7 +707,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
-        self.transaction_dialog(response.json(), settings)
+        self.transaction_function(response.json(), settings)
         
     def callback_for_menu_items(self, *args):
         toast(args[0])
@@ -1368,6 +1386,59 @@ class CreatePostScreen(MDScreen):
                 self.file_manager.back()
         return True
 
+    def transactions(self):
+        if self.dialog:
+            self.dialog.dismiss()
+        self.manager.current = 'transactions' 
+
+    #determines to show dialog and saves all transactions to pickle file
+    def transaction_function(self, transaction, settings):
+        transactions = unpickle_transactions()               
+        if 'publicKey' in settings:
+            publicKey = settings['publicKey']
+            if publicKey in transactions:
+                if transaction in transactions[publicKey]:
+                    pass
+                else:
+                    transactions[publicKey].append(transaction)
+            else:
+                transactions[publicKey] = [transaction]
+        pickle_transactions(transactions)
+
+        #check settings to see if transaction dialog is true, show the transaction dialog
+        if 'transaction_dialog' in settings:
+            if settings['transaction_dialog'] == True:
+                self.transaction_dialog = True
+            else:
+                self.transaction_dialog = False
+        else:
+            settings['transaction_dialog'] = True
+            self.transaction_dialog = True
+            pickle_settings(settings)
+        if self.transaction_dialog:
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    title="Transaction",
+                    text=str(transaction)[:288],
+                    type="simple",
+                    buttons=[
+                        MDFlatButton(
+                            text="Transactions",
+                            theme_text_color="Custom",
+                            on_release=lambda x: self.transactions(), 
+                        ),
+                        MDFlatButton(
+                            text="Close",
+                            theme_text_color="Custom",
+                            #text_color=self.theme_cls.primary_color,
+                            on_release=lambda x: self.dialog.dismiss(),
+
+                        ),
+                    ],
+                )
+            self.dialog.open()
+        return
+        
     def on_enter(self):
         settings = unpickle_settings()
         if settings['loggedIn'] != True:
@@ -1401,10 +1472,8 @@ class CreatePostScreen(MDScreen):
     #function to create a post, get all text, images, gifs, and videos and post to the blockchain
     def post(self):
         
-        toast(text=self.ids.postBox.text)
         postBody = self.ids.postBox.text
-       # postImage = self.ids.postImage.source
-       # postVideo = self.ids.postVideo.source
+       
         settings=unpickle_settings()
 
         if settings['loggedIn'] == True:
@@ -1424,8 +1493,7 @@ class CreatePostScreen(MDScreen):
             PUBLIC_KEY = settings['publicKey']
             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
             post_response = desoSocial.submitPost(body=postBody, imageURLs=imageURLs ).json()
-            print(post_response)
-
+            self.transaction_function(post_response, settings)
             self.clearPostWidgets()
             self.manager.current = 'homepage_read_only'
         else:

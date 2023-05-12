@@ -449,8 +449,10 @@
 
                 MDNavigationDrawerDivider:
 
-                MDNavigationDrawerLabel:
-                    text: "Labels"
+                DrawerClickableItem:
+                    icon: "code-json"
+                    text: "Transactions"
+                    on_press: root.transactions()
 
                 DrawerClickableItem:
                     icon: "home"
@@ -966,8 +968,18 @@
                         MDIconButton:
                             icon: 'arrow-left'
                             on_press: root.manager.current = 'homepage_read_only'
-                            padding: 50
-
+                            size_hint: (.1, 1)
+                        Widget:
+                            size_hint: (.4, 1)
+                        MDLabel:
+                            text: 'Transaction Dialog?'
+                        MDSwitch:
+                            id: transaction_dialog_switch
+                            padding: 5
+                            on_active: root.transaction_dialog_switch(*args)
+                        Widget:
+                            size_hint: (.1, 1)
+                        
                     MDBoxLayout:
                         ScrollView:
                             bar_width: 0

@@ -23,7 +23,7 @@ from kivymd.uix.card import (
 )
 from kivymd.uix.list import MDList, OneLineListItem, OneLineAvatarIconListItem, ImageLeftWidget, IconRightWidget
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFillRoundFlatButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -88,6 +88,21 @@ def unpickle_settings():
     else:
         settings = {}
     return settings
+#pickles transactions
+def pickle_transactions(transactions):
+    with open('temp/transactions.pickle', 'wb') as handle:
+        pickle.dump(transactions, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+#unpickles transactions
+def unpickle_transactions():
+    if os.path.exists('temp/transactions.pickle'):
+        with open('temp/transactions.pickle', 'rb') as handle:
+            transactions = pickle.load(handle)
+
+    else:
+        transactions = {}  
+    return transactions
 
 # unpickles the current post
 
@@ -365,6 +380,59 @@ class SearchScreen(MDScreen):
         home.list_posts()
         self.manager.current = 'homepage_read_only'
         
+    def transactions(self):
+        if self.dialog:
+            self.dialog.dismiss()
+        self.manager.current = 'transactions' 
+
+    #determines to show dialog and saves all transactions to pickle file
+    def transaction_function(self, transaction, settings):
+        transactions = unpickle_transactions()               
+        if 'publicKey' in settings:
+            publicKey = settings['publicKey']
+            if publicKey in transactions:
+                if transaction in transactions[publicKey]:
+                    pass
+                else:
+                    transactions[publicKey].append(transaction)
+            else:
+                transactions[publicKey] = [transaction]
+        pickle_transactions(transactions)
+
+        #check settings to see if transaction dialog is true, show the transaction dialog
+        if 'transaction_dialog' in settings:
+            if settings['transaction_dialog'] == True:
+                self.transaction_dialog = True
+            else:
+                self.transaction_dialog = False
+        else:
+            settings['transaction_dialog'] = True
+            self.transaction_dialog = True
+            pickle_settings(settings)
+        if self.transaction_dialog:
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    title="Transaction",
+                    text=str(transaction)[:288],
+                    type="simple",
+                    buttons=[
+                        MDFlatButton(
+                            text="Transactions",
+                            theme_text_color="Custom",
+                            on_release=lambda x: self.transactions(), 
+                        ),
+                        MDFlatButton(
+                            text="Close",
+                            theme_text_color="Custom",
+                            #text_color=self.theme_cls.primary_color,
+                            on_release=lambda x: self.dialog.dismiss(),
+
+                        ),
+                    ],
+                )
+            self.dialog.open()
+        return
+    
     #like a post function allows user to like a post, toggles icon to red, updates the like count, and sends a like to the blockchain    
     def like(self, postHashHex, liked, reactions):
         global loggedIn
@@ -383,8 +451,7 @@ class SearchScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=False)
-                    print(response.json())
-
+                    self.transaction_function(response.json(), settings)
                 else:
                     reactions.ids.like.icon = 'heart'
                     reactions.ids.likes.text = str(int(reactions.ids.likes.text) + 1)
@@ -393,8 +460,7 @@ class SearchScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=True)
-                    print(response.json())
-
+                    self.transaction_function(response.json(), settings)
 
     #when a user presses comment, opens a dialog box to allow user to comment on a post
     def comment(self, postHashHex, reactions):
@@ -435,14 +501,16 @@ class SearchScreen(MDScreen):
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-        comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-        print(comment_response)
+        response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+        print(response)
         self.dialog.dismiss()
         self.dialog = None
-        if 'error' in comment_response:
+        if 'error' in response:
+            self.transaction_function(response, settings)
             return False
         else:
             reactions.comments = str(int(reactions.comments) + 1)
+            self.transaction_function(response, settings)
             
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -470,6 +538,7 @@ class SearchScreen(MDScreen):
                             reactions.ids.diamond.icon = 'diamond'
                             reactions.diamonds = str(int(reactions.diamonds) + 1)
                             reactions.diamonded = True
+                            self.transaction_function(response.json(), settings)
                         else:
                             toast('You have already diamonded this post')
                     else: 
@@ -517,7 +586,12 @@ class SearchScreen(MDScreen):
         self.dialog = None
 
         if 'error' in quoteclout_response:
+            self.transaction_function(quoteclout_response, settings)
             return False
+        else:
+            reactions.quotes = str(int(reactions.quotes) + 1)
+            self.transaction_function(quoteclout_response, settings)
+                
     def slideout_profile_pressed(self):
         settings = unpickle_settings()
         if 'publicKey' in settings:
@@ -545,7 +619,13 @@ class SearchScreen(MDScreen):
         reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
 
         if 'error' in reclout_response:
+            self.transaction_function(reclout_response, settings)
             return False
+        else:
+            reactions.ids.reclout.icon = 'repeat-variant'
+            reactions.reclout = str(int(reactions.reclout) + 1)
+            self.transaction_function(reclout_response, settings)
+            
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
@@ -562,7 +642,8 @@ class SearchScreen(MDScreen):
                 else:
                     #update the icon and reclout count
                     reactions.ids.reclout.icon = 'repeat-variant'
-                    reactions.reclout = str(int(reactions.reclout) + 1)                        
+                    reactions.reclout = str(int(reactions.reclout) + 1)      
+
     def followHandler(self, isFollowing, posterPublicKey):
         if isFollowing == True:
             self.unfollow(posterPublicKey)
@@ -575,15 +656,16 @@ class SearchScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
         response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
-        print(response)
-    
+        self.transaction_function(response, settings)
+
+
     def follow(self, whoToFollow):
         settings=unpickle_settings()
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
-        print(response)
+        self.transaction_function(response, settings)
 
     def callback_for_menu_items(self, *args):
         toast(args[0])
