@@ -22,7 +22,7 @@ from kivymd.uix.card import (
 )
 from kivymd.uix.list import MDList, OneLineListItem, OneLineAvatarIconListItem, ImageLeftWidget, IconRightWidget
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFillRoundFlatButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDIconButton, MDFillRoundFlatButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -234,52 +234,6 @@ class Item(OneLineAvatarListItem):
     source = StringProperty()
 
 
-# class for the post card
-class SinglePostCard(MDBoxLayout):
-    def on_post_click(self, postHashHex):
-        pickle_post(postHashHex)
-        self.sm.current = 'single_post'
-
-    profile_pic = StringProperty()
-    avatar = StringProperty()
-    username = StringProperty()
-    post = StringProperty()
-    caption = StringProperty()
-    likes = StringProperty()
-    comments = StringProperty()
-    posted_ago = StringProperty()
-    body = StringProperty()
-    readmore = StringProperty()
-    diamonds = StringProperty()
-    reclout = StringProperty()
-    postHashHex = StringProperty()
-    posted_ago = StringProperty()
-    video = StringProperty()
-    
-
-#class for the repost card
-class SingleRePostCard(MDBoxLayout):
-    def on_post_click(self, postHashHex):
-        pickle_post(postHashHex)
-        self.sm.current = 'single_post'
-    profile_pic = StringProperty()
-    repostAvatar = StringProperty()
-    repostUsername = StringProperty()
-    repostBody = StringProperty()
-    postHashHex = StringProperty()
-    avatar =StringProperty()
-    username = StringProperty()
-    body = StringProperty()
-    likes = StringProperty()
-    diamonds = StringProperty()
-    reclout = StringProperty()
-    comments = StringProperty()
-    repostPostHashHex = StringProperty()
-    repostPost= StringProperty()
-    repostVideo = StringProperty()
-
-
-    
 
 
 #class for reading a single post
@@ -324,10 +278,12 @@ class SinglePostScreen(MDScreen):
         self.manager.current = 'single_post'
 
     def transactions(self):
-        self.dialog.dismiss(),
+        if self.dialog:
+            self.dialog.dismiss()
         self.manager.current = 'transactions' 
 
-    def transaction_dialog(self, transaction, settings):
+    #determines to show dialog and saves all transactions to pickle file
+    def transaction_function(self, transaction, settings):
         transactions = unpickle_transactions()               
         if 'publicKey' in settings:
             publicKey = settings['publicKey']
@@ -339,6 +295,40 @@ class SinglePostScreen(MDScreen):
             else:
                 transactions[publicKey] = [transaction]
         pickle_transactions(transactions)
+
+        #check settings to see if transaction dialog is true, show the transaction dialog
+        if 'transaction_dialog' in settings:
+            if settings['transaction_dialog'] == True:
+                self.transaction_dialog = True
+            else:
+                self.transaction_dialog = False
+        else:
+            settings['transaction_dialog'] = True
+            self.transaction_dialog = True
+            pickle_settings(settings)
+        if self.transaction_dialog:
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    title="Transaction",
+                    text=str(transaction)[:288],
+                    type="simple",
+                    buttons=[
+                        MDFlatButton(
+                            text="Transactions",
+                            theme_text_color="Custom",
+                            on_release=lambda x: self.transactions(), 
+                        ),
+                        MDFlatButton(
+                            text="Close",
+                            theme_text_color="Custom",
+                            #text_color=self.theme_cls.primary_color,
+                            on_release=lambda x: self.dialog.dismiss(),
+
+                        ),
+                    ],
+                )
+            self.dialog.open()
+        return
 
 
 	#expands comments to display sub comments
@@ -582,8 +572,7 @@ class SinglePostScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=False)
-                    self.transaction_dialog(response.json(), settings)
-                    
+                    self.transaction_function(response.json(), settings)
 
                 else:
                     reactions.ids.like.icon = 'heart'
@@ -593,7 +582,7 @@ class SinglePostScreen(MDScreen):
                     PUBLIC_KEY = settings['publicKey']
                     desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
                     response = desoSocial.like(postHashHex=postHashHex, isLike=True)
-                    self.transaction_dialog(response.json(), settings)
+                    self.transaction_function(response.json(), settings)
 
 
     #when a user presses comment, opens a dialog box to allow user to comment on a post
@@ -635,16 +624,16 @@ class SinglePostScreen(MDScreen):
         SEED_HEX = settings['seedHex']
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
-        comment_response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
-        print(comment_response)
+        response = desoSocial.submitPost(parentStakeID=postHashHex, body=self.dialog.content_cls.ids.comment.text, ).json()
+        print(response)
         self.dialog.dismiss()
         self.dialog = None
-        if 'error' in comment_response:
-            self.transaction_dialog(comment_response, settings)
+        if 'error' in response:
+            self.transaction_function(response, settings)
             return False
         else:
             reactions.comments = str(int(reactions.comments) + 1)
-            self.transaction_dialog(comment_response, settings)
+            self.transaction_function(response, settings)
 
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
@@ -664,6 +653,7 @@ class SinglePostScreen(MDScreen):
                 if post['PostFound']['PosterPublicKeyBase58Check']:
                     SEED_HEX = settings['seedHex']
                     receiverPublicKey = post['PostFound']['PosterPublicKeyBase58Check']
+                    print('receiverPublicKey', receiverPublicKey, post['PostFound']['PosterPublicKeyBase58Check'] )
                     if receiverPublicKey != PUBLIC_KEY:
                         if reactions.diamonded == False:
                             desoSocial = deso.Social(publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
@@ -672,7 +662,7 @@ class SinglePostScreen(MDScreen):
                             reactions.ids.diamond.icon = 'diamond'
                             reactions.diamonds = str(int(reactions.diamonds) + 1)
                             reactions.diamonded = True
-                            self.transaction_dialog(response.json(), settings)
+                            self.transaction_function(response.json(), settings)
                         else:
                             toast('You have already diamonded this post')
                     else: 
@@ -721,9 +711,9 @@ class SinglePostScreen(MDScreen):
         self.dialog = None
 
         if 'error' in quoteclout_response:
-            self.transaction_dialog(quoteclout_response, settings)
+            self.transaction_function(quoteclout_response, settings)
             return False
-        self.transaction_dialog(quoteclout_response, settings)
+        self.transaction_function(quoteclout_response, settings)
 
     #if user selects reclout, send a reclout to the blockchain and close the dialog box, else return error to reclout function
     def recloutpressed(self, postHashHexToRepost, reclouted, reactions):
@@ -737,9 +727,9 @@ class SinglePostScreen(MDScreen):
         reclout_response = desoSocial.repost(postHashHexToRepost).json(), 'repost response'
 
         if 'error' in reclout_response:
-            self.transaction_dialog(reclout_response, settings)
+            self.transaction_function(reclout_response, settings)
             return False
-        self.transaction_dialog(reclout_response, settings)
+        self.transaction_function(reclout_response, settings)
 
 
     #reclout a post function allows user to reclout a post, toggles icon reposted, updates the reclout count, and sends a reclout to the blockchain        
@@ -764,7 +754,7 @@ class SinglePostScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)   
         response = desoSocial.follow(whoToUnfollow, isFollow=False).json() 
-        print(response)
+        self.transaction_function(response.json(), settings)
     
     def follow(self, whoToFollow):
         settings=unpickle_settings()
@@ -772,7 +762,7 @@ class SinglePostScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
-        print(response)
+        self.transaction_function(response.json(), settings)
 
     def storie_switcher(self, publicKey):
         desoUser = deso.User()
@@ -1217,7 +1207,7 @@ class SinglePostScreen(MDScreen):
             reactions.ids.reclout.icon = recloutIcon
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
             reactions.ids.diamond.icon = diamondIcon
-            reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, liked, reactions))
+            reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, diamonded, reactions))
             
             
             #add the reactions to the layout
