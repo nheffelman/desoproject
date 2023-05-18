@@ -192,6 +192,8 @@ class Reactions(MDBoxLayout):
     diamonds = StringProperty()
     reclouted = BooleanProperty()
     reclout = StringProperty()
+    bookmarks = StringProperty()
+    bookmarked = BooleanProperty()
 
 class RecloutLayout(MDBoxLayout):
 	pass           
@@ -635,6 +637,26 @@ class SinglePostScreen(MDScreen):
             reactions.comments = str(int(reactions.comments) + 1)
             self.transaction_function(response, settings)
 
+    def bookmark(self, postHashHex, bookmarked, reactions):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to bookmark a post')
+        else:   
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                if reactions.bookmarked == True:
+                    reactions.ids.bookmark.icon = 'bookmark-outline'
+                    reactions.bookmarked = False
+                else:
+                    reactions.ids.bookmark.icon = 'bookmark'
+                    reactions.bookmarked = True
+                    PUBLIC_KEY = settings['publicKey']
+                    SEED_HEX = settings['seedHex']
+                    association = deso.Associations(publicKey=PUBLIC_KEY, seedHex=SEED_HEX, readerPublicKey=PUBLIC_KEY)
+                    response = association.createPostAssociation(transactorKey=PUBLIC_KEY, postHashHex=postHashHex, associationType='bookmarked', associationValue='True').json()
+                    self.transaction_function(response, settings)
+
+
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
     def diamond(self, postHashHex, diamonded, reactions):
@@ -903,7 +925,8 @@ class SinglePostScreen(MDScreen):
         desopost = deso.Posts()
         desopost.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
         post = desopost.getSinglePost(postHashHex=PostHashHex).json()
-
+        print('posthashhex =',  PostHashHex)
+        print('post =', post)
         if 'error' in post:
             toast('An error occured getting this post')
         else:            
@@ -1165,6 +1188,7 @@ class SinglePostScreen(MDScreen):
 
             #declare the icons
             recloutIcon = 'repeat'
+            bookmarkIcon = 'bookmark-outline'
             diamondIcon = 'diamond-outline'
             likeIcon = 'heart-outline'
             #get the number of reactions
@@ -1175,6 +1199,8 @@ class SinglePostScreen(MDScreen):
             reclouted = False
             diamonded = False
             liked = False
+            bookmarks='1'
+            bookmarked = False
             if post['PostEntryReaderState']:
                 recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
                 if recloutedByReader == True:
@@ -1196,6 +1222,8 @@ class SinglePostScreen(MDScreen):
                 likes=likes,
                 diamonds=diamonds,
                 reclout=reclout,
+                bookmarked=bookmarked,
+                bookmarks=bookmarks,
                 reclouted=reclouted,
                 diamonded=diamonded,
                 liked=liked,
@@ -1208,7 +1236,8 @@ class SinglePostScreen(MDScreen):
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.reclout(postHashHex, reclouted, reactions))
             reactions.ids.diamond.icon = diamondIcon
             reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, diamonded, reactions))
-            
+            reactions.ids.bookmark.icon = bookmarkIcon
+            reactions.ids.bookmark.bind(on_press=lambda widget, reactions=reactions, bookmarked=bookmarked, postHashHex=post['PostHashHex']: self.bookmark(postHashHex, bookmarked, reactions))
             
             #add the reactions to the layout
             layout.add_widget(reactions)
@@ -1402,6 +1431,8 @@ class SinglePostScreen(MDScreen):
                         if likedByReader == True:
                             likeIcon = 'heart'
                             liked = True
+
+                        
 
                     #add the reactions to the layout
                     reactions = Reactions(
