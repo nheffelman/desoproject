@@ -442,6 +442,156 @@
                     
 
                 DrawerClickableItem:
+                    icon: "bookmark"
+                    right_text: "+99"
+                    text: "Bookmarks"
+                    text_right_color: "#4a4939"
+                    on_press: root.bookmarksPressed()
+
+                MDNavigationDrawerDivider:
+
+                DrawerClickableItem:
+                    icon: "code-json"
+                    text: "Transactions"
+                    on_press: root.transactions()
+
+                DrawerClickableItem:
+                    icon: "home"
+                    text: "Home"
+                    on_press: root.home()
+
+                DrawerClickableItem:
+                    icon: "close"
+                    text: "Log out"
+                    on_press: root.ids.timeline.clear_widgets()
+                    on_press: root.logout()
+
+<BookmarksScreen>:
+
+    name: 'bookmarks'
+    orientation: 'vertical'
+    
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        anchor: 'top'
+                        id: appbar
+                        size_hint: (1, .2)
+                        MDBoxLayout:
+                            size_hint: (.2, 1)
+                            CircularAvatarImage:
+                                avatar: root.profile_picture
+                                size: '50dp', '50dp'
+                                on_press  : nav_drawer.set_state("open")
+                                halign: 'center'
+
+                        
+                                
+                                
+                        MDBoxLayout:                            
+                            size_hint: (.2, 1)
+                            MDLabel:
+                                id: username
+                                text_size: self.size
+                                text: 'Bookmarks'
+                                halign: 'center'
+                                valign: 'top'
+                                font_size: 28
+                                font_name: 'assets/Instafont.otf'
+                        
+                    MDBoxLayout:
+                        ScrollView:
+                            bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            on_touch_up: root.touch_up_value(self)
+
+                            MDBoxLayout:
+                                adaptive_height: True
+                                orientation: 'vertical'
+                                id: mainLayout
+
+                                # Stories
+                                ScrollView:
+                                    size_hint_y: None
+                                    height: 110
+                                    bar_width: 0
+                                    MDBoxLayout:
+                                        adaptive_width: True
+                                        spacing: 5
+                                        padding: 5
+                                        MDBoxLayout:
+                                            adaptive_width: True
+                                            padding: 5
+                                            spacing: 5
+                                            id: stories
+
+                                
+
+                                MDBoxLayout:
+                                    orientation: 'vertical'
+                                    adaptive_height: True
+                                    spacing: '50'
+                                    id: timeline
+
+                                
+
+                    MDBoxLayout:
+                        adaptive_height: True
+                        size_hint: (1, .1)
+                        anchor: 'bottom'
+                        id: bottombar
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'home'
+                                on_press: root.home()
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'magnify'
+                                on_press: root.manager.current = 'search'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'plus-box-outline'
+                                on_press: root.manager.current = 'create_post'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                on_press: root.manager.current = 'notifications'
+                                icon: 'alert-circle-outline'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'message-text-outline'
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+
+            MDNavigationDrawerMenu:
+
+                MDNavigationDrawerHeader:
+                    title: "Account Info"
+                    title_color: "#4a4939"
+                    text: root.username
+                    spacing: "4dp"
+                    padding: "12dp", 0, 0, "56dp"
+
+                DrawerClickableItem:
+                    icon: "account"
+                    text: "Profile"
+                    on_press: root.slideout_profile_pressed()
+                    
+
+                DrawerClickableItem:
                     icon: "send"
                     right_text: "+99"
                     text: "Chat"
@@ -859,10 +1009,6 @@
 
                                        
 
-                                            
-                                    
-                                            
-
                                     
 
                                 MDBoxLayout:
@@ -1213,7 +1359,15 @@
 		MyLabel:
             font_size: 10
 			text: f'{root.reclout}'
-			
+
+        MDIconButton:
+            id: bookmark
+            icon: 'bookmark-outline'
+
+        MyLabel: 
+            font_size: 10
+            
+        			
         MDIconButton:
             id: diamond
             icon: 'diamond-outline'

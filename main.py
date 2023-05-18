@@ -37,6 +37,7 @@ from Post import SinglePostScreen
 from profilescreen import ProfileScreen
 from searchscreen import SearchScreen
 from transactionsscreen import TransactionsScreen
+from bookmarks import BookmarksScreen
 
 global currentPost 
 global loggedIn
@@ -221,6 +222,8 @@ class Reactions(MDBoxLayout):
     diamonds = StringProperty()
     reclouted = BooleanProperty()
     reclout = StringProperty()
+    bookmarked = BooleanProperty()
+    bookmarks = StringProperty()
     
 # class for the post card
 class PostCard(MDBoxLayout):
@@ -606,6 +609,24 @@ class HomePageReadOnlyScreen(MDScreen):
                     else: 
                         toast('You cannot diamond your own post')
 
+    def bookmark(self, postHashHex, bookmarked, reactions):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to bookmark a post')
+        else:   
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                if reactions.bookmarked == True:
+                    reactions.ids.bookmark.icon = 'bookmark-outline'
+                    reactions.bookmarked = False
+                else:
+                    reactions.ids.bookmark.icon = 'bookmark'
+                    reactions.bookmarked = True
+                    PUBLIC_KEY = settings['publicKey']
+                    SEED_HEX = settings['seedHex']
+                    association = deso.Associations(publicKey=PUBLIC_KEY, seedHex=SEED_HEX, readerPublicKey=PUBLIC_KEY)
+                    response = association.createPostAssociation(transactorKey=PUBLIC_KEY, postHashHex=postHashHex, associationType='bookmarked', associationValue='True').json()
+                    self.transaction_function(response, settings)
                 
     #use a MDDIalog to ask user if they want to repost or quote post
     def clout_or_quoteclout_dialog(self, postHashHex, reactions):
@@ -789,6 +810,15 @@ class HomePageReadOnlyScreen(MDScreen):
         setting['profileKey'] = profileKey
         pickle_settings(setting)
         self.manager.current = 'profile'
+
+    def bookmarksPressed(self):
+        settings = unpickle_settings()
+        if 'publicKey' in settings:
+            settings['profileKey'] = settings['publicKey']
+            pickle_settings(settings)
+            self.manager.current = 'bookmarks'
+        else:
+            toast('You must be logged in to view your bookmarks')
 
     def trending_pressed(self):
         settings = unpickle_settings()
@@ -1266,6 +1296,7 @@ class HomePageReadOnlyScreen(MDScreen):
             
 
             #declare the icons
+            bookmarkIcon = 'bookmark-outline'
             recloutIcon = 'repeat'
             diamondIcon = 'diamond-outline'
             likeIcon = 'heart-outline'
@@ -1278,6 +1309,8 @@ class HomePageReadOnlyScreen(MDScreen):
             reclouted = False
             diamonded = False
             liked = False
+            bookmarks='1'
+            bookmarked = False
 
             if post['PostEntryReaderState']:
                 recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
@@ -1304,6 +1337,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 reclouted=reclouted,
                 diamonded=diamonded,
                 liked=liked,
+                bookmarked=bookmarked,
+                bookmarks=bookmarks,
             )
             #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
             reactions.ids.like.icon = likeIcon
@@ -1313,6 +1348,8 @@ class HomePageReadOnlyScreen(MDScreen):
             reactions.ids.reclout.bind(on_press=lambda widget, reactions=reactions, reclouted=reclouted, postHashHex=post['PostHashHex']: self.clout_or_quoteclout_dialog(postHashHex, reactions))
             reactions.ids.diamond.icon = diamondIcon
             reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, liked, reactions))
+            reactions.ids.bookmark.icon = bookmarkIcon
+            reactions.ids.bookmark.bind(on_press=lambda widget, reactions=reactions, bookmarked=bookmarked, postHashHex=post['PostHashHex']: self.bookmark(postHashHex, bookmarked, reactions))
             
             
             #add the reactions to the layout
@@ -1385,7 +1422,8 @@ class CreatePostScreen(MDScreen):
             if self.manager_open:
                 self.file_manager.back()
         return True
-
+    
+    
     def transactions(self):
         if self.dialog:
             self.dialog.dismiss()
@@ -1416,26 +1454,25 @@ class CreatePostScreen(MDScreen):
             self.transaction_dialog = True
             pickle_settings(settings)
         if self.transaction_dialog:
-            if not self.dialog:
-                self.dialog = MDDialog(
-                    title="Transaction",
-                    text=str(transaction)[:288],
-                    type="simple",
-                    buttons=[
-                        MDFlatButton(
-                            text="Transactions",
-                            theme_text_color="Custom",
-                            on_release=lambda x: self.transactions(), 
-                        ),
-                        MDFlatButton(
-                            text="Close",
-                            theme_text_color="Custom",
-                            #text_color=self.theme_cls.primary_color,
-                            on_release=lambda x: self.dialog.dismiss(),
-
-                        ),
-                    ],
-                )
+            
+            self.dialog = MDDialog(
+                title="Transaction",
+                text=str(transaction)[:288],
+                type="simple",
+                buttons=[
+                    MDFlatButton(
+                        text="Transactions",
+                        theme_text_color="Custom",
+                        on_release=lambda x: self.transactions(), 
+                    ),
+                    MDFlatButton(
+                        text="Close",
+                        theme_text_color="Custom",
+                        #text_color=self.theme_cls.primary_color,
+                        on_release=lambda x: self.dialog.dismiss(),
+                    ),
+                ]
+            )
             self.dialog.open()
         return
         
@@ -1632,6 +1669,7 @@ class MainApp(MDApp):
         sm.add_widget(ProfileScreen(name='profile')),
         sm.add_widget(SeedLoginScreen(name='seed_login'))
         sm.add_widget(SearchScreen(name='search'))
+        sm.add_widget(BookmarksScreen(name='bookmarks'))
         sm.add_widget(CreatePostScreen(name='create_post'))
 
         
