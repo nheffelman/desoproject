@@ -531,7 +531,17 @@ class BookmarksScreen(MDScreen):
             SEED_HEX = settings['seedHex']
             desoAssociation = deso.Associations(readerPublicKey=publicKey, publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
             response = desoAssociation.deletePostAssociation(transactorKey=publicKey, association_ID=associationID).json()
-            self.transaction_function(response, settings)
+            if not 'error' in response:
+                cached_posts = unpickle_posts()
+                if 'bookmarks'+PUBLIC_KEY in cached_posts:
+                    for post in cached_posts['bookmarks'+PUBLIC_KEY]:
+                        if post['AssociationID'] == associationID:
+                            cached_posts['bookmarks'+PUBLIC_KEY].remove(post)
+                            print('removed', post)
+                            pickle_posts(cached_posts)
+                self.transaction_function(response, settings)
+            else:
+                toast('error in delete bookmark')
             
 
     def bookmark(self, postHashHex, bookmarked, reactions, associationID):
@@ -912,7 +922,7 @@ class BookmarksScreen(MDScreen):
                         following.append(publicKey)      
 
         #check to see if there are any cached posts
-        if 'bookmarks'+userKey in cached_posts:
+        if ('bookmarks'+userKey) in cached_posts:
             print('cached posts found')
             reversed = cached_posts['bookmarks'+userKey]
             reversed.reverse()
@@ -925,11 +935,7 @@ class BookmarksScreen(MDScreen):
                 reversed.reverse()
                 cached_posts['bookmarks'+userKey] = reversed
                 pickle_posts(cached_posts)
-            #else remove the viewer key from the cache
-            else:
-                del cached_posts['bookmarks'+userKey]
-                pickle_posts(cached_posts)
-
+            
         #if there are no cached posts
         else:
             print('no cached posts')
@@ -938,13 +944,12 @@ class BookmarksScreen(MDScreen):
             print(response)
             
             if 'error' not in response:
-                userposts = response['Associations']
-                if len(userposts) > 9:                  
-                    #save the posts to the cache                
-                    cached_posts['bookmarks'+userKey] = userposts[9:]
-                    pickle_posts(cached_posts)
-                    #get the first 9 posts
-                    userposts = userposts[:9]
+                userposts = response['Associations']                       
+                #save the posts to the cache                
+                cached_posts['bookmarks'+userKey] = userposts
+                #get the first 9 posts
+                userposts = userposts
+                pickle_posts(cached_posts)
             
             
             
@@ -1079,7 +1084,7 @@ class BookmarksScreen(MDScreen):
                 #check if post is a reclout
                 #if the post is a reclout add the reclout layout
                 if post['RepostedPostEntryResponse'] == None:
-                    print('not a reclout')
+                    pass
                 else:                
                     recloutLayout = RecloutLayout(orientation = 'horizontal')
                     leftLayout = MDBoxLayout(orientation = 'vertical', size_hint_x = .2, size_hint_y = None)
