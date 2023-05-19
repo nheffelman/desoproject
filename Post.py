@@ -654,9 +654,22 @@ class SinglePostScreen(MDScreen):
                     SEED_HEX = settings['seedHex']
                     association = deso.Associations(publicKey=PUBLIC_KEY, seedHex=SEED_HEX, readerPublicKey=PUBLIC_KEY)
                     response = association.createPostAssociation(transactorKey=PUBLIC_KEY, postHashHex=postHashHex, associationType='bookmarked', associationValue='True').json()
-                    self.transaction_function(response, settings)
-
-
+                    if not 'error' in response:
+                        association_to_add = association.getPostAssociationsByID(association_id=response['TxnHashHex']).json()
+                        if not 'error' in association_to_add:
+                            posts = unpickle_posts()
+                            if ('bookmarks'+PUBLIC_KEY) in posts:
+                                posts['bookmarks'+PUBLIC_KEY].append(association_to_add)
+                            else:
+                                posts['bookmarks'+PUBLIC_KEY] = [association_to_add]
+                            pickle_posts(posts)
+                            self.transaction_function(response, settings)
+                        else:
+                            toast('something went wrong with the block chain response')
+                    else:
+                        toast('something went wrong creating the bookmark')
+                    
+                    
 
     #diamond a post function allows user to like a post, toggles icon to red, updates the like count, and sends a diamond to the blockchain
     def diamond(self, postHashHex, diamonded, reactions):
