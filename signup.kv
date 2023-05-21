@@ -307,20 +307,23 @@
                         adaptive_height: True 
                         anchor: 'top'
                         id: appbar
-                        size_hint: (1, .2)
-                        MDBoxLayout:
-                            size_hint: (.2, 1)
-                            CircularAvatarImage:
-                                avatar: root.profile_picture
-                                size: '50dp', '50dp'
-                                on_press  : nav_drawer.set_state("open")
-                                halign: 'center'
+                        size_hint: (1, .125)
 
                         MDBoxLayout:
-                            pos_hint: {'center_y': 1}
+                            size_hint: (.2, 1)
+                            OneLineAvatarListItem:
+                                divider: None
+
+                                ImageLeftWidget:
+                                    source: root.profile_picture
+                                    on_press  : nav_drawer.set_state("open")                                    
+                                    radius: 50
+
+                        MDBoxLayout:
                             size_hint: (.3, 1)
-                            
+                                                        
                             MDRectangleFlatButton:
+                                pos_hint: {'center_y': .42}
                                 id: trending
                                 text_color: "black"
                                 line_color: "blue"
@@ -328,33 +331,22 @@
                                 text: 'Trending'
 
                         MDBoxLayout: 
-                            pos_hint: {'center_y': 1}
                             size_hint: (.3, 1)
                             
                             MDRectangleFlatButton:
+                                pos_hint: {'center_y': .42}
                                 id: following
                                 text_color: "black"
                                 line_color: "blue"
                                 text: 'Following'
                                 on_press: root.following_pressed()
-                                
-                                
-                        #MDBoxLayout:                            
-                        #    size_hint: (.2, 1)
-                        #    MDLabel:
-                        #        id: username
-                        #        text_size: self.size
-                        #        text: 'Desoliscious'
-                        #        halign: 'center'
-                        #        valign: 'top'
-                        #        font_size: 28
-                        #        font_name: 'assets/Instafont.otf'
+                        
                         MDBoxLayout:
                             size_hint: (.2, 1)
                             MDLabel:
-                                #halign: 'center'
+                                pos_hint: {'center_y': .42}
                                 id: desoprice
-                                text: root.desoprice
+                                text: '$'+root.desoprice
                             
                     MDBoxLayout:
                         ScrollView:
