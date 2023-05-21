@@ -741,7 +741,7 @@ class HomePageReadOnlyScreen(MDScreen):
         PUBLIC_KEY = settings['publicKey']
         desoSocial = deso.Social(nodeURL="https://diamondapp.com/api/v0/", publicKey=PUBLIC_KEY, seedHex=SEED_HEX)
         response = desoSocial.follow(whoToFollow, isFollow=True).json() 
-        self.transaction_function(response.json(), settings)
+        self.transaction_function(response, settings)
         
     def callback_for_menu_items(self, *args):
         toast(args[0])
@@ -864,9 +864,9 @@ class HomePageReadOnlyScreen(MDScreen):
         # load 10 posts for the user or 10 posts for the stateless user
         posts = deso.Posts()
         if profile:
-
+            reader=profile['Profile']['PublicKeyBase58Check']
             posts.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
-            userposts = posts.getPostsStateless(numToFetch=10, getPostsForFollowFeed=True)
+            userposts = posts.getPostsStateless(readerPublicKey=reader, numToFetch=10, getPostsForFollowFeed=True)
         else:
             posts.reaerPublicKey = None
             userposts = deso.Posts().getPostsStateless(numToFetch=10)
@@ -1009,8 +1009,12 @@ class HomePageReadOnlyScreen(MDScreen):
                 print('following')
                 #get the posts for the viewer key
                 posts = deso.Posts()
-                posts.readerPublicKey = viewerKey
-                userposts = posts.getPostsStateless(getPostsForFollowFeed=True, numToFetch=100).json()['PostsFound']
+                posts.readerPublicKey = settings['publicKey']
+                print('readerkey', viewerKey)
+                userposts = posts.getPostsStateless(readerPublicKey=viewerKey, getPostsForFollowFeed=True, numToFetch=100)
+                print(userposts.json())
+                userposts = userposts.json()['PostsFound']
+                print(userposts)
                 #save the posts to the cache
                 cached_posts[viewerKey] = userposts[9:]
                 pickle_posts(cached_posts)
