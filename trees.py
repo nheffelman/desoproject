@@ -273,7 +273,7 @@ class TreesScreen(MDScreen):
     def open_post(self, postHashHex):
         pickle_post(postHashHex)
 
-        self.manager.current = 'single_post'
+        self.manager.current = 'tree'
 
     def home(self):
         settings = unpickle_settings()
@@ -942,7 +942,8 @@ class TreesScreen(MDScreen):
                     beforeUrl = body.split(url,1)[0]
                     if beforeUrl !='':
                         bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
-                        bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                       on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         layout.add_widget(bodyLabel)
                         layout.height += bodyLabel.height
                     body = body.split(url,1)[1] 
@@ -973,7 +974,8 @@ class TreesScreen(MDScreen):
                         previewHeight -= 250
                 #add any remaining body to the layout
                 if body != '':
-                    bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                    bodyLabel = BodyLabel(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
+                                          text=body, padding= [20,20], markup=True)
                     bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     #add the body card to the layout
                     layout.add_widget(bodyLabel)
@@ -988,15 +990,16 @@ class TreesScreen(MDScreen):
                     for image in post['ImageURLs']:
                         card = MDCard(size_hint_y=None, height=450, radius=[18,0])
                         aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
+
                         card.add_widget(aImage)
-                        
+                        card.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                         layout.add_widget(card)
                         layout.height += card.height 
 
                 if post['VideoURLs']:
                     postVideo = post['VideoURLs'][0]
                     player = VideoPlayer(size_hint_y = None, source=postVideo, state='pause', options={'allow_stretch': True})
-                    #player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
+                    player.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex))
                     layout.add_widget(player)
                     layout.height += player.height            
                 
@@ -1059,7 +1062,7 @@ class TreesScreen(MDScreen):
 
                         if beforeUrl != '':
                             bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25], markup=True)
-                            bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
+                            bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
                                         on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                             rightLayout.add_widget(bodyLabel)
                             rightLayout.height += bodyLabel.height * 1.5
@@ -1097,7 +1100,7 @@ class TreesScreen(MDScreen):
                     #add any remaining body to the layout
                     if body != '':
                         bodyLabel = BodyLabel(text=body, padding = [25,25], markup=True)
-                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
+                        bodyLabel.bind(on_press= lambda widget, postHashHex=post['PostHashHex']: self.open_post(postHashHex),
                                     on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         #add the body card to the layout
                         rightLayout.add_widget(bodyLabel)
@@ -1116,7 +1119,7 @@ class TreesScreen(MDScreen):
                                 aImage = AsyncImage(source=image, allow_stretch=True, keep_ratio=True)
                                 card.add_widget(aImage)
                                 
-                                card.bind(on_press= lambda widget, postHaSHhEX = post['RepostedPostEntryResponse']['PostHashHex']: self.open_post(postHashHex))
+                                card.bind(on_press= lambda widget, postHashHex = post['RepostedPostEntryResponse']['PostHashHex']: self.open_post(postHashHex))
                                 
                                 rightLayout.add_widget(card)
                                 rightLayout.height += card.height

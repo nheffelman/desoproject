@@ -39,6 +39,7 @@ from searchscreen import SearchScreen
 from transactionsscreen import TransactionsScreen
 from bookmarks import BookmarksScreen
 from trees import TreesScreen
+from tree import TreeScreen
 
 global currentPost 
 global loggedIn
@@ -1740,6 +1741,7 @@ class MainApp(MDApp):
         sm.add_widget(SearchScreen(name='search'))
         sm.add_widget(BookmarksScreen(name='bookmarks'))
         sm.add_widget(TreesScreen(name='trees'))
+        sm.add_widget(TreeScreen(name='tree'))
         sm.add_widget(CreatePostScreen(name='create_post'))
 
         
