@@ -246,6 +246,7 @@ class SinglePostScreen(MDScreen):
     avatar = StringProperty("")
     dialog = None
     follow_unfollow = StringProperty("")
+    txnHashHex = StringProperty("")
     
     def on_enter(self):
         profile = unpickle_profile()        
@@ -939,6 +940,7 @@ class SinglePostScreen(MDScreen):
         desopost.readerPublicKey = profile['Profile']['PublicKeyBase58Check']
         post = desopost.getSinglePost(postHashHex=PostHashHex).json()
         print('posthashhex =',  PostHashHex)
+        self.txnHashHex = PostHashHex
         print('post =', post)
         if 'error' in post:
             toast('An error occured getting this post')

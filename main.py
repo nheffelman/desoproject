@@ -38,6 +38,7 @@ from profilescreen import ProfileScreen
 from searchscreen import SearchScreen
 from transactionsscreen import TransactionsScreen
 from bookmarks import BookmarksScreen
+from trees import TreesScreen
 
 global currentPost 
 global loggedIn
@@ -224,6 +225,8 @@ class Reactions(MDBoxLayout):
     reclout = StringProperty()
     bookmarked = BooleanProperty()
     bookmarks = StringProperty()
+    treed = BooleanProperty()
+    trees = StringProperty()
     
 # class for the post card
 class PostCard(MDBoxLayout):
@@ -640,6 +643,38 @@ class HomePageReadOnlyScreen(MDScreen):
                             toast('something went wrong with the block chain response')
                     else:
                         toast('something went wrong creating the bookmark')
+
+    def tree(self, postHashHex, bookmarked, reactions):
+        global loggedIn
+        if loggedIn != True:
+            toast('You must be logged in to bookmark a post')
+        else:   
+            settings=unpickle_settings()
+            if settings['loggedIn'] == True:
+                if reactions.treed == True:
+                    reactions.ids.tree.icon = 'tree'
+                    reactions.treed = False
+                else:
+                    reactions.ids.tree.icon = 'tree'
+                    reactions.treed = True
+                    PUBLIC_KEY = settings['publicKey']
+                    SEED_HEX = settings['seedHex']
+                    association = deso.Associations(publicKey=PUBLIC_KEY, seedHex=SEED_HEX, readerPublicKey=PUBLIC_KEY)
+                    response = association.createPostAssociation(transactorKey=PUBLIC_KEY, postHashHex=postHashHex, associationType='treed', associationValue='True').json()
+                    if not 'error' in response:
+                        association_to_add = association.getPostAssociationsByID(association_id=response['TxnHashHex']).json()
+                        if not 'error' in association_to_add:
+                            posts = unpickle_posts()
+                            if ('trees'+PUBLIC_KEY)in posts:
+                                posts['trees'+PUBLIC_KEY].append(association_to_add)
+                            else:
+                                posts['trees'+PUBLIC_KEY] = [association_to_add]
+                            pickle_posts(posts)
+                            self.transaction_function(response, settings)
+                        else:
+                            toast('something went wrong with the block chain response')
+                    else:
+                        toast('something went wrong creating the bookmark')
                 
     #use a MDDIalog to ask user if they want to repost or quote post
     def clout_or_quoteclout_dialog(self, postHashHex, reactions):
@@ -823,6 +858,16 @@ class HomePageReadOnlyScreen(MDScreen):
         setting['profileKey'] = profileKey
         pickle_settings(setting)
         self.manager.current = 'profile'
+
+    def treesPressed(self):
+        settings = unpickle_settings()
+        if 'publicKey' in settings:
+            settings['profileKey'] = settings['publicKey']
+            pickle_settings(settings)
+            self.manager.current = 'trees'
+        else:
+            toast('You must be logged in to view your trees')
+
 
     def bookmarksPressed(self):
         settings = unpickle_settings()
@@ -1009,7 +1054,7 @@ class HomePageReadOnlyScreen(MDScreen):
                 print('following')
                 #get the posts for the viewer key
                 posts = deso.Posts()
-                posts.readerPublicKey = settings['publicKey']
+                posts.readerPublicKey = viewerKey
                 print('readerkey', viewerKey)
                 userposts = posts.getPostsStateless(readerPublicKey=viewerKey, getPostsForFollowFeed=True, numToFetch=100)
                 print(userposts.json())
@@ -1037,7 +1082,7 @@ class HomePageReadOnlyScreen(MDScreen):
             
             #layout for the post
             layout = PostLayout(orientation='vertical', size_hint_x = 1, adaptive_height = True, postHashHex=str(post['PostHashHex']),)
-            #layout for the post header
+            #layout for the post header``
             header = MDBoxLayout(orientation='horizontal', adaptive_height=True, size_hint_x = 1)
             #one line avatar list item
             username=str(post["ProfileEntryResponse"]['Username'])
@@ -1317,6 +1362,7 @@ class HomePageReadOnlyScreen(MDScreen):
             recloutIcon = 'repeat'
             diamondIcon = 'diamond-outline'
             likeIcon = 'heart-outline'
+            treeIcon = 'tree-outline'
 
             #get the number of reactions
             comments=str(post['CommentCount'])
@@ -1328,6 +1374,8 @@ class HomePageReadOnlyScreen(MDScreen):
             liked = False
             bookmarks='1'
             bookmarked = False
+            trees='1'
+            treed = False
 
             if post['PostEntryReaderState']:
                 recloutedByReader = post['PostEntryReaderState']['RepostedByReader']
@@ -1356,6 +1404,8 @@ class HomePageReadOnlyScreen(MDScreen):
                 liked=liked,
                 bookmarked=bookmarked,
                 bookmarks=bookmarks,
+                trees=trees,
+                treed=treed,
             )
             #add the icons to the reactions, i have to pass in reactions to the functions so that i find the objects and can change the icons
             reactions.ids.like.icon = likeIcon
@@ -1367,6 +1417,8 @@ class HomePageReadOnlyScreen(MDScreen):
             reactions.ids.diamond.bind(on_press=lambda widget, reactions=reactions, diamonded=diamonded, postHashHex=post['PostHashHex']: self.diamond(postHashHex, liked, reactions))
             reactions.ids.bookmark.icon = bookmarkIcon
             reactions.ids.bookmark.bind(on_press=lambda widget, reactions=reactions, bookmarked=bookmarked, postHashHex=post['PostHashHex']: self.bookmark(postHashHex, bookmarked, reactions))
+            reactions.ids.tree.bind(on_press=lambda widget, reactions=reactions, treed=treed, postHashHex=post['PostHashHex']: self.tree(postHashHex, treed, reactions))
+            reactions.ids.tree.icon = treeIcon
             
             
             #add the reactions to the layout
@@ -1687,6 +1739,7 @@ class MainApp(MDApp):
         sm.add_widget(SeedLoginScreen(name='seed_login'))
         sm.add_widget(SearchScreen(name='search'))
         sm.add_widget(BookmarksScreen(name='bookmarks'))
+        sm.add_widget(TreesScreen(name='trees'))
         sm.add_widget(CreatePostScreen(name='create_post'))
 
         
