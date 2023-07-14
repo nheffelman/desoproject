@@ -845,6 +845,7 @@ class TreesScreen(MDScreen):
         if ('trees'+userKey) in cached_posts:
             print('cached posts found')
             reversed = cached_posts['trees'+userKey]
+            print(reversed)
             reversed.reverse()
             #iterate through the cached posts and add them to the userposts list
             for i in range(9):
@@ -1226,7 +1227,7 @@ class TreesScreen(MDScreen):
             pickle_profilePicUrl(getCachedProfilePicUrl.cache)
         w = MDWidget(size_hint_y=None, height=200)
         self.ids.timeline.add_widget(w)
-                    
+
             
             
             

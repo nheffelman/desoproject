@@ -27,7 +27,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
 from deso import Identity
-from kivy.properties import StringProperty, ListProperty, BooleanProperty, DictProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty, ObjectProperty
 import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
@@ -49,7 +49,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDFloatingActionButtonSpeedDial
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -201,8 +201,8 @@ class RecloutLayout(MDBoxLayout):
 class LineEllipse3(Widget):
     points = ListProperty()
 
-class BodyLabel(ButtonBehavior, MDLabel):
-    pass
+class TreeLabel(ButtonBehavior, MDLabel):
+    text = StringProperty()
 
 class PostLayout(MDBoxLayout):
     
@@ -239,7 +239,7 @@ class Item(OneLineAvatarListItem):
 
 
 #class for reading a single post
-class TreeScreen(MDScreen):
+class EditTreeScreen(MDScreen):
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
@@ -247,27 +247,8 @@ class TreeScreen(MDScreen):
     dialog = None
     follow_unfollow = StringProperty("")
     txnHashHex = StringProperty("")
-    data = DictProperty()
     
-        
     def on_enter(self):
-
-                
-        self.data = {
-            'Text': 'text',
-            'Image': 'image',
-            'Link': 'link',
-            'Video': 'video',
-            'Tree': 'assets/treeso.jpeg',
-            'Post': 'post',
-            }
-
-        speed_dial = MDFloatingActionButtonSpeedDial()
-        speed_dial.data = self.data
-        speed_dial.root_button_anim = True
-        speed_dial.hint_animation = True
-        self.add_widget(speed_dial)
-
         profile = unpickle_profile()        
         settings = unpickle_settings()
         global loggedIn
@@ -289,15 +270,12 @@ class TreeScreen(MDScreen):
         loggedIn = False
         self.manager.current = 'login'
 
-    def edit_tree(self, postHashHex):
-        pickle_post(postHashHex)
-        self.manager.current = 'edit_tree'
-
-    def share(self, postHashHex):
+    def save(self, postHashHex):
         pass
-        
-    def speeddialcallback(self):
-        print("speed dial callback")
+
+    def delete(self, postHashHex):
+        pass
+
 
     def change_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -428,7 +406,7 @@ class TreeScreen(MDScreen):
                         beforeUrl = body.split(url,1)[0]
 
                         if beforeUrl !='':
-                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                            bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20])
                             bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                             subCommentLayout.add_widget(bodyLabel)
                             subCommentLayout.height += bodyLabel.height
@@ -457,7 +435,7 @@ class TreeScreen(MDScreen):
                             previewHeight -= 250
                     #add any remaining body to the layout
                     if body != '':
-                        bodyLabel = BodyLabel(text=body, padding= [20,20])
+                        bodyLabel = TreeLabel(text=body, padding= [20,20])
                         bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                         #add the body card to the layout
                         subCommentLayout.add_widget(bodyLabel)
@@ -1000,22 +978,19 @@ class TreeScreen(MDScreen):
             else:
                 data = self.change_3dots_data(following=False)
 
-            #add share button
-            share = MDIconButton(icon='share-variant')
-            share.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.share(postHashHex))
-
-            #add an edit button
-            edit = MDIconButton(icon='pencil')
-            edit.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.edit_tree(postHashHex))
+            #create an edit button
+            save = MDIconButton(icon='content-save')
+            save.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.save(postHashHex))
                             
-            three_dots = MDIconButton(icon='dots-vertical')
-            three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+            #create delete button
+            delete = MDIconButton(icon='delete')
+            delete.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.delete(postHashHex))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
-            header.add_widget(edit)
-            header.add_widget(three_dots)
-            
+            header.add_widget(save)
+            header.add_widget(delete)
+                        
             #add the header to the layout
             layout.add_widget(header)
             layout.height += header.height
@@ -1038,7 +1013,7 @@ class TreeScreen(MDScreen):
             for url in urls:
                 beforeUrl = body.split(url,1)[0]
                 if beforeUrl !='':
-                    bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
+                    bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20], markup=True)
                     bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
@@ -1070,7 +1045,7 @@ class TreeScreen(MDScreen):
                     previewHeight -= 250
             #add any remaining body to the layout
             if body != '':
-                bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                bodyLabel = TreeLabel(text=body, padding= [20,20], markup=True)
                 bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                 #add the body card to the layout
                 layout.add_widget(bodyLabel)
@@ -1155,7 +1130,7 @@ class TreeScreen(MDScreen):
                     beforeUrl = body.split(url,1)[0]
 
                     if beforeUrl != '':
-                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25], markup=True)
+                        bodyLabel = TreeLabel(text=beforeUrl, padding = [25,25], markup=True)
                         bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
                                        on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         rightLayout.add_widget(bodyLabel)
@@ -1193,7 +1168,7 @@ class TreeScreen(MDScreen):
                         
                 #add any remaining body to the layout
                 if body != '':
-                    bodyLabel = BodyLabel(text=body, padding = [25,25], markup=True)
+                    bodyLabel = TreeLabel(text=body, padding = [25,25], markup=True)
                     bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
                                    on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     #add the body card to the layout
@@ -1376,7 +1351,7 @@ class TreeScreen(MDScreen):
                         beforeUrl = body.split(url,1)[0]
 
                         if beforeUrl !='':
-                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
+                            bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20], markup=True)
                             bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout),
                                            on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                             commentLayout.add_widget(bodyLabel)
@@ -1411,7 +1386,7 @@ class TreeScreen(MDScreen):
                             previewHeight -= 250
                     #add any remaining body to the layout
                     if body != '':
-                        bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                        bodyLabel = TreeLabel(text=body, padding= [20,20], markup=True)
                         bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout),
                                        on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         #add the body card to the layout
