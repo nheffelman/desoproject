@@ -27,7 +27,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
 from deso import Identity
-from kivy.properties import StringProperty, ListProperty, BooleanProperty, ObjectProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty, DictProperty
 import pickle
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarListItem
@@ -49,7 +49,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton
+from kivymd.uix.button import MDRoundFlatButton, MDFillRoundFlatIconButton, MDRectangleFlatIconButton, MDFloatingActionButtonSpeedDial
 from kivymd.uix.label import MDLabel
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import deso
@@ -239,7 +239,7 @@ class Item(OneLineAvatarListItem):
 
 
 #class for reading a single post
-class SinglePostScreen(MDScreen):
+class TreeScreen(MDScreen):
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
@@ -247,8 +247,27 @@ class SinglePostScreen(MDScreen):
     dialog = None
     follow_unfollow = StringProperty("")
     txnHashHex = StringProperty("")
+    data = DictProperty()
     
+        
     def on_enter(self):
+
+                
+        self.data = {
+            'Text': 'text',
+            'Image': 'image',
+            'Link': 'link',
+            'Video': 'video',
+            'Tree': 'assets/treeso.jpeg',
+            'Post': 'post',
+            }
+
+        speed_dial = MDFloatingActionButtonSpeedDial()
+        speed_dial.data = self.data
+        speed_dial.root_button_anim = True
+        speed_dial.hint_animation = True
+        self.add_widget(speed_dial)
+
         profile = unpickle_profile()        
         settings = unpickle_settings()
         global loggedIn
@@ -269,6 +288,16 @@ class SinglePostScreen(MDScreen):
         global loggedIn
         loggedIn = False
         self.manager.current = 'login'
+
+    def edit_tree(self, postHashHex):
+        pickle_post(postHashHex)
+        self.manager.current = 'edit_tree'
+
+    def share(self, postHashHex):
+        pass
+        
+    def speeddialcallback(self):
+        print("speed dial callback")
 
     def change_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -374,7 +403,8 @@ class SinglePostScreen(MDScreen):
                         data = self.change_3dots_data(following=False)
                     three_dots = MDIconButton(icon='dots-vertical')
                     three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
-                    
+
+                                       
                     #add the one line avatar list item to the header
                     header.add_widget(olali)
                     header.add_widget(three_dots)
@@ -969,11 +999,21 @@ class SinglePostScreen(MDScreen):
                 data = self.change_3dots_data(following=True)
             else:
                 data = self.change_3dots_data(following=False)
+
+            #add share button
+            share = MDIconButton(icon='share-variant')
+            share.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.share(postHashHex))
+
+            #add an edit button
+            edit = MDIconButton(icon='pencil')
+            edit.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.edit_tree(postHashHex))
+                            
             three_dots = MDIconButton(icon='dots-vertical')
             three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
+            header.add_widget(edit)
             header.add_widget(three_dots)
             
             #add the header to the layout

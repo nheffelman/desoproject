@@ -224,26 +224,86 @@
 
 
 
-#singe post read only screen with mdpostcard
-<SinglePostScreen>:
-    name: 'single_post'
+#singe tree screen
+<TreeScreen>:
+    name: 'tree'
     
     MDBoxLayout:
         orientation: 'vertical'
         # App Bar
-        MDBoxLayout:
+        OneLineIconListItem:
             adaptive_height: True
             id: appbar
-            MDIconButton:
+            text: 'Tree'
+            theme_text_color: 'Custom'
+            text_color: colors['Gray']['500']
+            divider: None
+            IconLeftWidget:
                 icon: 'arrow-left'
                 on_press: root.manager.current = 'homepage_read_only'
-            MDLabel:
-                id: username
-                text: 'Desoliscious'
-                halign: 'center'
-                valign: 'top'
-                font_size: 50
-                font_name: 'assets/Instafont.otf'
+                
+            
+        MDBoxLayout:
+            ScrollView:
+                bar_width: 0
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        id: singlePost 
+
+        MDBoxLayout:
+            adaptive_height: True
+            size_hint: (1, .1)MDBoxLayout:
+            adaptive_height: True
+            size_hint: (1, .1)
+            anchor: 'bottom'
+            id: bottombar
+            MDBoxLayout:
+                size_hint: (2, 1)
+                MDIconButton:
+                    icon: 'home'
+                    on_press: root.home_pressed()
+            MDBoxLayout:
+                size_hint: (2, 1)
+                MDIconButton:
+                    icon: 'magnify'
+            MDBoxLayout:
+                size_hint: (2, 1)
+                MDIconButton:
+                    icon: 'plus-box-outline'
+                    on_press: root.manager.current = 'create_post'
+            MDBoxLayout:
+                size_hint: (2, 1)
+                MDIconButton:
+                    on_press: root.manager.current = 'notifications'
+                    icon: 'alert-circle-outline'
+            MDBoxLayout:
+                size_hint: (2, 1)
+                MDIconButton:
+                    icon: 'message-text-outline'
+            
+#singe tree screen
+<EditTreeScreen>:
+    name: 'tree'
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        # App Bar
+        OneLineIconListItem:
+            adaptive_height: True
+            id: appbar
+            text: 'Tree'
+            theme_text_color: 'Custom'
+            text_color: colors['Gray']['500']
+            divider: None
+            IconLeftWidget:
+                icon: 'arrow-left'
+                on_press: root.manager.current = 'homepage_read_only'
+                
             
         MDBoxLayout:
             ScrollView:
@@ -289,7 +349,6 @@
                     icon: 'message-text-outline'
             
 
-
 <HomePageReadOnlyScreen>:
 
     name: 'homepage_read_only'
@@ -307,20 +366,23 @@
                         adaptive_height: True 
                         anchor: 'top'
                         id: appbar
-                        size_hint: (1, .2)
-                        MDBoxLayout:
-                            size_hint: (.2, 1)
-                            CircularAvatarImage:
-                                avatar: root.profile_picture
-                                size: '50dp', '50dp'
-                                on_press  : nav_drawer.set_state("open")
-                                halign: 'center'
+                        size_hint: (1, .125)
 
                         MDBoxLayout:
-                            pos_hint: {'center_y': 1}
+                            size_hint: (.2, 1)
+                            OneLineAvatarListItem:
+                                divider: None
+
+                                ImageLeftWidget:
+                                    source: root.profile_picture
+                                    on_press  : nav_drawer.set_state("open")                                    
+                                    radius: 50
+
+                        MDBoxLayout:
                             size_hint: (.3, 1)
-                            
+                                                        
                             MDRectangleFlatButton:
+                                pos_hint: {'center_y': .42}
                                 id: trending
                                 text_color: "black"
                                 line_color: "blue"
@@ -328,33 +390,22 @@
                                 text: 'Trending'
 
                         MDBoxLayout: 
-                            pos_hint: {'center_y': 1}
                             size_hint: (.3, 1)
                             
                             MDRectangleFlatButton:
+                                pos_hint: {'center_y': .42}
                                 id: following
                                 text_color: "black"
                                 line_color: "blue"
                                 text: 'Following'
                                 on_press: root.following_pressed()
-                                
-                                
-                        #MDBoxLayout:                            
-                        #    size_hint: (.2, 1)
-                        #    MDLabel:
-                        #        id: username
-                        #        text_size: self.size
-                        #        text: 'Desoliscious'
-                        #        halign: 'center'
-                        #        valign: 'top'
-                        #        font_size: 28
-                        #        font_name: 'assets/Instafont.otf'
+                        
                         MDBoxLayout:
                             size_hint: (.2, 1)
                             MDLabel:
-                                #halign: 'center'
+                                pos_hint: {'center_y': .42}
                                 id: desoprice
-                                text: root.desoprice
+                                text: '$'+root.desoprice
                             
                     MDBoxLayout:
                         ScrollView:
@@ -443,10 +494,17 @@
 
                 DrawerClickableItem:
                     icon: "bookmark"
-                    right_text: "+99"
+                    #right_text: "+99"
                     text: "Bookmarks"
                     text_right_color: "#4a4939"
                     on_press: root.bookmarksPressed()
+
+                DrawerClickableItem:
+                    icon: "tree"
+                    #right_text: "+99"
+                    text: "Trees"
+                    text_right_color: "#4a4939"
+                    on_press: root.treesPressed()
 
                 MDNavigationDrawerDivider:
 
@@ -483,29 +541,19 @@
                         adaptive_height: True 
                         anchor: 'top'
                         id: appbar
-                        size_hint: (1, .2)
-                        MDBoxLayout:
-                            size_hint: (.2, 1)
-                            CircularAvatarImage:
-                                avatar: root.profile_picture
-                                size: '50dp', '50dp'
-                                on_press  : nav_drawer.set_state("open")
-                                halign: 'center'
-
                         
+                        OneLineIconListItem:
+                            adaptive_height: True
+                            id: appbar
+                            text: 'Bookmarks'
+                            theme_text_color: 'Custom'
+                            text_color: colors['Gray']['A100']
+                            theme_font_style: 'H4'
+                            divider: None
+                            IconLeftWidget:
+                                icon: 'arrow-left'
+                                on_press: root.manager.current = 'homepage_read_only'
                                 
-                                
-                        MDBoxLayout:                            
-                            size_hint: (.2, 1)
-                            MDLabel:
-                                id: username
-                                text_size: self.size
-                                text: 'Bookmarks'
-                                halign: 'center'
-                                valign: 'top'
-                                font_size: 28
-                                font_name: 'assets/Instafont.otf'
-                        
                     MDBoxLayout:
                         ScrollView:
                             bar_width: 0
@@ -518,22 +566,127 @@
                                 orientation: 'vertical'
                                 id: mainLayout
 
-                                # Stories
-                                ScrollView:
-                                    size_hint_y: None
-                                    height: 110
-                                    bar_width: 0
-                                    MDBoxLayout:
-                                        adaptive_width: True
-                                        spacing: 5
-                                        padding: 5
-                                        MDBoxLayout:
-                                            adaptive_width: True
-                                            padding: 5
-                                            spacing: 5
-                                            id: stories
+                                MDBoxLayout:
+                                    orientation: 'vertical'
+                                    adaptive_height: True
+                                    spacing: '50'
+                                    id: timeline
 
                                 
+
+                    MDBoxLayout:
+                        adaptive_height: True
+                        size_hint: (1, .1)
+                        anchor: 'bottom'
+                        id: bottombar
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'home'
+                                on_press: root.home()
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'magnify'
+                                on_press: root.manager.current = 'search'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'plus-box-outline'
+                                on_press: root.manager.current = 'create_post'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                on_press: root.manager.current = 'notifications'
+                                icon: 'alert-circle-outline'
+                        MDBoxLayout:
+                            size_hint: (2, 1)
+                            MDIconButton:
+                                icon: 'message-text-outline'
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+
+            MDNavigationDrawerMenu:
+
+                MDNavigationDrawerHeader:
+                    title: "Account Info"
+                    title_color: "#4a4939"
+                    text: root.username
+                    spacing: "4dp"
+                    padding: "12dp", 0, 0, "56dp"
+
+                DrawerClickableItem:
+                    icon: "account"
+                    text: "Profile"
+                    on_press: root.slideout_profile_pressed()
+                    
+
+                DrawerClickableItem:
+                    icon: "send"
+                    right_text: "+99"
+                    text: "Chat"
+                    text_right_color: "#4a4939"
+
+                MDNavigationDrawerDivider:
+
+                DrawerClickableItem:
+                    icon: "code-json"
+                    text: "Transactions"
+                    on_press: root.transactions()
+
+                DrawerClickableItem:
+                    icon: "home"
+                    text: "Home"
+                    on_press: root.home()
+
+                DrawerClickableItem:
+                    icon: "close"
+                    text: "Log out"
+                    on_press: root.ids.timeline.clear_widgets()
+                    on_press: root.logout()
+
+<TreesScreen>:
+
+    name: 'trees'
+    orientation: 'vertical'
+    
+    MDNavigationLayout:
+        MDScreenManager:
+
+            MDScreen:
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    
+                    # App Bar
+                    MDBoxLayout:
+                        adaptive_height: True 
+                        anchor: 'top'
+                        id: appbar
+                        
+                        OneLineIconListItem:
+                            adaptive_height: True
+                            id: appbar
+                            text: 'Trees'
+                            theme_text_color: 'Custom'
+                            text_color: colors['Gray']['A100']
+                            theme_font_style: 'H4'
+                            divider: None
+                            IconLeftWidget:
+                                icon: 'arrow-left'
+                                on_press: root.manager.current = 'homepage_read_only'
+                                
+                    MDBoxLayout:
+                        ScrollView:
+                            bar_width: 0
+                            id: mainScrollView
+                            do_scroll_y: True
+                            on_touch_up: root.touch_up_value(self)
+
+                            MDBoxLayout:
+                                adaptive_height: True
+                                orientation: 'vertical'
+                                id: mainLayout
 
                                 MDBoxLayout:
                                     orientation: 'vertical'
@@ -1298,8 +1451,24 @@
 <BodyLabel@ButtonBehavior+MDLabel>
     #md_bg_color: 1, 1, 0, 1
     adaptive_height: True
+    
     font_name: "assets/NotoEmoji-Medium.ttf"
-   
+
+<TreeLabel@ButtonBehavior+MDCard>
+    
+    adaptive_height: True
+    radius: [6, ]
+    style: 'elevated'
+    size_hint_x: .5
+    post_hint_x: .5
+    md_bg_color: "#f6eeee"
+    line_color: (0.2, 0.2, 0.2, 0.8)
+    font_name: "assets/NotoEmoji-Medium.ttf"  
+    MDLabel: 
+        text: root.text
+        adaptive_height: True
+        markup: True
+        
 
                
 
@@ -1363,6 +1532,14 @@
         MDIconButton:
             id: bookmark
             icon: 'bookmark-outline'
+
+        MyLabel: 
+            font_size: 10
+            
+
+        MDIconButton:
+            id: tree
+            icon: 'tree-outline'
 
         MyLabel: 
             font_size: 10

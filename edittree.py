@@ -201,8 +201,8 @@ class RecloutLayout(MDBoxLayout):
 class LineEllipse3(Widget):
     points = ListProperty()
 
-class BodyLabel(ButtonBehavior, MDLabel):
-    pass
+class TreeLabel(ButtonBehavior, MDLabel):
+    text = StringProperty()
 
 class PostLayout(MDBoxLayout):
     
@@ -239,7 +239,7 @@ class Item(OneLineAvatarListItem):
 
 
 #class for reading a single post
-class SinglePostScreen(MDScreen):
+class EditTreeScreen(MDScreen):
     profile_picture = StringProperty("") #'https://avatars.githubusercontent.com/u/89080192?v=4'
     username = StringProperty("")
     desoprice = StringProperty("")
@@ -269,6 +269,13 @@ class SinglePostScreen(MDScreen):
         global loggedIn
         loggedIn = False
         self.manager.current = 'login'
+
+    def save(self, postHashHex):
+        pass
+
+    def delete(self, postHashHex):
+        pass
+
 
     def change_post(self, postHashHex):
         pickle_post(postHashHex)
@@ -374,7 +381,8 @@ class SinglePostScreen(MDScreen):
                         data = self.change_3dots_data(following=False)
                     three_dots = MDIconButton(icon='dots-vertical')
                     three_dots.bind(on_press=lambda widget: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
-                    
+
+                                       
                     #add the one line avatar list item to the header
                     header.add_widget(olali)
                     header.add_widget(three_dots)
@@ -398,7 +406,7 @@ class SinglePostScreen(MDScreen):
                         beforeUrl = body.split(url,1)[0]
 
                         if beforeUrl !='':
-                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20])
+                            bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20])
                             bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                             subCommentLayout.add_widget(bodyLabel)
                             subCommentLayout.height += bodyLabel.height
@@ -427,7 +435,7 @@ class SinglePostScreen(MDScreen):
                             previewHeight -= 250
                     #add any remaining body to the layout
                     if body != '':
-                        bodyLabel = BodyLabel(text=body, padding= [20,20])
+                        bodyLabel = TreeLabel(text=body, padding= [20,20])
                         bodyLabel.bind(on_press= lambda widget, commentLayout=subCommentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout))
                         #add the body card to the layout
                         subCommentLayout.add_widget(bodyLabel)
@@ -969,13 +977,20 @@ class SinglePostScreen(MDScreen):
                 data = self.change_3dots_data(following=True)
             else:
                 data = self.change_3dots_data(following=False)
-            three_dots = MDIconButton(icon='dots-vertical')
-            three_dots.bind(on_press=lambda widget, data=data, post=post: self.toast_3dots(data, post['PosterPublicKeyBase58Check']))
+
+            #create an edit button
+            save = MDIconButton(icon='content-save')
+            save.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.save(postHashHex))
+                            
+            #create delete button
+            delete = MDIconButton(icon='delete')
+            delete.bind(on_press=lambda widget, postHashHex=post['PostHashHex']: self.delete(postHashHex))
             
             #add the one line avatar list item to the header
             header.add_widget(olali)
-            header.add_widget(three_dots)
-            
+            header.add_widget(save)
+            header.add_widget(delete)
+                        
             #add the header to the layout
             layout.add_widget(header)
             layout.height += header.height
@@ -998,7 +1013,7 @@ class SinglePostScreen(MDScreen):
             for url in urls:
                 beforeUrl = body.split(url,1)[0]
                 if beforeUrl !='':
-                    bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
+                    bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20], markup=True)
                     bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     layout.add_widget(bodyLabel)
                     layout.height += bodyLabel.height
@@ -1030,7 +1045,7 @@ class SinglePostScreen(MDScreen):
                     previewHeight -= 250
             #add any remaining body to the layout
             if body != '':
-                bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                bodyLabel = TreeLabel(text=body, padding= [20,20], markup=True)
                 bodyLabel.bind(on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                 #add the body card to the layout
                 layout.add_widget(bodyLabel)
@@ -1115,7 +1130,7 @@ class SinglePostScreen(MDScreen):
                     beforeUrl = body.split(url,1)[0]
 
                     if beforeUrl != '':
-                        bodyLabel = BodyLabel(text=beforeUrl, padding = [25,25], markup=True)
+                        bodyLabel = TreeLabel(text=beforeUrl, padding = [25,25], markup=True)
                         bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
                                        on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         rightLayout.add_widget(bodyLabel)
@@ -1153,7 +1168,7 @@ class SinglePostScreen(MDScreen):
                         
                 #add any remaining body to the layout
                 if body != '':
-                    bodyLabel = BodyLabel(text=body, padding = [25,25], markup=True)
+                    bodyLabel = TreeLabel(text=body, padding = [25,25], markup=True)
                     bodyLabel.bind(on_press= lambda widget, postHashHex=post['RepostedPostEntryResponse']['PostHashHex']: self.change_post(postHashHex),
                                    on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                     #add the body card to the layout
@@ -1336,7 +1351,7 @@ class SinglePostScreen(MDScreen):
                         beforeUrl = body.split(url,1)[0]
 
                         if beforeUrl !='':
-                            bodyLabel = BodyLabel(text=beforeUrl, padding=[20, 20], markup=True)
+                            bodyLabel = TreeLabel(text=beforeUrl, padding=[20, 20], markup=True)
                             bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout),
                                            on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                             commentLayout.add_widget(bodyLabel)
@@ -1371,7 +1386,7 @@ class SinglePostScreen(MDScreen):
                             previewHeight -= 250
                     #add any remaining body to the layout
                     if body != '':
-                        bodyLabel = BodyLabel(text=body, padding= [20,20], markup=True)
+                        bodyLabel = TreeLabel(text=body, padding= [20,20], markup=True)
                         bodyLabel.bind(on_press= lambda widget, commentLayout=commentLayout, postHashHex=comment['PostHashHex']: self.expand_comment(postHashHex, commentLayout),
                                        on_ref_press = lambda widget, ref: self.ref_pressed(ref))
                         #add the body card to the layout
