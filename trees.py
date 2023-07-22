@@ -842,7 +842,8 @@ class TreesScreen(MDScreen):
                         following.append(publicKey)      
 
         #check to see if there are any cached posts
-        if ('trees'+userKey) in cached_posts:
+        # added b to trees to mess up the key so it always loads while im testing treeso
+        if ('treesb'+userKey) in cached_posts:
             print('cached posts found')
             reversed = cached_posts['trees'+userKey]
             print(reversed)
@@ -862,7 +863,7 @@ class TreesScreen(MDScreen):
             print('no cached posts')
             desoAssociations = deso.Associations(readerPublicKey=userKey)
             response = desoAssociations.queryForPostAssociations(transactorKey=userKey, associationType='treed', value='True',  ).json()
-            print(response)
+            #print('associations query responce', response)
             
             if 'error' not in response:
                 userposts = response['Associations']                       
@@ -874,18 +875,25 @@ class TreesScreen(MDScreen):
             
             
             
-        return userposts,following
+        return userposts,following, userKey
     
     def list_posts(self):
                
-        userposts, following = self.get_trees()
+        userposts, following, userKey = self.get_trees()
         
         for tree in userposts:
 
             desopost = deso.Posts()
             desopost.readerPublicKey = tree['TransactorPublicKeyBase58Check']
-            post = desopost.getSinglePost(postHashHex=tree['PostHashHex']).json()
-            print(post)
+            post = desopost.getSinglePost(postHashHex=tree['PostHashHex'], ).json()
+            desoAssociations = deso.Associations(readerPublicKey=userKey)
+            branch = desoAssociations.queryForPostAssociations(associationType='branch', valuePrefix='branchID' , postHashHex=post['PostFound']['PostHashHex']).json()
+            for association in branch['Associations']:
+                if 'AssociationValue' in association:
+                    branchPHH = association['AssociationValue'][8:]
+                    print('branch PHH ', branchPHH)
+                #print('branch response', branch)
+            #print(post)
             if 'error' in post:
                 toast('An error occured getting this post')
             else:            
